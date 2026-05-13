@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { AuthButton } from '@/components/ui/AuthButton'
 import { AuthInput } from '@/components/ui/AuthInput'
+import { usePresignedUpload } from '@/hooks/usePresignedUpload'
 import { ApiError } from '@/lib/apiClient'
 import { signup } from '@/services/authService'
 
@@ -22,6 +23,7 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { upload, isUploading } = usePresignedUpload({ type: 'PROFILE' })
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -44,7 +46,11 @@ export default function SignupPage() {
 
     setIsLoading(true)
     try {
-      await signup({ loginId, password, passwordConfirm, nickname }, profileImage ?? undefined)
+      let profileImageKey: string | null = null
+      if (profileImage) {
+        profileImageKey = await upload(profileImage)
+      }
+      await signup({ loginId, password, passwordConfirm, nickname, profileImageKey })
       router.push('/login?registered=1')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '회원가입 중 오류가 발생했습니다.')
@@ -143,7 +149,9 @@ export default function SignupPage() {
           <p className="text-sm text-red-400 bg-red-50 rounded-xl px-3.5 py-2.5">{error}</p>
         )}
 
-        <AuthButton disabled={isLoading}>{isLoading ? '가입 중...' : '완료'}</AuthButton>
+        <AuthButton disabled={isLoading || isUploading}>
+          {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '완료'}
+        </AuthButton>
       </form>
 
       <Link
