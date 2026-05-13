@@ -14,6 +14,7 @@ export interface SignupRequest {
   password: string
   passwordConfirm: string
   nickname: string
+  profileImageKey?: string | null
 }
 
 export interface LoginResponse {
