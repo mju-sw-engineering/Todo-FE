@@ -45,7 +45,7 @@ export default function TeamNewPage() {
         teamImageKey = await upload(teamImage)
       }
       const team = await createTeam({ teamName, teamImageKey }, token)
-      router.push(`/teams/${team.id}`)
+      router.push(`/teams/${team.teamId}`)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '팀 생성 중 오류가 발생했습니다.')
     } finally {
