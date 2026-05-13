@@ -1,12 +1,15 @@
 'use client'
 
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { AuthUser } from '@/types/auth.types'
 
-interface AuthState {
-  user: AuthUser | null
+interface AuthSlice {
   token: string | null
+  user: AuthUser | null
   isInitialized: boolean
+}
+
+interface AuthState extends AuthSlice {
   setAuth: (token: string, user: AuthUser) => void
   logout: () => void
 }
@@ -14,39 +17,41 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('accessToken')
-  })
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    if (typeof window === 'undefined') return null
-    const saved = localStorage.getItem('user')
-    try {
-      return saved ? (JSON.parse(saved) as AuthUser) : null
-    } catch {
-      localStorage.removeItem('user')
-      return null
-    }
+  const [auth, setAuthSlice] = useState<AuthSlice>({
+    token: null,
+    user: null,
+    isInitialized: false,
   })
 
-  const setAuth = useCallback((newToken: string, newUser: AuthUser) => {
-    localStorage.setItem('accessToken', newToken)
-    localStorage.setItem('user', JSON.stringify(newUser))
-    setToken(newToken)
-    setUser(newUser)
+  useEffect(() => {
+    const savedToken = localStorage.getItem('accessToken')
+    const savedUser = localStorage.getItem('user')
+    let user: AuthUser | null = null
+    if (savedUser) {
+      try {
+        user = JSON.parse(savedUser) as AuthUser
+      } catch {
+        localStorage.removeItem('user')
+      }
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount init from localStorage, no cascade risk
+    setAuthSlice({ token: savedToken, user, isInitialized: true })
+  }, [])
+
+  const setAuth = useCallback((token: string, user: AuthUser) => {
+    localStorage.setItem('accessToken', token)
+    localStorage.setItem('user', JSON.stringify(user))
+    setAuthSlice({ token, user, isInitialized: true })
   }, [])
 
   const logout = useCallback(() => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('user')
-    setToken(null)
-    setUser(null)
+    setAuthSlice({ token: null, user: null, isInitialized: true })
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, isInitialized: true, setAuth, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ ...auth, setAuth, logout }}>{children}</AuthContext.Provider>
   )
 }
 
