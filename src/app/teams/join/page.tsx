@@ -46,38 +46,36 @@ export default function TeamJoinPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-      <div className="w-full max-w-md bg-white rounded-[28px] border border-border shadow-[0_8px_40px_rgba(91,79,207,0.10)] px-9 pt-11 pb-11">
-        <div className="text-center mb-9">
-          <h1 className="text-[26px] font-bold text-ink tracking-tight">팀 참여하기</h1>
-          <p className="mt-2 text-[14px] text-muted">초대 코드를 입력해 팀에 참여하세요</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <AuthInput
-            id="inviteCode"
-            label="초대 코드"
-            type="text"
-            value={inviteCode}
-            onChange={(e) => setInviteCode(e.target.value)}
-            placeholder="초대 코드 8자리를 입력해 주세요"
-            maxLength={8}
-            required
-            hint={error || undefined}
-          />
-
-          <AuthButton disabled={isLoading || inviteCode.trim().length === 0}>
-            {isLoading ? '참여 중...' : '참여하기'}
-          </AuthButton>
-        </form>
-
-        <button
-          onClick={() => router.back()}
-          className="block w-full text-center mt-8 text-[14px] font-medium text-ink hover:text-primary transition-colors duration-200"
-        >
-          돌아가기
-        </button>
+    <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
+      <div className="text-center mb-9">
+        <h1 className="text-[22px] font-bold text-ink tracking-tight">팀 참여하기</h1>
+        <p className="mt-2 text-[14px] text-muted">초대 코드를 입력해 팀에 참여하세요</p>
       </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <AuthInput
+          id="inviteCode"
+          label="초대 코드"
+          type="text"
+          value={inviteCode}
+          onChange={(e) => setInviteCode(e.target.value)}
+          placeholder="초대 코드 8자리를 입력해 주세요"
+          maxLength={8}
+          required
+          hint={error || undefined}
+        />
+
+        <AuthButton disabled={isLoading || inviteCode.trim().length === 0}>
+          {isLoading ? '참여 중...' : '참여하기'}
+        </AuthButton>
+      </form>
+
+      <button
+        onClick={() => router.back()}
+        className="block w-full text-center mt-auto pt-8 text-[14px] font-medium text-ink hover:text-primary transition-colors duration-200"
+      >
+        돌아가기
+      </button>
     </div>
   )
 }
