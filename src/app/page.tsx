@@ -36,6 +36,12 @@ export default function Home() {
             안녕하세요, <span className="font-medium text-gray-900">{user.nickname}</span>님
           </span>
           <button
+            onClick={() => router.push('/teams')}
+            className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-hover transition-colors"
+          >
+            내 팀
+          </button>
+          <button
             onClick={handleLogout}
             className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
           >
