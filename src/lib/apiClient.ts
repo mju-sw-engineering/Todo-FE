@@ -43,3 +43,15 @@ export async function postForm<T>(path: string, formData: FormData, token?: stri
   })
   return handleResponse<T>(response)
 }
+
+// MinIO presigned URL에 직접 PUT — Authorization 헤더 없음 (서명 깨짐 방지)
+export async function putFile(url: string, file: File): Promise<void> {
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  })
+  if (!response.ok) {
+    throw new ApiError('파일 업로드에 실패했습니다.', response.status)
+  }
+}
