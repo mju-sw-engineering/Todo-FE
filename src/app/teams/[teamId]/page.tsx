@@ -1,12 +1,44 @@
 'use client'
 
-import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ApiError } from '@/lib/apiClient'
 import { getTeamById } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
-import type { TeamDetailResponse } from '@/types/team.types'
+import type { TeamDetailResponse, TeamMember } from '@/types/team.types'
+
+function getInitials(nickname: string): string {
+  const trimmed = nickname.trim()
+  if (trimmed.length <= 2) return trimmed
+  return trimmed.slice(0, 2)
+}
+
+function MemberAvatar({ member }: { member: TeamMember }) {
+  const isLeader = member.role === 'LEADER'
+  return (
+    <div
+      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-[13px] font-bold ${
+        isLeader ? 'bg-primary-light text-primary' : 'bg-[#d4f0e4] text-[#2d7a56]'
+      }`}
+    >
+      {getInitials(member.nickname)}
+    </div>
+  )
+}
+
+function LevelBadge({ level }: { level: number }) {
+  return (
+    <div className="relative w-14 h-14 shrink-0">
+      <div className="absolute inset-0 rounded-full border-2 border-primary/30" />
+      <div className="absolute inset-1.25 rounded-full bg-primary-light flex flex-col items-center justify-center">
+        <span className="text-[16px] font-bold text-primary leading-none">
+          {String(level).padStart(2, '0')}
+        </span>
+        <span className="text-[9px] text-primary/70 leading-tight">Lv</span>
+      </div>
+    </div>
+  )
+}
 
 export default function TeamDetailPage() {
   const router = useRouter()
@@ -16,11 +48,11 @@ export default function TeamDetailPage() {
 
   const [team, setTeam] = useState<TeamDetailResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [membersOpen, setMembersOpen] = useState(true)
   const [copyDone, setCopyDone] = useState(false)
 
   useEffect(() => {
     if (!token || !teamId) return
-
     getTeamById(teamId, token)
       .then(setTeam)
       .catch((err) => {
@@ -40,7 +72,7 @@ export default function TeamDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <div className="flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] items-center justify-center">
         <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -48,163 +80,71 @@ export default function TeamDetailPage() {
 
   if (!team) return null
 
-  const leader = team.members.find((m) => m.role === 'LEADER')
-
   return (
-    <div className="min-h-screen bg-surface px-6 py-10">
-      <div className="max-w-md mx-auto">
-        <button
-          onClick={() => router.push('/teams')}
-          className="flex items-center gap-1.5 text-[13px] font-medium text-muted hover:text-primary transition-colors duration-200 mb-6"
-        >
-          <svg
-            className="w-4 h-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+    <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
+      <h1 className="text-[22px] font-bold text-ink text-center mb-6">TodoTeam</h1>
+
+      {/* 팀 카드 */}
+      <div className="bg-white rounded-[18px] border border-border mb-3">
+        <div className="flex items-center gap-4 px-5 py-4">
+          <LevelBadge level={team.continuousTodoCount} />
+          <div className="flex-1 min-w-0">
+            <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
+            <p className="text-[13px] text-muted mt-0.5">
+              팀원 {team.memberCount}명 · 성공 {team.successCount} 회
+            </p>
+          </div>
+          <button
+            onClick={() => setMembersOpen((prev) => !prev)}
+            className="text-[13px] font-semibold text-primary shrink-0"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          내 팀 목록
-        </button>
-
-        {/* 팀 헤더 */}
-        <div className="bg-white rounded-[24px] border border-border shadow-[0_4px_24px_rgba(91,79,207,0.08)] px-6 py-7 mb-4">
-          <div className="flex items-center gap-4 mb-5">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-primary-light flex-shrink-0">
-              {team.teamImageUrl ? (
-                <Image
-                  src={team.teamImageUrl}
-                  alt={team.teamName}
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-primary"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.8}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z"
-                    />
-                  </svg>
-                </div>
-              )}
-            </div>
-            <div>
-              <h1 className="text-[22px] font-bold text-ink leading-tight">{team.teamName}</h1>
-              {leader && <p className="text-[13px] text-muted mt-0.5">팀장 · {leader.nickname}</p>}
-            </div>
-          </div>
-
-          {/* 통계 */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
-            {[
-              { label: '팀원', value: team.memberCount },
-              { label: '성공 횟수', value: team.successCount },
-              { label: '연속 달성', value: team.continuousTodoCount },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-surface rounded-[14px] px-3 py-3.5 text-center">
-                <p className="text-[20px] font-bold text-primary">{value}</p>
-                <p className="text-[11px] text-muted mt-0.5">{label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* 초대 코드 복사 */}
-          {team.inviteCode && (
-            <button
-              onClick={handleCopyInviteCode}
-              className="w-full flex items-center justify-between bg-primary-light rounded-[14px] px-4 py-3.5 hover:bg-[#e0daf8] transition-colors duration-200"
-            >
-              <div className="text-left">
-                <p className="text-[11px] text-primary font-semibold tracking-wide uppercase">
-                  초대 코드
-                </p>
-                <p className="text-[17px] font-bold text-ink tracking-[0.12em] mt-0.5">
-                  {team.inviteCode}
-                </p>
-              </div>
-              <span className="text-[12px] font-semibold text-primary">
-                {copyDone ? '복사됨 ✓' : '복사'}
-              </span>
-            </button>
-          )}
+            {membersOpen ? '닫기' : '열기'}
+          </button>
         </div>
 
-        {/* 팀원 목록 */}
-        <div className="bg-white rounded-[24px] border border-border shadow-[0_4px_24px_rgba(91,79,207,0.08)] px-6 py-6">
-          <h2 className="text-[15px] font-bold text-ink mb-4">팀원 {team.memberCount}명</h2>
-          <ul className="flex flex-col gap-3">
-            {team.members.map((member) => (
-              <li key={member.userId} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-primary-light flex-shrink-0 relative">
-                  {member.profileImageUrl ? (
-                    <Image
-                      src={member.profileImageUrl}
-                      alt={member.nickname}
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg
-                        className="w-5 h-5 text-primary"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.8}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <span className="text-[14px] font-semibold text-ink truncate">
-                    {member.nickname}
-                  </span>
-                  {member.role === 'LEADER' && (
-                    <span title="팀장">
-                      <svg
-                        className="w-4 h-4 text-yellow-400 flex-shrink-0"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M2.5 7.5L6 16h12l3.5-8.5-5 3-4.5-6-4.5 6-5-3z" />
-                      </svg>
+        {membersOpen && (
+          <div className="border-t border-border px-5 py-4">
+            <p className="text-[13px] font-semibold text-ink mb-3">팀원</p>
+            {team.members.length === 0 ? (
+              <p className="text-[13px] text-muted">아직 팀원이 없습니다</p>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {team.members.map((member) => (
+                  <li key={member.userId} className="flex items-center gap-3">
+                    <MemberAvatar member={member} />
+                    <span className="text-[14px] font-medium text-ink">
+                      {member.nickname}
+                      {member.role === 'LEADER' && (
+                        <span className="ml-1 text-[13px] text-muted font-normal">(팀장)</span>
+                      )}
                     </span>
-                  )}
-                </div>
-                {member.role === 'LEADER' && (
-                  <span className="text-[11px] font-semibold text-primary bg-primary-light px-2 py-0.5 rounded-full flex-shrink-0">
-                    팀장
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* 초대 코드 */}
+      {team.inviteCode && (
+        <button
+          onClick={handleCopyInviteCode}
+          className="w-full flex items-center justify-between bg-white rounded-[18px] border border-border px-5 py-4 mb-3 transition-colors duration-200 hover:bg-primary-light/40"
+        >
+          <span className="text-[14px] font-semibold text-ink">초대 코드: {team.inviteCode}</span>
+          <span className="text-[12px] font-semibold text-primary shrink-0 ml-2">
+            {copyDone ? '복사됨 ✓' : '복사'}
+          </span>
+        </button>
+      )}
+
+      <button
+        onClick={() => router.push('/teams')}
+        className="w-full text-center mt-4 text-[14px] font-medium text-muted hover:text-primary transition-colors duration-200"
+      >
+        목록으로
+      </button>
     </div>
   )
 }
