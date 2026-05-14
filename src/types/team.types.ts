@@ -25,6 +25,9 @@ export interface TeamListItem {
   teamId: number
   teamName: string
   teamImageUrl: string | null
+  memberCount?: number
+  successCount?: number
+  continuousTodoCount?: number
 }
 
 export interface TeamListResponse {
