@@ -1,0 +1,50 @@
+language: "ko-KR"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+
+  path_filters:
+    - "!**/*.lock"
+    - "!**/node_modules/**"
+    - "!**/.next/**"
+    - "!**/dist/**"
+
+  path_instructions:
+    - path: "src/app/**/*.tsx"
+      instructions: |
+        Next.js App Router 페이지입니다.
+        - Server Component가 기본이며, 클라이언트 상태/이벤트가 필요한 경우만 'use client' 사용 여부를 확인해주세요.
+        - 모바일 퍼스트 디자인인지 확인해주세요 (Tailwind 기본 클래스 → md: 순서).
+        - 고정 하단 버튼(fixed bottom-*)이 하단 네비게이션(h-16)과 겹치지 않는지 확인해주세요.
+
+    - path: "src/components/**/*.tsx"
+      instructions: |
+        재사용 가능한 UI 컴포넌트입니다.
+        - named export를 사용하는지 확인해주세요 (default export 지양).
+        - props 타입이 interface로 정의되어 있는지 확인해주세요.
+        - any 타입 사용 여부를 확인해주세요.
+
+    - path: "src/services/**/*.ts"
+      instructions: |
+        API 호출 함수입니다.
+        - apiClient(getJson/postJson/postForm)를 통해 호출하는지 확인해주세요.
+        - 에러는 ApiError로 처리하는지 확인해주세요.
+
+    - path: "src/types/**/*.ts"
+      instructions: |
+        TypeScript 타입 정의 파일입니다.
+        - 객체 형태는 interface, 유니온/유틸리티는 type을 사용하는지 확인해주세요.
+        - any 사용 금지, unknown 또는 명시적 타입을 사용하는지 확인해주세요.
+
+chat:
+  auto_reply: true
