@@ -131,7 +131,7 @@ function TodoListContent() {
   useEffect(() => {
     if (!token || !teamId) return
     getTodayTodos(teamId, token)
-      .then((res) => setTodos(res.todos ?? []))
+      .then((res) => setTodos(res))
       .catch((err) => {
         setError(err instanceof ApiError ? err.message : '투두 목록을 불러오지 못했습니다.')
       })
@@ -151,7 +151,7 @@ function TodoListContent() {
       <div className={`${CARD_CLASS} px-6 py-10 md:px-9 md:py-11`}>
         <h1 className="text-[22px] font-bold text-ink text-center mb-10">TodoTeam</h1>
         <div className="flex-1 flex flex-col items-center justify-center">
-          <p className="text-[15px] text-muted text-center">
+          <p className="text-[15px] text-muted text-center mb-10">
             {error ? '투두 목록을 불러오지 못했습니다.' : '아직 생성된 할 일이 없습니다!'}
           </p>
         </div>

@@ -11,9 +11,7 @@ export interface Todo {
   myStatus: MyTodoStatus
 }
 
-export interface TodayTodoListResponse {
-  todos: Todo[] | null
-}
+export type TodayTodoListResponse = Todo[] | null
 
 export interface CreateTodoRequest {
   title: string

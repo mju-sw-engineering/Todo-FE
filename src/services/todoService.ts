@@ -2,11 +2,13 @@ import { getJson, postJson } from '@/lib/apiClient'
 import type {
   CreateTodoRequest,
   CreateTodoResponse,
+  Todo,
   TodayTodoListResponse,
 } from '@/types/todo.types'
 
-export async function getTodayTodos(teamId: number, token: string): Promise<TodayTodoListResponse> {
-  return getJson<TodayTodoListResponse>(`/api/teams/${teamId}/todos`, token)
+export async function getTodayTodos(teamId: number, token: string): Promise<Todo[]> {
+  const data = await getJson<TodayTodoListResponse>(`/api/teams/${teamId}/todos`, token)
+  return data ?? []
 }
 
 export async function createTodo(
