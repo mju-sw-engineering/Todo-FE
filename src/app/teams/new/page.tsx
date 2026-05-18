@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
+import { AuthInput } from '@/components/ui/AuthInput'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
 import { ApiError } from '@/lib/apiClient'
 import { createTeam } from '@/services/teamService'
@@ -27,10 +28,9 @@ export default function TeamNewPage() {
     setPreviewUrl(URL.createObjectURL(file))
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
     setError('')
-
     if (!teamName.trim()) {
       setError('팀 이름을 입력해주세요')
       return
@@ -43,9 +43,7 @@ export default function TeamNewPage() {
     setIsLoading(true)
     try {
       let teamImageKey: string | null = null
-      if (teamImage) {
-        teamImageKey = await upload(teamImage)
-      }
+      if (teamImage) teamImageKey = await upload(teamImage)
       const team = await createTeam({ teamName: teamName.trim(), teamImageKey }, token)
       router.push(`/teams?created=1&teamId=${team.teamId}`)
     } catch (err) {
@@ -56,40 +54,17 @@ export default function TeamNewPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
-      <h1 className="text-[22px] font-bold text-ink text-center mb-8">팀 생성하기</h1>
+    <div className="flex-1 flex flex-col bg-white px-5 pt-8 pb-36 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
+      <h1 className="text-[22px] font-bold text-ink text-center">팀 생성하기</h1>
+      <p className="text-[13px] text-muted text-center mt-1 mb-8">새로운 팀을 만들어보세요</p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="teamName"
-            className="text-[13px] font-semibold text-primary tracking-wide"
-          >
-            팀 이름
-          </label>
-          <input
-            id="teamName"
-            type="text"
-            value={teamName}
-            onChange={(e) => {
-              setTeamName(e.target.value)
-              if (error) setError('')
-            }}
-            placeholder="팀 이름을 입력해주세요"
-            className="w-full px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_4px_rgba(91,79,207,0.10)]"
-          />
-          {error && <p className="text-xs text-red-400">{error}</p>}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <p className="text-[13px] font-semibold text-primary tracking-wide">
-            팀 이미지
-            <span className="text-[12px] font-normal text-muted">(선택)</span>
-          </p>
+      <form id="team-new-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {/* 팀 이미지 */}
+        <div className="flex flex-col items-center gap-3">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-24 h-24 rounded-[14px] border-[1.5px] border-border bg-white flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-primary hover:bg-primary-light"
+            className="relative w-24 h-24 rounded-full border-2 border-dashed border-border bg-input-bg flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-primary hover:bg-primary-light"
           >
             {previewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -101,19 +76,27 @@ export default function TeamNewPage() {
             ) : (
               <svg
                 className="w-7 h-7 text-muted"
-                xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={1.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
               >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
             )}
           </button>
+          <p className="text-[12px] text-muted">
+            {previewUrl ? '이미지를 탭해 변경' : '팀 이미지 선택 (선택)'}
+          </p>
           <input
             ref={fileInputRef}
             type="file"
@@ -123,21 +106,38 @@ export default function TeamNewPage() {
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={isLoading || isUploading}
-          className="w-full py-3.75 mt-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover hover:-translate-y-px hover:shadow-[0_8px_28px_rgba(91,79,207,0.28)] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
-        >
-          {isUploading ? '이미지 업로드 중...' : isLoading ? '생성 중...' : '완료'}
-        </button>
+        {/* 팀 이름 */}
+        <AuthInput
+          id="teamName"
+          label="팀 이름"
+          type="text"
+          value={teamName}
+          onChange={(e) => {
+            setTeamName(e.target.value)
+            if (error) setError('')
+          }}
+          placeholder="팀 이름을 입력해주세요"
+          hint={error || undefined}
+        />
       </form>
 
-      <button
-        onClick={() => router.back()}
-        className="w-full text-center mt-4 text-[14px] font-medium text-muted hover:text-primary transition-colors duration-200"
-      >
-        돌아가기
-      </button>
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border px-5 py-4 flex flex-col gap-2">
+        <button
+          type="submit"
+          form="team-new-form"
+          disabled={isLoading || isUploading}
+          className="w-full py-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isUploading ? '이미지 업로드 중...' : isLoading ? '생성 중...' : '팀 만들기'}
+        </button>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="w-full py-4 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+        >
+          돌아가기
+        </button>
+      </div>
     </div>
   )
 }

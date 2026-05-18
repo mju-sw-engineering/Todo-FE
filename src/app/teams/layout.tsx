@@ -1,4 +1,4 @@
-export default function TeamsLayout({ children }: { children: React.ReactNode }) {
+export default function TeamsDetailLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="min-h-dvh flex flex-col bg-surface md:items-center md:justify-start md:py-16"
