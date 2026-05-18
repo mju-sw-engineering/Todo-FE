@@ -54,72 +54,74 @@ export default function TeamNewPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white px-5 pt-8 pb-36 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
-      <h1 className="text-[22px] font-bold text-ink text-center">팀 생성하기</h1>
-      <p className="text-[13px] text-muted text-center mt-1 mb-8">새로운 팀을 만들어보세요</p>
+    <>
+      <div className="flex-1 flex flex-col bg-white px-5 pt-8 pb-36 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
+        <h1 className="text-[22px] font-bold text-ink text-center">팀 생성하기</h1>
+        <p className="text-[13px] text-muted text-center mt-1 mb-8">새로운 팀을 만들어보세요</p>
 
-      <form id="team-new-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
-        {/* 팀 이미지 */}
-        <div className="flex flex-col items-center gap-3">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="relative w-24 h-24 rounded-full border-2 border-dashed border-border bg-input-bg flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-primary hover:bg-primary-light"
-          >
-            {previewUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={previewUrl}
-                alt="팀 이미지 미리보기"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <svg
-                className="w-7 h-7 text-muted"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+        <form id="team-new-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
+          {/* 팀 이미지 */}
+          <div className="flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="relative w-24 h-24 rounded-full border-2 border-dashed border-border bg-input-bg flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-primary hover:bg-primary-light"
+            >
+              {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewUrl}
+                  alt="팀 이미지 미리보기"
+                  className="w-full h-full object-cover"
                 />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            )}
-          </button>
-          <p className="text-[12px] text-muted">
-            {previewUrl ? '이미지를 탭해 변경' : '팀 이미지 선택 (선택)'}
-          </p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
+              ) : (
+                <svg
+                  className="w-7 h-7 text-muted"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              )}
+            </button>
+            <p className="text-[12px] text-muted">
+              {previewUrl ? '이미지를 탭해 변경' : '팀 이미지 선택 (선택)'}
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+          </div>
+
+          {/* 팀 이름 */}
+          <AuthInput
+            id="teamName"
+            label="팀 이름"
+            type="text"
+            value={teamName}
+            onChange={(e) => {
+              setTeamName(e.target.value)
+              if (error) setError('')
+            }}
+            placeholder="팀 이름을 입력해주세요"
+            hint={error || undefined}
           />
-        </div>
-
-        {/* 팀 이름 */}
-        <AuthInput
-          id="teamName"
-          label="팀 이름"
-          type="text"
-          value={teamName}
-          onChange={(e) => {
-            setTeamName(e.target.value)
-            if (error) setError('')
-          }}
-          placeholder="팀 이름을 입력해주세요"
-          hint={error || undefined}
-        />
-      </form>
+        </form>
+      </div>
 
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border px-5 py-4 flex flex-col gap-2">
         <button
@@ -138,6 +140,6 @@ export default function TeamNewPage() {
           돌아가기
         </button>
       </div>
-    </div>
+    </>
   )
 }
