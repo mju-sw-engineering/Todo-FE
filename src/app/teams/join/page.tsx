@@ -42,25 +42,27 @@ export default function TeamJoinPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white px-5 pt-8 pb-36 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
-      <h1 className="text-[22px] font-bold text-ink text-center">팀 참여하기</h1>
-      <p className="text-[13px] text-muted text-center mt-1 mb-8">
-        초대 코드를 입력해 팀에 참여하세요
-      </p>
+    <>
+      <div className="flex-1 flex flex-col bg-white px-5 pt-8 pb-36 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
+        <h1 className="text-[22px] font-bold text-ink text-center">팀 참여하기</h1>
+        <p className="text-[13px] text-muted text-center mt-1 mb-8">
+          초대 코드를 입력해 팀에 참여하세요
+        </p>
 
-      <form id="team-join-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <AuthInput
-          id="inviteCode"
-          label="초대 코드"
-          type="text"
-          value={inviteCode}
-          onChange={(e) => setInviteCode(e.target.value)}
-          placeholder="초대 코드 8자리를 입력해 주세요"
-          maxLength={8}
-          required
-          hint={error || undefined}
-        />
-      </form>
+        <form id="team-join-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <AuthInput
+            id="inviteCode"
+            label="초대 코드"
+            type="text"
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
+            placeholder="초대 코드 8자리를 입력해 주세요"
+            maxLength={8}
+            required
+            hint={error || undefined}
+          />
+        </form>
+      </div>
 
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border px-5 py-4 flex flex-col gap-2">
         <AuthButton form="team-join-form" disabled={isLoading || inviteCode.trim().length === 0}>
@@ -73,6 +75,6 @@ export default function TeamJoinPage() {
           돌아가기
         </button>
       </div>
-    </div>
+    </>
   )
 }
