@@ -1,7 +1,10 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { ApiError } from '@/lib/apiClient'
+import { getTodayTodos } from '@/services/todoService'
+import { useAuth } from '@/store/authStore'
 import type { MyTodoStatus, Todo, TodoStatus } from '@/types/todo.types'
 
 type TabType = 'all' | 'incomplete' | 'complete'
@@ -18,30 +21,43 @@ const STATUS_STYLE: Record<TodoStatus, string> = {
   FAIL: 'bg-red-50 text-red-500',
 }
 
-const MY_STATUS_LABEL: Record<MyTodoStatus, string> = {
-  COMPLETED: '내가 완료함',
-  PENDING: '평가 대기중',
-  INCOMPLETE: '미완료',
-}
-
 const MY_STATUS_STYLE: Record<MyTodoStatus, string> = {
-  COMPLETED: 'bg-primary text-white',
-  PENDING: 'bg-amber-400 text-white',
-  INCOMPLETE: 'bg-gray-100 text-gray-400',
+  완료: 'bg-primary text-white',
+  '평가 대기중': 'bg-amber-400 text-white',
+  미완료: 'bg-gray-100 text-gray-400',
 }
 
 const BAR_COLOR: Record<MyTodoStatus, string> = {
-  COMPLETED: 'bg-primary',
-  PENDING: 'bg-amber-400',
-  INCOMPLETE: 'bg-gray-200',
+  완료: 'bg-primary',
+  '평가 대기중': 'bg-amber-400',
+  미완료: 'bg-gray-200',
 }
 
 function formatDate(date: Date): string {
   return `${date.getMonth() + 1}월 ${date.getDate()}일`
 }
 
+function formatDeadline(iso: string): string {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return iso
+  const h = String(d.getHours()).padStart(2, '0')
+  const m = String(d.getMinutes()).padStart(2, '0')
+  return `${h}:${m}`
+}
+
+function parseAchievementCount(value: string): { achieved: number; total: number } {
+  const parts = value.split('/')
+  if (parts.length === 2) {
+    const achieved = parseInt(parts[0].trim(), 10)
+    const total = parseInt(parts[1].trim(), 10)
+    if (!isNaN(achieved) && !isNaN(total)) return { achieved, total }
+  }
+  return { achieved: 0, total: 0 }
+}
+
 function TodoCard({ todo }: { todo: Todo }) {
-  const ratio = todo.totalCount > 0 ? todo.achievedCount / todo.totalCount : 0
+  const { achieved, total } = parseAchievementCount(todo.achievementCount)
+  const ratio = total > 0 ? achieved / total : 0
   const percentage = Math.round(ratio * 100)
   const isSuccess = todo.status === 'SUCCESS'
 
@@ -61,7 +77,7 @@ function TodoCard({ todo }: { todo: Todo }) {
       </div>
 
       <div className="flex items-center gap-2 text-[13px] text-muted">
-        <span>{todo.deadline}</span>
+        <span>{formatDeadline(todo.deadline)}</span>
         <span>·</span>
         <span>{todo.creatorNickname}</span>
       </div>
@@ -69,13 +85,13 @@ function TodoCard({ todo }: { todo: Todo }) {
       <button
         className={`w-full py-2.5 rounded-[10px] text-[13px] font-semibold text-center ${MY_STATUS_STYLE[todo.myStatus]}`}
       >
-        {MY_STATUS_LABEL[todo.myStatus]}
+        {todo.myStatus}
       </button>
 
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[12px] text-muted">
-            {todo.achievedCount}/{todo.totalCount}명 인증
+            {achieved}/{total}명 인증
           </span>
           <span className="text-[12px] text-muted">{percentage}%</span>
         </div>
@@ -90,65 +106,78 @@ function TodoCard({ todo }: { todo: Todo }) {
   )
 }
 
-const MOCK_TODOS: Todo[] = [
-  {
-    todoId: 1,
-    teamId: 1,
-    title: '팀 회의 자료 준비',
-    deadline: '18:00',
-    description: null,
-    creatorNickname: '이서연',
-    status: 'IN_PROGRESS',
-    myStatus: 'COMPLETED',
-    achievedCount: 2,
-    totalCount: 4,
-  },
-  {
-    todoId: 2,
-    teamId: 1,
-    title: '주간 리포트 작성',
-    deadline: '20:00',
-    description: null,
-    creatorNickname: '김민준',
-    status: 'IN_PROGRESS',
-    myStatus: 'PENDING',
-    achievedCount: 2,
-    totalCount: 4,
-  },
-  {
-    todoId: 3,
-    teamId: 1,
-    title: '코드 리뷰 완료',
-    deadline: '22:00',
-    description: null,
-    creatorNickname: '최유진',
-    status: 'IN_PROGRESS',
-    myStatus: 'INCOMPLETE',
-    achievedCount: 1,
-    totalCount: 4,
-  },
-  {
-    todoId: 4,
-    teamId: 1,
-    title: '디자인 시안 검토',
-    deadline: '14:00',
-    description: null,
-    creatorNickname: '박지호',
-    status: 'SUCCESS',
-    myStatus: 'COMPLETED',
-    achievedCount: 4,
-    totalCount: 4,
-  },
-]
-
-export default function TodoListPage() {
+function TodoListContent() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const teamId = Number(params.teamId)
+  const { token } = useAuth()
+
+  const [todos, setTodos] = useState<Todo[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [tab, setTab] = useState<TabType>('all')
+  const [showToast, setShowToast] = useState(() => searchParams.get('created') === '1')
+
+  useEffect(() => {
+    if (!showToast) return
+    const t = setTimeout(() => setShowToast(false), 3000)
+    return () => clearTimeout(t)
+  }, [showToast])
+
+  useEffect(() => {
+    if (!token || !teamId) return
+    getTodayTodos(teamId, token)
+      .then((res) => setTodos(res.todos ?? []))
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : '투두 목록을 불러오지 못했습니다.')
+      })
+      .finally(() => setIsLoading(false))
+  }, [token, teamId])
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up">
+        <h1 className="text-[22px] font-bold text-ink text-center mb-10">TodoTeam</h1>
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <p className="text-[15px] text-muted text-center">투두 목록을 불러오지 못했습니다.</p>
+        </div>
+        <button
+          onClick={() => router.push(`/teams/${teamId}/todos/new`)}
+          className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+        >
+          오늘의 할 일 생성
+        </button>
+      </div>
+    )
+  }
+
+  if (todos.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up">
+        <h1 className="text-[22px] font-bold text-ink text-center mb-10">TodoTeam</h1>
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <p className="text-[15px] text-muted text-center">아직 생성된 할 일이 없습니다!</p>
+        </div>
+        <button
+          onClick={() => router.push(`/teams/${teamId}/todos/new`)}
+          className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+        >
+          오늘의 할 일 생성
+        </button>
+      </div>
+    )
+  }
 
   const today = new Date()
-  const todos = MOCK_TODOS
 
   const filteredTodos = todos.filter((t) => {
     if (tab === 'complete') return t.status === 'SUCCESS'
@@ -164,23 +193,6 @@ export default function TodoListPage() {
     { key: 'incomplete', label: '미완료', count: incompleteCount },
     { key: 'complete', label: '완료', count: completeCount },
   ]
-
-  if (todos.length === 0) {
-    return (
-      <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up">
-        <h1 className="text-[22px] font-bold text-ink text-center mb-10">TodoTeam</h1>
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <p className="text-[15px] text-muted text-center">아직 생성된 할 일이 없습니다!</p>
-        </div>
-        <button
-          onClick={() => router.push(`/teams/${teamId}/todos/new`)}
-          className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
-        >
-          오늘의 할 일 생성
-        </button>
-      </div>
-    )
-  }
 
   return (
     <div className="flex-1 flex flex-col bg-white animate-fade-up">
@@ -223,6 +235,26 @@ export default function TodoListPage() {
           할 일 추가
         </button>
       </div>
+
+      {showToast && (
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up">
+          할 일이 생성되었습니다
+        </div>
+      )}
     </div>
+  )
+}
+
+export default function TodoListPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center bg-white">
+          <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <TodoListContent />
+    </Suspense>
   )
 }

@@ -1,18 +1,12 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
-
-interface MockMember {
-  userId: number
-  nickname: string
-}
-
-const MOCK_MEMBERS: MockMember[] = [
-  { userId: 1, nickname: '김민준' },
-  { userId: 2, nickname: '이서연' },
-  { userId: 3, nickname: '박지호' },
-]
+import { useEffect, useState } from 'react'
+import { ApiError } from '@/lib/apiClient'
+import { getTeamById } from '@/services/teamService'
+import { createTodo } from '@/services/todoService'
+import { useAuth } from '@/store/authStore'
+import type { TeamMember } from '@/types/team.types'
 
 function getInitials(nickname: string): string {
   return nickname.trim().slice(0, 2)
@@ -25,11 +19,21 @@ const AVATAR_COLORS = [
   'bg-[#e0d4f5] text-[#6b3fa0]',
 ]
 
+function toIsoDeadline(timeValue: string): string {
+  const [hours, minutes] = timeValue.split(':').map(Number)
+  const d = new Date()
+  d.setHours(hours, minutes, 0, 0)
+  return d.toISOString()
+}
+
 export default function TodoNewPage() {
   const router = useRouter()
   const params = useParams()
   const teamId = Number(params.teamId)
+  const { token } = useAuth()
 
+  const [members, setMembers] = useState<TeamMember[]>([])
+  const [isMembersLoading, setIsMembersLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [deadline, setDeadline] = useState('')
   const [description, setDescription] = useState('')
@@ -37,7 +41,13 @@ export default function TodoNewPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const members = MOCK_MEMBERS
+  useEffect(() => {
+    if (!token || !teamId) return
+    getTeamById(teamId, token)
+      .then((team) => setMembers(team.members))
+      .catch(() => setError('팀원 목록을 불러오지 못했습니다.'))
+      .finally(() => setIsMembersLoading(false))
+  }, [token, teamId])
 
   function toggleExclude(userId: number) {
     setExcludedIds((prev) => {
@@ -61,18 +71,33 @@ export default function TodoNewPage() {
       setError('마감 시간을 입력해주세요.')
       return
     }
+    if (!token) {
+      setError('로그인이 필요합니다.')
+      return
+    }
 
-    const includedMemberIds = members.filter((m) => !excludedIds.has(m.userId)).map((m) => m.userId)
+    const assigneeIds = members.filter((m) => !excludedIds.has(m.userId)).map((m) => m.userId)
 
-    if (includedMemberIds.length === 0) {
+    if (assigneeIds.length === 0) {
       setError('최소 한 명의 팀원을 포함해야 합니다.')
       return
     }
 
     setIsLoading(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await createTodo(
+        teamId,
+        {
+          title: title.trim(),
+          deadline: toIsoDeadline(deadline),
+          description: description.trim() || undefined,
+          assigneeIds,
+        },
+        token
+      )
       router.push(`/teams/${teamId}/todos?created=1`)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '할 일 생성 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
     }
@@ -139,44 +164,50 @@ export default function TodoNewPage() {
 
         <div className="flex flex-col gap-3">
           <p className="text-[13px] font-semibold text-primary tracking-wide">팀원</p>
-          <ul className="flex flex-col gap-2">
-            {members.map((member, idx) => {
-              const isExcluded = excludedIds.has(member.userId)
-              const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length]
-              return (
-                <li
-                  key={member.userId}
-                  className={`flex items-center justify-between bg-white rounded-[14px] border border-border px-4 py-3.5 transition-all duration-200 ${
-                    isExcluded ? 'opacity-40' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${avatarColor}`}
-                    >
-                      {getInitials(member.nickname)}
+          {isMembersLoading ? (
+            <div className="flex justify-center py-6">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {members.map((member, idx) => {
+                const isExcluded = excludedIds.has(member.userId)
+                const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length]
+                return (
+                  <li
+                    key={member.userId}
+                    className={`flex items-center justify-between bg-white rounded-[14px] border border-border px-4 py-3.5 transition-all duration-200 ${
+                      isExcluded ? 'opacity-40' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${avatarColor}`}
+                      >
+                        {getInitials(member.nickname)}
+                      </div>
+                      <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
                     </div>
-                    <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
-                  </div>
-                  {isExcluded ? (
-                    <button
-                      onClick={() => toggleExclude(member.userId)}
-                      className="text-[13px] font-semibold text-muted"
-                    >
-                      제외됨
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => toggleExclude(member.userId)}
-                      className="px-4 py-1.5 rounded-[10px] border border-border text-[13px] font-semibold text-ink transition-all duration-200 hover:border-primary hover:text-primary"
-                    >
-                      제외
-                    </button>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+                    {isExcluded ? (
+                      <button
+                        onClick={() => toggleExclude(member.userId)}
+                        className="text-[13px] font-semibold text-muted"
+                      >
+                        제외됨
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => toggleExclude(member.userId)}
+                        className="px-4 py-1.5 rounded-[10px] border border-border text-[13px] font-semibold text-ink transition-all duration-200 hover:border-primary hover:text-primary"
+                      >
+                        제외
+                      </button>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
 
         {error && (
@@ -187,7 +218,7 @@ export default function TodoNewPage() {
       <div className="mt-8 flex flex-col gap-3">
         <button
           onClick={handleSubmit}
-          disabled={isLoading}
+          disabled={isLoading || isMembersLoading}
           className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
         >
           {isLoading ? '생성 중...' : '생성하기'}
