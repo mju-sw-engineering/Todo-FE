@@ -32,4 +32,5 @@ export interface AuthUser {
   loginId: string
   nickname: string
   profileImageUrl: string | null
+  userId?: number | null
 }

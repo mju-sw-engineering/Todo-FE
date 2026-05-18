@@ -8,7 +8,7 @@ export interface Todo {
   creatorNickname: string
   status: TodoStatus
   achievementCount: string
-  myStatus: MyTodoStatus
+  myStatus: MyTodoStatus | null
 }
 
 export type TodayTodoListResponse = Todo[] | null
@@ -30,4 +30,28 @@ export interface CreateTodoResponse {
   status: TodoStatus
   assigneeIds: number[]
   createdAt: string
+}
+
+export interface TodoParticipant {
+  userId: number
+  nickname: string
+  profileImageUrl: string | null
+  proofImageUrl: string | null
+  status: MyTodoStatus | null
+}
+
+export interface TodoDetail {
+  todoId: number
+  title: string
+  deadline: string
+  creatorNickname: string
+  status: TodoStatus
+  achievementCount: string
+  myStatus?: MyTodoStatus | null
+  description: string | null
+  participants: TodoParticipant[]
+}
+
+export interface SubmitTodoRequest {
+  proofImageKey: string
 }

@@ -77,7 +77,6 @@ export default function TodoNewPage() {
     }
 
     const assigneeIds = members.filter((m) => !excludedIds.has(m.userId)).map((m) => m.userId)
-
     if (assigneeIds.length === 0) {
       setError('최소 한 명의 팀원을 포함해야 합니다.')
       return
@@ -104,10 +103,20 @@ export default function TodoNewPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
-      <h1 className="text-[22px] font-bold text-ink text-center mb-8">TodoTeam</h1>
+    <div className="flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
+      {/* 헤더 (스크롤 고정) */}
+      <div className="px-6 pt-8 pb-2 md:px-9">
+        <button
+          onClick={() => router.back()}
+          className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-primary transition-colors"
+        >
+          ← 뒤로
+        </button>
+        <h1 className="text-[22px] font-bold text-ink">할 일 만들기</h1>
+      </div>
 
-      <div className="flex flex-col gap-5 flex-1">
+      {/* 스크롤 영역 */}
+      <div className="flex-1 overflow-y-auto px-6 py-5 md:px-9 flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <label htmlFor="title" className="text-[13px] font-semibold text-primary tracking-wide">
             제목
@@ -215,7 +224,8 @@ export default function TodoNewPage() {
         )}
       </div>
 
-      <div className="mt-8 flex flex-col gap-3">
+      {/* 바텀 버튼 (항상 고정) */}
+      <div className="px-6 py-5 border-t border-border md:px-9 flex flex-col gap-3">
         <button
           onClick={handleSubmit}
           disabled={isLoading || isMembersLoading}
@@ -225,7 +235,7 @@ export default function TodoNewPage() {
         </button>
         <button
           onClick={() => router.back()}
-          className="w-full text-center text-[14px] font-medium text-muted hover:text-primary transition-colors duration-200"
+          className="w-full py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
         >
           돌아가기
         </button>

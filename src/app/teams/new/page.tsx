@@ -54,11 +54,15 @@ export default function TeamNewPage() {
   }
 
   return (
-    <>
-      <div className="flex-1 flex flex-col bg-white px-5 pt-8 pb-36 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
+    <div className="flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]">
+      {/* 헤더 (스크롤 고정) */}
+      <div className="px-6 pt-8 pb-4 md:px-9">
         <h1 className="text-[22px] font-bold text-ink text-center">팀 생성하기</h1>
-        <p className="text-[13px] text-muted text-center mt-1 mb-8">새로운 팀을 만들어보세요</p>
+        <p className="text-[13px] text-muted text-center mt-1">새로운 팀을 만들어보세요</p>
+      </div>
 
+      {/* 스크롤 영역 */}
+      <div className="flex-1 overflow-y-auto px-6 pb-4 md:px-9">
         <form id="team-new-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* 팀 이미지 */}
           <div className="flex flex-col items-center gap-3">
@@ -123,23 +127,24 @@ export default function TeamNewPage() {
         </form>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border px-5 py-4 flex flex-col gap-2">
+      {/* 바텀 버튼 (항상 고정) */}
+      <div className="px-6 py-5 border-t border-border md:px-9 flex flex-col gap-3">
         <button
           type="submit"
           form="team-new-form"
           disabled={isLoading || isUploading}
-          className="w-full py-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isUploading ? '이미지 업로드 중...' : isLoading ? '생성 중...' : '팀 만들기'}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="w-full py-4 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+          className="w-full py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
         >
           돌아가기
         </button>
       </div>
-    </>
+    </div>
   )
 }
