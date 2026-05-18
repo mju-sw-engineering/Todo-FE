@@ -242,18 +242,12 @@ function TodoDetailContent() {
               !byUserId && user?.nickname && user.nickname !== user.loginId
                 ? member.nickname === user.nickname
                 : false
-            const isOnlyMine =
-              !byUserId &&
-              !byNickname &&
-              effectiveMyStatus === '미완료' &&
-              todo.participants.filter((p) => p.status === '미완료').length === 1 &&
-              member.status === '미완료'
             return (
               <MemberCertCard
                 key={member.userId}
                 member={member}
                 index={idx}
-                isCurrentUser={byUserId || byNickname || isOnlyMine}
+                isCurrentUser={byUserId || byNickname}
                 onCertify={navigateToCertify}
               />
             )

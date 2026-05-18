@@ -43,7 +43,9 @@ function CertifyContent() {
       )
       await uploadFileToStorage(uploadUrl, file)
       await submitTodo(todoId, { proofImageKey: objectKey }, token)
-      router.replace(`/teams/${teamId}/todos/${todoId}?certified=1`)
+      router.replace(
+        `/teams/${teamId}/todos/${todoId}?certified=1&myStatus=${encodeURIComponent('평가 대기중')}`
+      )
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : '인증샷 업로드에 실패했습니다. 다시 시도해주세요.'
