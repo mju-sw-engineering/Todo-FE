@@ -152,7 +152,7 @@ function TodoListContent() {
         <h1 className="text-[22px] font-bold text-ink text-center mb-10">TodoTeam</h1>
         <div className="flex-1 flex flex-col items-center justify-center">
           <p className="text-[15px] text-muted text-center mb-10">
-            {error ? '투두 목록을 불러오지 못했습니다.' : '아직 생성된 할 일이 없습니다!'}
+            {error ? '투두 목록을 불러오지 못했습니다.' : '오늘 생성된 할 일이 없습니다'}
           </p>
         </div>
         <button
