@@ -9,6 +9,23 @@ import { ApiError } from '@/lib/apiClient'
 import { login } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
 
+interface JwtPayload {
+  sub?: string
+  nickname?: string
+  memberId?: number
+  userId?: number
+  id?: number
+}
+
+function decodeJwt(token: string): JwtPayload {
+  try {
+    const payload = token.split('.')[1]
+    return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+  } catch {
+    return {}
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const { setAuth } = useAuth()
@@ -24,7 +41,10 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const { accessToken } = await login({ loginId, password })
-      setAuth(accessToken, { loginId, nickname: loginId, profileImageUrl: null })
+      const jwt = decodeJwt(accessToken)
+      const nickname = jwt.nickname ?? loginId
+      const userId = jwt.memberId ?? jwt.userId ?? jwt.id ?? null
+      setAuth(accessToken, { loginId, nickname, profileImageUrl: null, userId })
       router.push('/')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '로그인 중 오류가 발생했습니다.')
