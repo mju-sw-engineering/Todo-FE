@@ -56,7 +56,7 @@ function CertifyContent() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]">
+    <div className="flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
       {/* label 방식: 브라우저 네이티브 파일 다이얼로그 트리거 (모바일 포함 100% 동작) */}
       <input
         id="certify-camera"

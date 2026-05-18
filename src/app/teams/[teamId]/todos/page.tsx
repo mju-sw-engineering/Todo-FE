@@ -111,7 +111,7 @@ function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
 }
 
 const CARD_CLASS =
-  'flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]'
+  'flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]'
 
 function TodoListContent() {
   const router = useRouter()
