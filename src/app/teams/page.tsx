@@ -30,6 +30,7 @@ function TeamsContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [showToast, setShowToast] = useState(() => searchParams.get('created') === '1')
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null)
 
   useEffect(() => {
     if (!showToast) return
@@ -62,50 +63,131 @@ function TeamsContent() {
       {error && <p className="text-sm text-red-400 bg-red-50 rounded-xl px-4 py-3 mb-4">{error}</p>}
 
       {teams.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 mt-20">
-          <p className="text-[15px] text-ink mb-4">아직 생성된 팀이 없습니다!</p>
-          <button
-            onClick={() => router.push('/teams/new')}
-            className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
-          >
-            팀 생성하기
-          </button>
-          <button
-            onClick={() => router.push('/teams/join')}
-            className="w-full py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
-          >
-            팀 참여하기
-          </button>
+        <div className="flex flex-col items-center mt-16 flex-1">
+          <div className="flex flex-col items-center gap-3 flex-1 justify-center">
+            <svg
+              className="w-14 h-14 text-muted/60"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <p className="text-[17px] font-bold text-ink">소속된 팀이 없습니다</p>
+            <p className="text-[14px] text-muted text-center leading-relaxed">
+              팀에 참여하거나 새 팀을 만들면
+              <br />
+              함께 할 일을 관리할 수 있어요
+            </p>
+          </div>
+          <div className="w-full flex flex-col gap-3 pb-2">
+            <button
+              onClick={() => router.push('/teams/new')}
+              className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+            >
+              + 팀 만들기
+            </button>
+            <button
+              onClick={() => router.push('/teams/join')}
+              className="w-full py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+            >
+              팀 참여하기
+            </button>
+          </div>
         </div>
       ) : (
         <>
-          <button
-            onClick={() => router.push('/teams/new')}
-            className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover mb-4"
-          >
-            팀 생성하기
-          </button>
-
-          <ul className="flex flex-col gap-3">
-            {teams.map((team) => (
-              <li key={team.teamId}>
-                <button
-                  onClick={() => router.push(`/teams/${team.teamId}`)}
-                  className="w-full flex items-center gap-4 bg-white rounded-[18px] border border-border px-5 py-4 text-left transition-all duration-200 hover:border-primary hover:shadow-[0_4px_18px_rgba(91,79,207,0.10)]"
-                >
-                  <LevelBadge level={team.continuousTodoCount ?? 0} />
-                  <div className="min-w-0">
-                    <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
-                    {(team.memberCount !== undefined || team.successCount !== undefined) && (
-                      <p className="text-[13px] text-muted mt-0.5">
-                        팀원 {team.memberCount ?? 0}명 · 성공 {team.successCount ?? 0} 회
-                      </p>
-                    )}
+          <ul className="flex flex-col gap-3 flex-1">
+            {teams.map((team) => {
+              const isSelected = selectedTeamId === team.teamId
+              return (
+                <li key={team.teamId}>
+                  <div
+                    className={`w-full flex items-center gap-4 bg-white rounded-[18px] border px-5 py-4 transition-all duration-200 ${
+                      isSelected
+                        ? 'border-primary shadow-[0_4px_18px_rgba(91,79,207,0.15)]'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <button
+                      onClick={() => router.push(`/teams/${team.teamId}`)}
+                      className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                    >
+                      <LevelBadge level={team.continuousTodoCount ?? 0} />
+                      <div className="min-w-0">
+                        <p className="text-[15px] font-semibold text-ink truncate">
+                          {team.teamName}
+                        </p>
+                        {(team.memberCount !== undefined || team.successCount !== undefined) && (
+                          <p className="text-[13px] text-muted mt-0.5">
+                            팀원 {team.memberCount ?? 0}명 · 성공 {team.successCount ?? 0} 회
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setSelectedTeamId((prev) => (prev === team.teamId ? null : team.teamId))
+                      }
+                      className={`shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                        isSelected
+                          ? 'border-primary bg-primary'
+                          : 'border-border bg-white hover:border-primary/60'
+                      }`}
+                    >
+                      {isSelected && (
+                        <svg
+                          className="w-3.5 h-3.5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
-                </button>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ul>
+
+          <div className="flex flex-col gap-3 mt-4">
+            {selectedTeamId !== null ? (
+              <button
+                onClick={() => router.push(`/teams/${selectedTeamId}/todos`)}
+                className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+              >
+                다음
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push('/teams/new')}
+                  className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+                >
+                  + 팀 만들기
+                </button>
+                <button
+                  onClick={() => router.push('/teams/join')}
+                  className="w-full py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+                >
+                  팀 참여하기
+                </button>
+              </>
+            )}
+          </div>
         </>
       )}
 

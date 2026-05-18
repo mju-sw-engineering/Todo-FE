@@ -140,8 +140,15 @@ export default function TeamDetailPage() {
       )}
 
       <button
+        onClick={() => router.push(`/teams/${teamId}/todos`)}
+        className="w-full py-3.75 mt-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+      >
+        오늘의 할 일
+      </button>
+
+      <button
         onClick={() => router.push('/teams')}
-        className="w-full text-center mt-4 text-[14px] font-medium text-muted hover:text-primary transition-colors duration-200"
+        className="w-full text-center mt-3 text-[14px] font-medium text-muted hover:text-primary transition-colors duration-200"
       >
         목록으로
       </button>
