@@ -82,11 +82,11 @@ function TodoCard({ todo }: { todo: Todo }) {
         <span>{todo.creatorNickname}</span>
       </div>
 
-      <button
+      <div
         className={`w-full py-2.5 rounded-[10px] text-[13px] font-semibold text-center ${MY_STATUS_STYLE[todo.myStatus]}`}
       >
         {todo.myStatus}
-      </button>
+      </div>
 
       <div>
         <div className="flex items-center justify-between mb-1.5">
@@ -105,6 +105,9 @@ function TodoCard({ todo }: { todo: Todo }) {
     </div>
   )
 }
+
+const CARD_CLASS =
+  'flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]'
 
 function TodoListContent() {
   const router = useRouter()
@@ -137,35 +140,20 @@ function TodoListContent() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-white">
+      <div className={`${CARD_CLASS} items-center justify-center`}>
         <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
-  if (error) {
+  if (error || todos.length === 0) {
     return (
-      <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up">
+      <div className={`${CARD_CLASS} px-6 py-10 md:px-9 md:py-11`}>
         <h1 className="text-[22px] font-bold text-ink text-center mb-10">TodoTeam</h1>
         <div className="flex-1 flex flex-col items-center justify-center">
-          <p className="text-[15px] text-muted text-center">투두 목록을 불러오지 못했습니다.</p>
-        </div>
-        <button
-          onClick={() => router.push(`/teams/${teamId}/todos/new`)}
-          className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
-        >
-          오늘의 할 일 생성
-        </button>
-      </div>
-    )
-  }
-
-  if (todos.length === 0) {
-    return (
-      <div className="flex-1 flex flex-col bg-white px-6 py-10 animate-fade-up">
-        <h1 className="text-[22px] font-bold text-ink text-center mb-10">TodoTeam</h1>
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <p className="text-[15px] text-muted text-center">아직 생성된 할 일이 없습니다!</p>
+          <p className="text-[15px] text-muted text-center">
+            {error ? '투두 목록을 불러오지 못했습니다.' : '아직 생성된 할 일이 없습니다!'}
+          </p>
         </div>
         <button
           onClick={() => router.push(`/teams/${teamId}/todos/new`)}
@@ -195,13 +183,15 @@ function TodoListContent() {
   ]
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up">
-      <div className="px-6 pt-8 pb-4">
+    <div className={CARD_CLASS}>
+      {/* 날짜·제목 */}
+      <div className="px-6 pt-8 pb-4 md:px-9">
         <p className="text-[13px] text-muted mb-1">{formatDate(today)} 오늘</p>
         <h1 className="text-[26px] font-bold text-ink">할 일</h1>
       </div>
 
-      <div className="flex gap-0 border-b border-border px-6">
+      {/* 탭 */}
+      <div className="flex border-b border-border px-6 md:px-9">
         {TAB_ITEMS.map(({ key, label, count }) => (
           <button
             key={key}
@@ -217,7 +207,8 @@ function TodoListContent() {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 pb-24">
+      {/* 투두 목록 */}
+      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 md:px-9">
         {filteredTodos.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-20">
             <p className="text-[14px] text-muted">해당하는 할 일이 없습니다</p>
@@ -227,7 +218,8 @@ function TodoListContent() {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-white border-t border-border md:max-w-90 md:left-1/2 md:-translate-x-1/2">
+      {/* 하단 버튼 */}
+      <div className="px-6 py-5 border-t border-border md:px-9">
         <button
           onClick={() => router.push(`/teams/${teamId}/todos/new`)}
           className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
@@ -237,7 +229,7 @@ function TodoListContent() {
       </div>
 
       {showToast && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up">
           할 일이 생성되었습니다
         </div>
       )}
@@ -249,7 +241,7 @@ export default function TodoListPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 flex items-center justify-center bg-white">
+        <div className="flex-1 flex items-center justify-center bg-white md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]">
           <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       }
