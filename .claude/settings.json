@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(gh pr create --title 'feat\\(todos\\): 투두 인증 기능 및 홈 화면 개선' --body ' *)",
+      "Bash(brew install *)",
+      "Bash(gh auth *)"
+    ]
+  }
+}
