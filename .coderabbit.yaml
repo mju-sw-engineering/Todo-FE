@@ -13,6 +13,38 @@ reviews:
     base_branches:
       - "main"
 
+  instructions: |
+    PR의 브랜치 이름 prefix를 파악하여 아래 규칙에 따라 리뷰 포커스를 조정해주세요.
+
+    ## 브랜치별 리뷰 포커스
+
+    ### feat/*
+    - 'use client' 남용 여부 확인 (클라이언트 상태/이벤트가 없다면 Server Component 유지)
+    - 새 컴포넌트의 named export / props interface 정의 확인
+    - API 호출 시 apiClient(getJson/postJson/postForm) 사용 여부 확인
+    - Tailwind 클래스가 모바일 퍼스트(기본 → md:) 순서인지 확인
+    - any 타입 사용 여부 확인
+
+    ### fix/*
+    - 수정 범위가 해당 버그에만 집중되어 있는지 확인 (불필요한 변경 포함 여부)
+    - 동일 버그가 다른 위치에서도 발생 가능한지 확인
+    - 에러 처리(ApiError) 누락 여부 확인
+
+    ### refactor/*
+    - 외부 동작 변경 없이 내부 구조만 개선되었는지 확인
+    - 타입 정의 변경 시 영향 범위 확인
+
+    ### chore/*
+    - .env 등 민감 정보 포함 여부 확인
+    - package.json 버전 변경이 의도적인지 확인
+    - 불필요한 소스 파일 변경 포함 여부 확인
+
+    ### style/*
+    - 로직 변경이 없는지 확인
+
+    ### docs/*
+    - 내용의 정확성 확인
+
   path_filters:
     - "!**/*.lock"
     - "!**/node_modules/**"
