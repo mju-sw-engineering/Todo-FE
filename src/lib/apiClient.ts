@@ -13,7 +13,12 @@ export class ApiError extends Error {
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
-  const json: ApiResponse<T> = await response.json()
+  const text = await response.text()
+  if (!text) {
+    if (!response.ok) throw new ApiError('요청에 실패했습니다.', response.status)
+    return undefined as T
+  }
+  const json: ApiResponse<T> = JSON.parse(text)
   if (!response.ok || !json.success) {
     throw new ApiError(json.message ?? '요청에 실패했습니다.', response.status)
   }
