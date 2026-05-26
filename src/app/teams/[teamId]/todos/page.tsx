@@ -1,10 +1,13 @@
 'use client'
 
+import Image from 'next/image'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ApiError } from '@/lib/apiClient'
+import { getDailyEvaluation } from '@/services/teamService'
 import { getTodayTodos } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
+import type { DailyEvaluationResponse } from '@/types/team.types'
 import type { MyTodoStatus, Todo, TodoStatus } from '@/types/todo.types'
 
 type TabType = 'all' | 'incomplete' | 'complete'
@@ -53,6 +56,60 @@ function parseAchievementCount(value: string): { achieved: number; total: number
     if (!isNaN(achieved) && !isNaN(total)) return { achieved, total }
   }
   return { achieved: 0, total: 0 }
+}
+
+function formatEvalDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 평가`
+}
+
+function AiEvaluationCard({
+  evaluation,
+}: {
+  evaluation: DailyEvaluationResponse | 'error' | 'loading'
+}) {
+  if (evaluation === 'loading') {
+    return (
+      <div className="mx-6 mb-3 md:mx-9 rounded-[16px] bg-primary-light px-4 py-3 flex items-center justify-center h-14">
+        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (evaluation === 'error') {
+    return (
+      <div className="mx-6 mb-3 md:mx-9 rounded-[16px] bg-primary-light px-4 py-3">
+        <p className="text-[12px] text-muted text-center">
+          어제의 평가가 아직 준비되지 않았습니다.
+        </p>
+      </div>
+    )
+  }
+
+  const isDevil = evaluation.persona === 'DEVIL'
+
+  return (
+    <div className="mx-6 mb-3 md:mx-9 rounded-[16px] bg-primary-light px-4 py-3">
+      <div className="flex items-start gap-3">
+        <div className="relative w-[52px] h-[52px] rounded-full overflow-hidden shrink-0">
+          <Image
+            src={isDevil ? '/images/devil.png' : '/images/angel.png'}
+            alt={isDevil ? '악마 AI' : '천사 AI'}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] text-primary font-semibold mb-0.5">
+            ({formatEvalDate(evaluation.date)})
+          </p>
+          <p className="text-[12px] text-ink leading-relaxed line-clamp-5">{evaluation.message}</p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
@@ -125,6 +182,9 @@ function TodoListContent() {
   const [error, setError] = useState('')
   const [tab, setTab] = useState<TabType>('all')
   const [showToast, setShowToast] = useState(() => searchParams.get('created') === '1')
+  const [aiEvaluation, setAiEvaluation] = useState<DailyEvaluationResponse | 'error' | 'loading'>(
+    'loading'
+  )
 
   useEffect(() => {
     if (!showToast) return
@@ -140,6 +200,13 @@ function TodoListContent() {
         setError(err instanceof ApiError ? err.message : '투두 목록을 불러오지 못했습니다.')
       })
       .finally(() => setIsLoading(false))
+  }, [token, teamId])
+
+  useEffect(() => {
+    if (!token || !teamId) return
+    getDailyEvaluation(teamId, token)
+      .then((res) => setAiEvaluation(res))
+      .catch(() => setAiEvaluation('error'))
   }, [token, teamId])
 
   if (isLoading) {
@@ -162,6 +229,7 @@ function TodoListContent() {
           </button>
           <h1 className="text-[22px] font-bold text-ink text-center">TodoTeam</h1>
         </div>
+        <AiEvaluationCard evaluation={aiEvaluation} />
         <div className="flex-1 flex flex-col items-center justify-center px-6">
           <p className="text-[15px] text-muted text-center mb-10">
             {error ? '투두 목록을 불러오지 못했습니다.' : '오늘 생성된 할 일이 없습니다'}
@@ -207,8 +275,11 @@ function TodoListContent() {
           ← 뒤로
         </button>
         <p className="text-[13px] text-muted mb-1">{formatDate(today)} 오늘</p>
-        <h1 className="text-[26px] font-bold text-ink">할 일</h1>
+        <h1 className="text-[26px] font-bold text-ink mb-4">할 일</h1>
       </div>
+
+      {/* AI 하루 평가 카드 */}
+      <AiEvaluationCard evaluation={aiEvaluation} />
 
       {/* 탭 (스크롤 고정) */}
       <div className="flex border-b border-border px-6 md:px-9">

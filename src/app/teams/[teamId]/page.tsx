@@ -94,8 +94,9 @@ export default function TeamDetailPage() {
   if (!team) return null
 
   return (
-    <>
-      <div className="flex-1 flex flex-col bg-white px-5 pt-8 pb-28 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:py-11">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
+      {/* 스크롤 영역 */}
+      <div className="flex-1 overflow-y-auto px-5 pt-8 pb-4 md:px-9 md:pt-11">
         <h1 className="text-[22px] font-bold text-ink text-center">TodoTeam</h1>
         <p className="text-[13px] text-muted text-center mt-1 mb-7">팀 상세 정보</p>
 
@@ -181,7 +182,8 @@ export default function TeamDetailPage() {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border px-5 py-4 flex flex-col gap-2">
+      {/* 바텀 버튼 (항상 고정) */}
+      <div className="px-5 py-4 border-t border-border md:px-9 flex flex-col gap-2">
         <button
           onClick={() => router.push(`/teams/${teamId}/todos`)}
           className="w-full py-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
@@ -195,6 +197,6 @@ export default function TeamDetailPage() {
           목록으로
         </button>
       </div>
-    </>
+    </div>
   )
 }

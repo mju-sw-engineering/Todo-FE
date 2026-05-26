@@ -3,7 +3,7 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { ApiError } from '@/lib/apiClient'
-import { getTodoDetail } from '@/services/todoService'
+import { evaluateTodo, getTodoDetail } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import type { MyTodoStatus, TodoDetail, TodoParticipant, TodoStatus } from '@/types/todo.types'
 
@@ -65,11 +65,21 @@ function MemberCertCard({
   index,
   isCurrentUser,
   onCertify,
+  canEvaluate,
+  evaluated,
+  isEvaluating,
+  onEvaluatePass,
+  onEvaluateFail,
 }: {
   member: TodoParticipant
   index: number
   isCurrentUser: boolean
   onCertify: () => void
+  canEvaluate: boolean
+  evaluated: boolean
+  isEvaluating: boolean
+  onEvaluatePass: () => void
+  onEvaluateFail: () => void
 }) {
   const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length]
   const status = member.status
@@ -123,6 +133,39 @@ function MemberCertCard({
       ) : (
         <div className="w-full h-32.5 bg-gray-50" />
       )}
+
+      {/* 평가 버튼 */}
+      {canEvaluate && !evaluated && (
+        <div className="flex gap-2 px-4 py-3 bg-white border-t border-border/50">
+          <button
+            type="button"
+            disabled={isEvaluating}
+            onClick={(e) => {
+              e.stopPropagation()
+              onEvaluatePass()
+            }}
+            className="flex-1 py-2 bg-emerald-500 text-white text-[13px] font-semibold rounded-[10px] transition-all duration-200 hover:bg-emerald-600 disabled:opacity-50 active:scale-[0.98]"
+          >
+            긍정 (Pass)
+          </button>
+          <button
+            type="button"
+            disabled={isEvaluating}
+            onClick={(e) => {
+              e.stopPropagation()
+              onEvaluateFail()
+            }}
+            className="flex-1 py-2 bg-red-500 text-white text-[13px] font-semibold rounded-[10px] transition-all duration-200 hover:bg-red-600 disabled:opacity-50 active:scale-[0.98]"
+          >
+            부정 (Fail)
+          </button>
+        </div>
+      )}
+      {canEvaluate && evaluated && (
+        <div className="px-4 py-3 bg-white border-t border-border/50">
+          <p className="text-[13px] text-center text-emerald-600 font-semibold">평가 완료</p>
+        </div>
+      )}
     </div>
   )
 }
@@ -143,6 +186,9 @@ function TodoDetailContent() {
   const [error, setError] = useState('')
   const myStatusParam = searchParams.get('myStatus') as MyTodoStatus | null
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
+  const [evaluatedIds, setEvaluatedIds] = useState<Set<number>>(new Set())
+  const [evaluatingId, setEvaluatingId] = useState<number | null>(null)
+  const [evalError, setEvalError] = useState('')
 
   useEffect(() => {
     if (!showToast) return
@@ -159,6 +205,24 @@ function TodoDetailContent() {
       })
       .finally(() => setIsLoading(false))
   }, [token, todoId])
+
+  async function handleEvaluate(participantUserId: number, voteType: 'POSITIVE' | 'NEGATIVE') {
+    if (!token || evaluatingId !== null) return
+    setEvalError('')
+    setEvaluatingId(participantUserId)
+    try {
+      await evaluateTodo(todoId, { targetUserId: participantUserId, voteType }, token)
+      setEvaluatedIds((prev) => new Set([...prev, participantUserId]))
+      getTodoDetail(todoId, token)
+        .then((res) => setTodo(res))
+        .catch(() => null)
+    } catch (err) {
+      setEvalError(err instanceof ApiError ? err.message : '평가 중 오류가 발생했습니다.')
+      setTimeout(() => setEvalError(''), 3000)
+    } finally {
+      setEvaluatingId(null)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -184,7 +248,6 @@ function TodoDetailContent() {
 
   const { achieved, total } = parseAchievementCount(todo.achievementCount)
   const percentage = total > 0 ? Math.round((achieved / total) * 100) : 0
-  // API 상세 응답에 myStatus가 없을 수 있으므로 URL 파라미터로 보완
   const effectiveMyStatus: MyTodoStatus | null = todo.myStatus ?? myStatusParam
   const canCertify = effectiveMyStatus === '미완료'
 
@@ -242,13 +305,20 @@ function TodoDetailContent() {
               !byUserId && user?.nickname && user.nickname !== user.loginId
                 ? member.nickname === user.nickname
                 : false
+            const isCurrentUser = byUserId || byNickname
+            const canEvaluate = !isCurrentUser && member.status === '평가 대기중'
             return (
               <MemberCertCard
                 key={member.userId}
                 member={member}
                 index={idx}
-                isCurrentUser={byUserId || byNickname}
+                isCurrentUser={isCurrentUser}
                 onCertify={navigateToCertify}
+                canEvaluate={canEvaluate}
+                evaluated={evaluatedIds.has(member.userId)}
+                isEvaluating={evaluatingId === member.userId}
+                onEvaluatePass={() => handleEvaluate(member.userId, 'POSITIVE')}
+                onEvaluateFail={() => handleEvaluate(member.userId, 'NEGATIVE')}
               />
             )
           })}
@@ -277,6 +347,11 @@ function TodoDetailContent() {
       {showToast && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up z-50">
           인증샷이 업로드되었습니다
+        </div>
+      )}
+      {evalError && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-red-50 text-red-500 text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(239,68,68,0.18)] animate-fade-up z-50">
+          {evalError}
         </div>
       )}
     </div>

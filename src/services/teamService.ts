@@ -2,6 +2,7 @@ import { getJson, postJson } from '@/lib/apiClient'
 import type {
   CreateTeamRequest,
   CreateTeamResponse,
+  DailyEvaluationResponse,
   JoinTeamRequest,
   JoinTeamResponse,
   TeamDetailResponse,
@@ -25,4 +26,11 @@ export async function getTeams(token: string): Promise<TeamListResponse> {
 
 export async function getTeamById(teamId: number, token: string): Promise<TeamDetailResponse> {
   return getJson<TeamDetailResponse>(`/api/teams/${teamId}`, token)
+}
+
+export async function getDailyEvaluation(
+  teamId: number,
+  token: string
+): Promise<DailyEvaluationResponse> {
+  return getJson<DailyEvaluationResponse>(`/api/teams/${teamId}/daily-evaluation`, token)
 }
