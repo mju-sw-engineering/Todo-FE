@@ -1,27 +1,13 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { ApiError } from '@/lib/apiClient'
 import { getTeams, joinTeam } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import type { TeamListItem } from '@/types/team.types'
-
-function TeamAvatar({ imageUrl, name }: { imageUrl: string | null; name: string }) {
-  return (
-    <div className="relative w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-primary/20 bg-primary-light">
-      {imageUrl ? (
-        <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <span className="text-[18px] font-bold text-primary">{name.charAt(0)}</span>
-        </div>
-      )}
-    </div>
-  )
-}
 
 interface JoinModalProps {
   token: string
@@ -165,72 +151,75 @@ function TeamsContent() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center pb-16">
+      <div className="flex-1 flex items-center justify-center">
         <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col px-5 pt-5 pb-52 animate-fade-up">
-      {error && (
-        <p className="text-sm text-red-400 bg-red-50 rounded-[14px] px-4 py-3 mb-4">{error}</p>
-      )}
+    <div className="flex-1 flex flex-col animate-fade-up">
+      {/* 스크롤 영역 */}
+      <div className="flex-1 overflow-y-auto px-5 pt-5 flex flex-col">
+        {error && (
+          <p className="text-sm text-red-400 bg-red-50 rounded-[14px] px-4 py-3 mb-4">{error}</p>
+        )}
 
-      {teams.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-2 pb-20">
-          <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center mb-2">
-            <svg
-              className="w-7 h-7 text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.8}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4a4 4 0 11-8 0 4 4 0 018 0zm6-4a2 2 0 11-4 0 2 2 0 014 0zM3 8a2 2 0 114 0 2 2 0 01-4 0z"
-              />
-            </svg>
-          </div>
-          <p className="text-[15px] font-semibold text-ink">아직 참여한 팀이 없어요</p>
-          <p className="text-[13px] text-muted">팀을 만들거나 초대 코드로 참여해보세요</p>
-        </div>
-      ) : (
-        <ul className="flex flex-col gap-2.5">
-          {teams.map((team) => (
-            <li key={team.teamId}>
-              <button
-                onClick={() => router.push(`/teams/${team.teamId}`)}
-                className="w-full flex items-center gap-4 bg-white rounded-[18px] border border-border px-4 py-3.5 text-left transition-all duration-200 hover:border-primary/50 hover:shadow-[0_4px_18px_rgba(91,79,207,0.10)] active:scale-[0.99]"
+        {teams.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-2">
+            <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center mb-2">
+              <svg
+                className="w-7 h-7 text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.8}
               >
-                <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
-                  {(team.memberCount !== undefined || team.successCount !== undefined) && (
-                    <p className="text-[12px] text-muted mt-0.5">
-                      팀원 {team.memberCount ?? 0}명 · 성공 {team.successCount ?? 0}회
-                    </p>
-                  )}
-                </div>
-                <svg
-                  className="w-4 h-4 text-muted shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4a4 4 0 11-8 0 4 4 0 018 0zm6-4a2 2 0 11-4 0 2 2 0 014 0zM3 8a2 2 0 114 0 2 2 0 01-4 0z"
+                />
+              </svg>
+            </div>
+            <p className="text-[15px] font-semibold text-ink">아직 참여한 팀이 없어요</p>
+            <p className="text-[13px] text-muted">팀을 만들거나 초대 코드로 참여해보세요</p>
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-2.5 pb-4">
+            {teams.map((team) => (
+              <li key={team.teamId}>
+                <button
+                  onClick={() => router.push(`/teams/${team.teamId}`)}
+                  className="w-full flex items-center gap-4 bg-white rounded-[18px] border border-border px-4 py-3.5 text-left transition-all duration-200 hover:border-primary/50 hover:shadow-[0_4px_18px_rgba(91,79,207,0.10)] active:scale-[0.99]"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+                  <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
+                    {(team.memberCount !== undefined || team.successCount !== undefined) && (
+                      <p className="text-[12px] text-muted mt-0.5">
+                        팀원 {team.memberCount ?? 0}명 · 성공 {team.successCount ?? 0}회
+                      </p>
+                    )}
+                  </div>
+                  <svg
+                    className="w-4 h-4 text-muted shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-      {/* 팀 액션 버튼 — 하단 네비게이션 위에 고정 */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-border px-5 py-3 flex flex-col gap-2">
+      {/* 팀 액션 버튼 (in-flow) */}
+      <div className="shrink-0 px-5 py-3 border-t border-border bg-white flex flex-col gap-2">
         <button
           onClick={() => router.push('/teams/new')}
           className="w-full py-3.5 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
@@ -246,7 +235,7 @@ function TeamsContent() {
       </div>
 
       {showToast && (
-        <div className="fixed bottom-[calc(4rem+144px)] left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-ink text-white text-[13px] font-medium text-center py-3.5 rounded-[14px] shadow-lg animate-fade-up">
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-ink text-white text-[13px] font-medium text-center py-3.5 rounded-[14px] shadow-lg animate-fade-up z-50">
           팀이 생성되었습니다
         </div>
       )}
@@ -268,7 +257,7 @@ export default function TeamsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 flex items-center justify-center pb-16">
+        <div className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       }

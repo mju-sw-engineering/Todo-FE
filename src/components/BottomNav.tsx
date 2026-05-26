@@ -50,8 +50,7 @@ export function BottomNav() {
   const initials = user?.nickname?.trim().slice(0, 2) ?? '?'
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-white/95 backdrop-blur-sm border-t border-border flex">
-      {/* 프로필 */}
+    <nav className="h-16 shrink-0 bg-white/95 backdrop-blur-sm border-t border-border flex">
       <button
         onClick={() => router.push('/mypage')}
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200"
@@ -61,7 +60,6 @@ export function BottomNav() {
         </div>
       </button>
 
-      {/* 투두 */}
       <button
         onClick={() => router.push('/')}
         className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 ${todoActive ? 'text-primary' : 'text-muted'}`}
@@ -72,7 +70,6 @@ export function BottomNav() {
         </span>
       </button>
 
-      {/* 내 팀 */}
       <button
         onClick={() => router.push('/teams')}
         className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 ${teamsActive ? 'text-primary' : 'text-muted'}`}

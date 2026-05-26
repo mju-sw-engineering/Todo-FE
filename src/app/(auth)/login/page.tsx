@@ -54,7 +54,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white px-6 py-12 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:pt-13 md:pb-11">
+    <div className="flex-1 flex flex-col bg-white px-6 py-12 animate-fade-up">
       <div className="text-center mb-10">
         <h1 className="text-[36px] font-bold text-ink tracking-tight leading-none mb-2.5">
           Todo<span className="text-primary">Team</span>

@@ -42,9 +42,9 @@ export default function TeamJoinPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
       {/* 헤더 (스크롤 고정) */}
-      <div className="px-6 pt-8 pb-4 md:px-9">
+      <div className="px-6 pt-8 pb-4">
         <h1 className="text-[22px] font-bold text-ink text-center">팀 참여하기</h1>
         <p className="text-[13px] text-muted text-center mt-1">
           초대 코드를 입력해 팀에 참여하세요
@@ -52,7 +52,7 @@ export default function TeamJoinPage() {
       </div>
 
       {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-6 pb-4 md:px-9">
+      <div className="flex-1 overflow-y-auto px-6 pb-4">
         <form id="team-join-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
           <AuthInput
             id="inviteCode"
@@ -69,7 +69,7 @@ export default function TeamJoinPage() {
       </div>
 
       {/* 바텀 버튼 (항상 고정) */}
-      <div className="px-6 py-5 border-t border-border md:px-9 flex flex-col gap-3">
+      <div className="px-6 py-5 border-t border-border flex flex-col gap-3">
         <AuthButton form="team-join-form" disabled={isLoading || inviteCode.trim().length === 0}>
           {isLoading ? '참여 중...' : '참여하기'}
         </AuthButton>

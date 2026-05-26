@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { ApiError } from '@/lib/apiClient'
 import { getTeamById } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
@@ -14,20 +14,19 @@ function getInitials(nickname: string): string {
 }
 
 function MemberAvatar({ member }: { member: TeamMember }) {
+  const isLeader = member.role === 'LEADER'
   if (member.profileImageUrl) {
     return (
       <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 border border-border">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={member.profileImageUrl}
           alt={member.nickname}
-          fill
-          className="object-cover"
-          unoptimized
+          className="w-full h-full object-cover"
         />
       </div>
     )
   }
-  const isLeader = member.role === 'LEADER'
   return (
     <div
       className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-[13px] font-bold ${
@@ -35,20 +34,6 @@ function MemberAvatar({ member }: { member: TeamMember }) {
       }`}
     >
       {getInitials(member.nickname)}
-    </div>
-  )
-}
-
-function TeamAvatar({ imageUrl, name }: { imageUrl: string | null; name: string }) {
-  return (
-    <div className="relative w-14 h-14 shrink-0 rounded-full overflow-hidden border-2 border-primary/20 bg-primary-light">
-      {imageUrl ? (
-        <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <span className="text-[22px] font-bold text-primary">{name.charAt(0)}</span>
-        </div>
-      )}
     </div>
   )
 }
@@ -85,7 +70,7 @@ export default function TeamDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-white md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]">
+      <div className="flex-1 flex items-center justify-center bg-white">
         <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -94,16 +79,14 @@ export default function TeamDetailPage() {
   if (!team) return null
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
-      {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-5 pt-8 pb-4 md:px-9 md:pt-11">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
+      <div className="flex-1 overflow-y-auto px-5 pt-8 pb-4">
         <h1 className="text-[22px] font-bold text-ink text-center">TodoTeam</h1>
         <p className="text-[13px] text-muted text-center mt-1 mb-7">팀 상세 정보</p>
 
-        {/* 팀 카드 */}
         <div className="bg-white rounded-[18px] border border-border mb-3 overflow-hidden">
           <div className="flex items-center gap-4 px-4 py-4">
-            <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} />
+            <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} size="lg" />
             <div className="flex-1 min-w-0">
               <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
               <p className="text-[12px] text-muted mt-0.5">
@@ -146,7 +129,6 @@ export default function TeamDetailPage() {
           )}
         </div>
 
-        {/* 초대 코드 */}
         {team.inviteCode && (
           <button
             onClick={handleCopyInviteCode}
@@ -182,8 +164,7 @@ export default function TeamDetailPage() {
         )}
       </div>
 
-      {/* 바텀 버튼 (항상 고정) */}
-      <div className="px-5 py-4 border-t border-border md:px-9 flex flex-col gap-2">
+      <div className="px-5 py-4 border-t border-border flex flex-col gap-2">
         <button
           onClick={() => router.push(`/teams/${teamId}/todos`)}
           className="w-full py-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
