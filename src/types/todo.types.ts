@@ -55,3 +55,8 @@ export interface TodoDetail {
 export interface SubmitTodoRequest {
   proofImageKey: string
 }
+
+export interface EvaluateRequest {
+  targetUserId: number
+  voteType: 'POSITIVE' | 'NEGATIVE'
+}

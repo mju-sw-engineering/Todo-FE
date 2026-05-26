@@ -2,6 +2,7 @@ import { getJson, postJson } from '@/lib/apiClient'
 import type {
   CreateTodoRequest,
   CreateTodoResponse,
+  EvaluateRequest,
   SubmitTodoRequest,
   Todo,
   TodoDetail,
@@ -31,4 +32,12 @@ export async function submitTodo(
   token: string
 ): Promise<void> {
   return postJson<void>(`/api/todos/${todoId}/submit`, request, token)
+}
+
+export async function evaluateTodo(
+  todoId: number,
+  request: EvaluateRequest,
+  token: string
+): Promise<void> {
+  return postJson<void>(`/api/todos/${todoId}/evaluate`, request, token)
 }
