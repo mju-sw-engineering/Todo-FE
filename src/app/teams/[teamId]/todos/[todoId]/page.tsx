@@ -2,17 +2,11 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { AVATAR_COLORS, formatDeadline, getInitials, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { evaluateTodo, getTodoDetail } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import type { MyTodoStatus, TodoDetail, TodoParticipant, TodoStatus } from '@/types/todo.types'
-
-const AVATAR_COLORS = [
-  'bg-primary-light text-primary',
-  'bg-[#d4f0e4] text-[#2d7a56]',
-  'bg-[#fde8d0] text-[#c25f1b]',
-  'bg-[#e0d4f5] text-[#6b3fa0]',
-]
 
 const STATUS_LABEL: Record<TodoStatus, string> = {
   IN_PROGRESS: '진행중',
@@ -36,28 +30,6 @@ const CERT_BADGE_STYLE: Record<MyTodoStatus, string> = {
   완료: 'bg-primary text-white',
   '평가 대기중': 'bg-indigo-400 text-white',
   미완료: 'bg-gray-100 text-gray-400',
-}
-
-function getInitials(nickname: string): string {
-  return nickname.trim().slice(0, 2)
-}
-
-function formatDeadline(iso: string): string {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  const h = String(d.getHours()).padStart(2, '0')
-  const m = String(d.getMinutes()).padStart(2, '0')
-  return `${h}:${m}`
-}
-
-function parseAchievementCount(value: string): { achieved: number; total: number } {
-  const parts = value.split('/')
-  if (parts.length === 2) {
-    const achieved = parseInt(parts[0].trim(), 10)
-    const total = parseInt(parts[1].trim(), 10)
-    if (!isNaN(achieved) && !isNaN(total)) return { achieved, total }
-  }
-  return { achieved: 0, total: 0 }
 }
 
 function MemberCertCard({
@@ -170,8 +142,7 @@ function MemberCertCard({
   )
 }
 
-const CARD_CLASS =
-  'flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]'
+const CARD_CLASS = 'flex-1 flex flex-col overflow-hidden bg-white animate-fade-up'
 
 function TodoDetailContent() {
   const router = useRouter()
@@ -234,7 +205,7 @@ function TodoDetailContent() {
 
   if (error || !todo) {
     return (
-      <div className={`${CARD_CLASS} px-6 py-10 md:px-9`}>
+      <div className={`${CARD_CLASS} px-6 py-10`}>
         <button
           onClick={() => router.back()}
           className="text-[13px] font-semibold text-muted mb-8 text-left hover:text-primary transition-colors"
@@ -258,7 +229,7 @@ function TodoDetailContent() {
   return (
     <div className={CARD_CLASS}>
       {/* 헤더 (스크롤 고정) */}
-      <div className="px-6 pt-8 pb-4 md:px-9">
+      <div className="px-6 pt-8 pb-4">
         <button
           onClick={() => router.back()}
           className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-primary transition-colors"
@@ -296,7 +267,7 @@ function TodoDetailContent() {
       </div>
 
       {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-6 pb-4 md:px-9">
+      <div className="flex-1 overflow-y-auto px-6 pb-4">
         <p className="text-[13px] font-semibold text-ink/60 mb-3">인증 현황</p>
         <div className="flex flex-col gap-3">
           {todo.participants.map((member, idx) => {
@@ -326,7 +297,7 @@ function TodoDetailContent() {
       </div>
 
       {/* 바텀 버튼 (항상 고정) */}
-      <div className="px-6 py-5 border-t border-border md:px-9">
+      <div className="px-6 py-5 border-t border-border">
         {canCertify ? (
           <button
             onClick={navigateToCertify}
@@ -362,7 +333,7 @@ export default function TodoDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 flex items-center justify-center bg-white md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]">
+        <div className="flex-1 flex items-center justify-center bg-white">
           <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       }

@@ -61,16 +61,13 @@ export default function TeamNewPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
-      {/* 헤더 */}
-      <div className="px-6 pt-8 pb-4 md:px-9">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
+      <div className="px-6 pt-8 pb-4">
         <h1 className="text-[22px] font-bold text-ink text-center">팀 생성하기</h1>
       </div>
 
-      {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-6 pb-4 md:px-9">
+      <div className="flex-1 overflow-y-auto px-6 pb-4">
         <form id="team-new-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* 팀 이름 */}
           <AuthInput
             id="teamName"
             label="팀 이름"
@@ -84,7 +81,6 @@ export default function TeamNewPage() {
             hint={error === '팀 이름을 입력해주세요' ? error : undefined}
           />
 
-          {/* 팀 이미지 */}
           <div className="flex flex-col gap-2">
             <span className="text-[13px] font-semibold text-primary tracking-wide">
               팀 이미지 (선택)
@@ -122,7 +118,6 @@ export default function TeamNewPage() {
             />
           </div>
 
-          {/* 팀 가이드 AI 선택 */}
           <div className="flex flex-col gap-2">
             <span className="text-[13px] font-semibold text-primary tracking-wide">
               팀 가이드 AI 선택
@@ -143,7 +138,7 @@ export default function TeamNewPage() {
                         setAiPersona(persona)
                         if (error === 'AI 페르소나를 선택해주세요') setError('')
                       }}
-                      className={`flex flex-col items-center gap-2 p-2.5 rounded-[16px] transition-all duration-200 ${
+                      className={`flex flex-col items-center gap-2 p-2.5 rounded-2xl transition-all duration-200 ${
                         selected
                           ? isDevil
                             ? 'border-2 border-primary scale-105 bg-white shadow-[0_2px_12px_rgba(91,79,207,0.18)]'
@@ -151,7 +146,7 @@ export default function TeamNewPage() {
                           : 'border-2 border-transparent hover:border-border hover:bg-white/60'
                       }`}
                     >
-                      <div className="relative w-[100px] h-[100px] rounded-full overflow-hidden">
+                      <div className="relative w-25 h-25 rounded-full overflow-hidden">
                         <Image
                           src={isDevil ? '/images/devil.png' : '/images/angel.png'}
                           alt={isDevil ? '악마 AI' : '천사 AI'}
@@ -177,7 +172,6 @@ export default function TeamNewPage() {
             )}
           </div>
 
-          {/* 일반 오류 */}
           {error &&
             error !== '팀 이름을 입력해주세요' &&
             error !== 'AI 페르소나를 선택해주세요' && (
@@ -186,8 +180,7 @@ export default function TeamNewPage() {
         </form>
       </div>
 
-      {/* 바텀 버튼 */}
-      <div className="px-6 py-5 border-t border-border md:px-9 flex flex-col gap-3">
+      <div className="px-6 py-5 border-t border-border flex flex-col gap-3">
         <button
           type="submit"
           form="team-new-form"

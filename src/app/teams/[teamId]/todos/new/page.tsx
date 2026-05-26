@@ -2,22 +2,12 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { AVATAR_COLORS, getInitials } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { getTeamById } from '@/services/teamService'
 import { createTodo } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import type { TeamMember } from '@/types/team.types'
-
-function getInitials(nickname: string): string {
-  return nickname.trim().slice(0, 2)
-}
-
-const AVATAR_COLORS = [
-  'bg-primary-light text-primary',
-  'bg-[#d4f0e4] text-[#2d7a56]',
-  'bg-[#fde8d0] text-[#c25f1b]',
-  'bg-[#e0d4f5] text-[#6b3fa0]',
-]
 
 function toIsoDeadline(timeValue: string): string {
   const [hours, minutes] = timeValue.split(':').map(Number)
@@ -103,9 +93,9 @@ export default function TodoNewPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
+    <div className="flex-1 flex flex-col bg-white animate-fade-up">
       {/* 헤더 (스크롤 고정) */}
-      <div className="px-6 pt-8 pb-2 md:px-9">
+      <div className="px-6 pt-8 pb-2">
         <button
           onClick={() => router.back()}
           className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-primary transition-colors"
@@ -116,7 +106,7 @@ export default function TodoNewPage() {
       </div>
 
       {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 md:px-9 flex flex-col gap-5">
+      <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <label htmlFor="title" className="text-[13px] font-semibold text-primary tracking-wide">
             제목
@@ -225,7 +215,7 @@ export default function TodoNewPage() {
       </div>
 
       {/* 바텀 버튼 (항상 고정) */}
-      <div className="px-6 py-5 border-t border-border md:px-9 flex flex-col gap-3">
+      <div className="px-6 py-5 border-t border-border flex flex-col gap-3">
         <button
           onClick={handleSubmit}
           disabled={isLoading || isMembersLoading}

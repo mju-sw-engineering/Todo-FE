@@ -63,7 +63,7 @@ export default function SignupPage() {
   const passwordTooShort = password.length > 0 && password.length < 6
 
   return (
-    <div className="flex-1 flex flex-col bg-white px-6 py-12 animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:px-9 md:pt-11 md:pb-11">
+    <div className="flex-1 flex flex-col bg-white px-6 py-12 animate-fade-up">
       <div className="text-center mb-9">
         <h1 className="text-[26px] font-bold text-ink tracking-tight">회원가입</h1>
       </div>

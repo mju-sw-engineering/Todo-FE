@@ -2,9 +2,12 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { ChatBot } from '@/components/ChatBot'
+import { formatDate, formatDeadline, parseAchievementCount } from '@/lib/formatters'
 import { getTeams } from '@/services/teamService'
 import { getTodayTodos } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
+import type { TeamListItem } from '@/types/team.types'
 import type { MyTodoStatus, Todo, TodoStatus } from '@/types/todo.types'
 
 type TabType = 'all' | 'incomplete' | 'complete'
@@ -36,28 +39,6 @@ const BAR_COLOR: Record<MyTodoStatus, string> = {
   완료: 'bg-primary',
   '평가 대기중': 'bg-indigo-400',
   미완료: 'bg-gray-200',
-}
-
-function formatDate(date: Date): string {
-  return `${date.getMonth() + 1}월 ${date.getDate()}일`
-}
-
-function formatDeadline(iso: string): string {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  const h = String(d.getHours()).padStart(2, '0')
-  const m = String(d.getMinutes()).padStart(2, '0')
-  return `${h}:${m}`
-}
-
-function parseAchievementCount(value: string): { achieved: number; total: number } {
-  const parts = value.split('/')
-  if (parts.length === 2) {
-    const achieved = parseInt(parts[0].trim(), 10)
-    const total = parseInt(parts[1].trim(), 10)
-    if (!isNaN(achieved) && !isNaN(total)) return { achieved, total }
-  }
-  return { achieved: 0, total: 0 }
 }
 
 function MyTodoCard({ todo, onClick }: { todo: TodoWithTeam; onClick: () => void }) {
@@ -117,6 +98,7 @@ export default function HomePage() {
   const { token } = useAuth()
 
   const [todos, setTodos] = useState<TodoWithTeam[]>([])
+  const [teamList, setTeamList] = useState<TeamListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [tab, setTab] = useState<TabType>('all')
 
@@ -126,6 +108,7 @@ export default function HomePage() {
     async function load() {
       try {
         const { teams } = await getTeams(token!)
+        setTeamList(teams)
         if (teams.length === 0) {
           setTodos([])
           return
@@ -207,8 +190,8 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* 할일 목록 (스크롤 / pb-16 = 바텀 네비 높이) */}
-      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-16 flex flex-col gap-3">
+      {/* 할일 목록 (스크롤 / pb-32 = 바텀 네비 + FAB 높이) */}
+      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-20 flex flex-col gap-3">
         {todos.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2 py-20">
             <div className="w-14 h-14 rounded-full bg-primary-light flex items-center justify-center mb-1">
@@ -253,6 +236,8 @@ export default function HomePage() {
           ))
         )}
       </div>
+
+      {token && <ChatBot token={token} teams={teamList} />}
     </div>
   )
 }

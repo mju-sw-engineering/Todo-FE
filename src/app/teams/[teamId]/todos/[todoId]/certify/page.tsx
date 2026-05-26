@@ -56,7 +56,7 @@ function CertifyContent() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
+    <div className="flex-1 flex flex-col bg-white animate-fade-up">
       {/* label 방식: 브라우저 네이티브 파일 다이얼로그 트리거 (모바일 포함 100% 동작) */}
       <input
         id="certify-camera"
@@ -75,7 +75,7 @@ function CertifyContent() {
       />
 
       {/* 헤더 (스크롤 고정) */}
-      <div className="px-6 pt-8 pb-4 md:px-9">
+      <div className="px-6 pt-8 pb-4">
         <button
           onClick={() => router.back()}
           className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-primary transition-colors"
@@ -87,7 +87,7 @@ function CertifyContent() {
       </div>
 
       {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-6 pb-4 md:px-9 flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-4">
         {/* 미리보기 영역 — label로 갤러리 트리거 */}
         <label
           htmlFor="certify-gallery"
@@ -128,7 +128,7 @@ function CertifyContent() {
       </div>
 
       {/* 바텀 버튼 (항상 고정) */}
-      <div className="px-6 py-5 border-t border-border md:px-9">
+      <div className="px-6 py-5 border-t border-border">
         <button
           onClick={handleSubmit}
           disabled={!file || isSubmitting}
@@ -145,7 +145,7 @@ export default function CertifyPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 flex items-center justify-center bg-white md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]">
+        <div className="flex-1 flex items-center justify-center bg-white">
           <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       }

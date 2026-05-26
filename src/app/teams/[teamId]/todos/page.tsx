@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { formatDate, formatDeadline, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { getDailyEvaluation } from '@/services/teamService'
 import { getTodayTodos } from '@/services/todoService'
@@ -36,28 +37,6 @@ const BAR_COLOR: Record<MyTodoStatus, string> = {
   미완료: 'bg-gray-200',
 }
 
-function formatDate(date: Date): string {
-  return `${date.getMonth() + 1}월 ${date.getDate()}일`
-}
-
-function formatDeadline(iso: string): string {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  const h = String(d.getHours()).padStart(2, '0')
-  const m = String(d.getMinutes()).padStart(2, '0')
-  return `${h}:${m}`
-}
-
-function parseAchievementCount(value: string): { achieved: number; total: number } {
-  const parts = value.split('/')
-  if (parts.length === 2) {
-    const achieved = parseInt(parts[0].trim(), 10)
-    const total = parseInt(parts[1].trim(), 10)
-    if (!isNaN(achieved) && !isNaN(total)) return { achieved, total }
-  }
-  return { achieved: 0, total: 0 }
-}
-
 function formatEvalDate(dateStr: string): string {
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
@@ -71,7 +50,7 @@ function AiEvaluationCard({
 }) {
   if (evaluation === 'loading') {
     return (
-      <div className="mx-6 mb-3 md:mx-9 rounded-[16px] bg-primary-light px-4 py-3 flex items-center justify-center h-14">
+      <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3 flex items-center justify-center h-14">
         <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -79,7 +58,7 @@ function AiEvaluationCard({
 
   if (evaluation === 'error') {
     return (
-      <div className="mx-6 mb-3 md:mx-9 rounded-[16px] bg-primary-light px-4 py-3">
+      <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3">
         <p className="text-[12px] text-muted text-center">
           어제의 평가가 아직 준비되지 않았습니다.
         </p>
@@ -90,7 +69,7 @@ function AiEvaluationCard({
   const isDevil = evaluation.persona === 'DEVIL'
 
   return (
-    <div className="mx-6 mb-3 md:mx-9 rounded-[16px] bg-primary-light px-4 py-3">
+    <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3">
       <div className="flex items-start gap-3">
         <div className="relative w-[52px] h-[52px] rounded-full overflow-hidden shrink-0">
           <Image
@@ -167,8 +146,7 @@ function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
   )
 }
 
-const CARD_CLASS =
-  'flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]'
+const CARD_CLASS = 'flex-1 flex flex-col overflow-hidden bg-white animate-fade-up'
 
 function TodoListContent() {
   const router = useRouter()
@@ -220,7 +198,7 @@ function TodoListContent() {
   if (error || todos.length === 0) {
     return (
       <div className={`${CARD_CLASS}`}>
-        <div className="px-6 pt-8 pb-4 md:px-9">
+        <div className="px-6 pt-8 pb-4">
           <button
             onClick={() => router.back()}
             className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-primary transition-colors"
@@ -235,7 +213,7 @@ function TodoListContent() {
             {error ? '투두 목록을 불러오지 못했습니다.' : '오늘 생성된 할 일이 없습니다'}
           </p>
         </div>
-        <div className="px-6 py-5 border-t border-border md:px-9">
+        <div className="px-6 py-5 border-t border-border">
           <button
             onClick={() => router.push(`/teams/${teamId}/todos/new`)}
             className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
@@ -267,7 +245,7 @@ function TodoListContent() {
   return (
     <div className={CARD_CLASS}>
       {/* 헤더 (스크롤 고정) */}
-      <div className="px-6 pt-8 pb-4 md:px-9">
+      <div className="px-6 pt-8 pb-4">
         <button
           onClick={() => router.back()}
           className="text-[13px] font-semibold text-muted mb-4 flex items-center gap-1 hover:text-primary transition-colors"
@@ -282,7 +260,7 @@ function TodoListContent() {
       <AiEvaluationCard evaluation={aiEvaluation} />
 
       {/* 탭 (스크롤 고정) */}
-      <div className="flex border-b border-border px-6 md:px-9">
+      <div className="flex border-b border-border px-6">
         {TAB_ITEMS.map(({ key, label, count }) => (
           <button
             key={key}
@@ -299,7 +277,7 @@ function TodoListContent() {
       </div>
 
       {/* 투두 목록 (스크롤) */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 md:px-9">
+      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
         {filteredTodos.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-20">
             <p className="text-[14px] text-muted">해당하는 할 일이 없습니다</p>
@@ -320,7 +298,7 @@ function TodoListContent() {
       </div>
 
       {/* 바텀 버튼 (항상 고정) */}
-      <div className="px-6 py-5 border-t border-border md:px-9">
+      <div className="px-6 py-5 border-t border-border">
         <button
           onClick={() => router.push(`/teams/${teamId}/todos/new`)}
           className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
@@ -342,7 +320,7 @@ export default function TodoListPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 flex items-center justify-center overflow-hidden bg-white md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]">
+        <div className="flex-1 flex items-center justify-center overflow-hidden bg-white">
           <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       }

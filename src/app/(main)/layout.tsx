@@ -17,7 +17,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   if (!isInitialized || !user) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-surface">
+      <div className="h-dvh max-w-97.5 mx-auto flex items-center justify-center bg-surface">
         <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -30,14 +30,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div
-      className="min-h-dvh flex flex-col bg-surface"
+      className="h-dvh max-w-97.5 mx-auto overflow-hidden flex flex-col translate-x-0 bg-surface"
       style={{
         backgroundImage:
           'radial-gradient(ellipse at 20% 20%, rgba(91,79,207,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(91,79,207,0.04) 0%, transparent 60%)',
       }}
     >
-      {/* 헤더 */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white/95 backdrop-blur-sm border-b border-border flex items-center justify-between px-5">
+      <header className="h-14 shrink-0 bg-white/95 backdrop-blur-sm border-b border-border flex items-center justify-between px-5">
         <span className="text-[18px] font-bold text-ink tracking-tight">
           Todo<span className="text-primary">Team</span>
         </span>
@@ -49,8 +48,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </button>
       </header>
 
-      {/* 콘텐츠 */}
-      <main className="flex-1 flex flex-col pt-14 pb-16">{children}</main>
+      <main className="flex-1 flex flex-col min-h-0">{children}</main>
 
       <BottomNav />
     </div>

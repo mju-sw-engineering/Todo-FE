@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full">
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full bg-surface md:bg-[#ddd9ef]">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
