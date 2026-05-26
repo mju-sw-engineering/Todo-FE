@@ -213,6 +213,9 @@ function TodoDetailContent() {
     try {
       await evaluateTodo(todoId, { targetUserId: participantUserId, voteType }, token)
       setEvaluatedIds((prev) => new Set([...prev, participantUserId]))
+      getTodoDetail(todoId, token)
+        .then((res) => setTodo(res))
+        .catch(() => null)
     } catch (err) {
       setEvalError(err instanceof ApiError ? err.message : '평가 중 오류가 발생했습니다.')
       setTimeout(() => setEvalError(''), 3000)
