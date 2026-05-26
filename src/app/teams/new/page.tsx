@@ -61,7 +61,7 @@ export default function TeamNewPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up md:flex-none md:rounded-[28px] md:border md:border-border md:shadow-[0_8px_40px_rgba(91,79,207,0.10)] md:max-h-[calc(100dvh-8rem)]">
       {/* 헤더 */}
       <div className="px-6 pt-8 pb-4 md:px-9">
         <h1 className="text-[22px] font-bold text-ink text-center">팀 생성하기</h1>
