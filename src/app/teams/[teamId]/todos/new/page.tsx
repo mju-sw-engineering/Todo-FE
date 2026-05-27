@@ -93,7 +93,7 @@ export default function TodoNewPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
       {/* 헤더 (스크롤 고정) */}
       <div className="px-6 pt-8 pb-2">
         <button
