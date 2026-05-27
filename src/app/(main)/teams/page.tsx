@@ -219,7 +219,7 @@ function TeamsContent() {
       </div>
 
       {showToast && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-ink text-white text-[13px] font-medium text-center py-3.5 rounded-[14px] shadow-lg animate-fade-up z-50">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-ink text-white text-[13px] font-medium text-center py-3.5 rounded-[14px] shadow-lg animate-fade-up z-50">
           팀이 생성되었습니다
         </div>
       )}
