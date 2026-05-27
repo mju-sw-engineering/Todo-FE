@@ -43,10 +43,21 @@ function AiEvaluationCard({
 
   if (evaluation === 'error') {
     return (
-      <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3">
-        <p className="text-[12px] text-muted text-center">
-          어제의 평가가 아직 준비되지 않았습니다.
-        </p>
+      <div
+        className="mx-6 mb-3 rounded-2xl overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 60%, #fce7f3 100%)' }}
+      >
+        <div className="flex items-center gap-3 px-4 py-3.5">
+          <div className="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center shrink-0 shadow-sm">
+            <span className="text-[18px] leading-none">✨</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-bold text-[#4c1d95] leading-tight">AI 평가 준비 중</p>
+            <p className="text-[11px] text-purple-400 mt-0.5">
+              오늘 할 일을 완료하면 내일 평가가 도착해요
+            </p>
+          </div>
+        </div>
       </div>
     )
   }

@@ -54,13 +54,20 @@ interface Props {
 function Inner({ count, teamId, onDismiss }: Props) {
   const [displayCount, setDisplayCount] = useState(0)
   const [hideToday, setHideToday] = useState(false)
+  const hideTodayRef = useRef(false)
   const stageLabel = getPlantStageLabel(count)
   const dismissed = useRef(false)
+
+  function toggleHideToday() {
+    const next = !hideTodayRef.current
+    hideTodayRef.current = next
+    setHideToday(next)
+  }
 
   function close() {
     if (dismissed.current) return
     dismissed.current = true
-    if (hideToday) {
+    if (hideTodayRef.current) {
       try {
         localStorage.setItem(skipKey(teamId), '1')
       } catch {
@@ -273,7 +280,7 @@ function Inner({ count, teamId, onDismiss }: Props) {
             >
               <button
                 type="button"
-                onClick={() => setHideToday((v) => !v)}
+                onClick={toggleHideToday}
                 className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 ${
                   hideToday ? 'bg-primary border-primary shadow-sm' : 'border-gray-300 bg-white'
                 }`}
@@ -293,7 +300,7 @@ function Inner({ count, teamId, onDismiss }: Props) {
               <span
                 className="text-[12px] font-medium select-none cursor-pointer"
                 style={{ color: '#6b7280' }}
-                onClick={() => setHideToday((v) => !v)}
+                onClick={toggleHideToday}
               >
                 오늘 하루 안보기
               </span>
