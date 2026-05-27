@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { PlantIcon, getPlantStageLabel } from '@/components/ui/PlantIcon'
+import { StreakCelebration, isStreakSkippedToday } from '@/components/ui/StreakCelebration'
 import { ApiError } from '@/lib/apiClient'
 import { getTeamById } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
@@ -155,12 +156,16 @@ export default function TeamDetailPage() {
   const [membersOpen, setMembersOpen] = useState(true)
   const [copyDone, setCopyDone] = useState(false)
   const [plantInfoAnchor, setPlantInfoAnchor] = useState<DOMRect | null>(null)
+  const [showStreak, setShowStreak] = useState(false)
   const infoButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!token || !teamId) return
     getTeamById(teamId, token)
-      .then(setTeam)
+      .then((data) => {
+        setTeam(data)
+        if (data.continuousTodoCount > 0 && !isStreakSkippedToday(teamId)) setShowStreak(true)
+      })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 403) {
           router.replace('/teams')
@@ -358,6 +363,14 @@ export default function TeamDetailPage() {
           />
         )}
       </AnimatePresence>
+
+      {showStreak && (
+        <StreakCelebration
+          count={team.continuousTodoCount}
+          teamId={teamId}
+          onDismiss={() => setShowStreak(false)}
+        />
+      )}
     </div>
   )
 }
