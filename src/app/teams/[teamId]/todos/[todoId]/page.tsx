@@ -1,7 +1,8 @@
 'use client'
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { AVATAR_COLORS, formatDeadline, getInitials, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { evaluateTodo, getTodoDetail } from '@/services/todoService'
@@ -32,6 +33,14 @@ const CERT_BADGE_STYLE: Record<MyTodoStatus, string> = {
   미완료: 'bg-gray-100 text-gray-400',
 }
 
+const REACTIONS = [
+  { emoji: '👍', label: '좋아요', type: 'POSITIVE' as const },
+  { emoji: '❤️', label: '하트', type: 'POSITIVE' as const },
+  { emoji: '😮', label: '놀람', type: 'POSITIVE' as const },
+  { emoji: '👎', label: '싫어요', type: 'NEGATIVE' as const },
+  { emoji: '😡', label: '화나요', type: 'NEGATIVE' as const },
+]
+
 function MemberCertCard({
   member,
   index,
@@ -53,92 +62,132 @@ function MemberCertCard({
   onEvaluatePass: () => void
   onEvaluateFail: () => void
 }) {
+  const [showReactions, setShowReactions] = useState(false)
+  const [pickerRect, setPickerRect] = useState<DOMRect | null>(null)
+  const heartBtnRef = useRef<HTMLButtonElement>(null)
   const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length]
   const status = member.status
   const isCompleted = status === '완료'
   const isPending = status === '평가 대기중'
   const canCertify = isCurrentUser && status === '미완료'
 
+  function handleHeartClick(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!showReactions && heartBtnRef.current) {
+      setPickerRect(heartBtnRef.current.getBoundingClientRect())
+    }
+    setShowReactions((v) => !v)
+  }
+
   return (
-    <div
-      className={`rounded-[18px] overflow-hidden border border-border ${canCertify ? 'cursor-pointer active:scale-[0.99] transition-transform' : ''}`}
-      onClick={canCertify ? onCertify : undefined}
-    >
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
-        <div className="flex items-center gap-2.5">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
-          >
-            {getInitials(member.nickname)}
+    <>
+      <div
+        className={`rounded-[18px] overflow-hidden border border-border ${canCertify ? 'cursor-pointer active:scale-[0.99] transition-transform' : ''}`}
+        onClick={canCertify ? onCertify : undefined}
+      >
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
+          <div className="flex items-center gap-2.5">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
+            >
+              {getInitials(member.nickname)}
+            </div>
+            <span className="text-[14px] font-semibold text-ink">{member.nickname}</span>
           </div>
-          <span className="text-[14px] font-semibold text-ink">{member.nickname}</span>
+          {status && (
+            <span
+              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${CERT_BADGE_STYLE[status]}`}
+            >
+              {CERT_BADGE_LABEL[status]}
+            </span>
+          )}
         </div>
-        {status && (
-          <span
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${CERT_BADGE_STYLE[status]}`}
+
+        {(isCompleted || isPending) && member.proofImageUrl ? (
+          <div
+            className="w-full h-32.5 bg-cover bg-center relative"
+            style={{ backgroundImage: `url(${member.proofImageUrl})` }}
           >
-            {CERT_BADGE_LABEL[status]}
-          </span>
+            <div
+              className={`absolute inset-0 ${isCompleted ? 'bg-linear-to-t from-primary/30 to-transparent' : 'bg-linear-to-t from-indigo-900/20 to-transparent'}`}
+            />
+          </div>
+        ) : (isCompleted || isPending) && !member.proofImageUrl ? (
+          <div
+            className={`w-full h-32.5 ${isCompleted ? 'bg-linear-to-br from-primary/20 to-primary/40' : 'bg-linear-to-br from-indigo-100 to-indigo-200'}`}
+          />
+        ) : canCertify ? (
+          <div className="w-full h-32.5 bg-primary-light flex flex-col items-center justify-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center">
+              <span className="text-[22px] font-light text-primary/60 leading-none">+</span>
+            </div>
+            <span className="text-[12px] text-primary/50">인증 전 (사진 미선택)</span>
+          </div>
+        ) : (
+          <div className="w-full h-32.5 bg-gray-50" />
+        )}
+
+        {/* 평가 버튼 - 본인 카드에는 절대 표시 안 함 */}
+        {!isCurrentUser && canEvaluate && !evaluated && (
+          <div className="flex justify-end px-4 py-2 bg-white border-t border-border/50">
+            <button
+              ref={heartBtnRef}
+              type="button"
+              disabled={isEvaluating}
+              onClick={handleHeartClick}
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-[20px] transition-all duration-200 active:scale-95 disabled:opacity-50 ${
+                showReactions
+                  ? 'bg-pink-100 scale-110'
+                  : 'bg-gray-100 hover:bg-pink-50 hover:scale-110'
+              }`}
+            >
+              {showReactions ? '❤️' : '🤍'}
+            </button>
+          </div>
+        )}
+        {!isCurrentUser && canEvaluate && evaluated && (
+          <div className="px-4 py-2 bg-white border-t border-border/50">
+            <p className="text-[13px] text-center text-emerald-600 font-semibold">평가 완료</p>
+          </div>
         )}
       </div>
 
-      {(isCompleted || isPending) && member.proofImageUrl ? (
-        <div
-          className="w-full h-32.5 bg-cover bg-center relative"
-          style={{ backgroundImage: `url(${member.proofImageUrl})` }}
-        >
-          <div
-            className={`absolute inset-0 ${isCompleted ? 'bg-linear-to-t from-primary/30 to-transparent' : 'bg-linear-to-t from-indigo-900/20 to-transparent'}`}
-          />
-        </div>
-      ) : (isCompleted || isPending) && !member.proofImageUrl ? (
-        <div
-          className={`w-full h-32.5 ${isCompleted ? 'bg-linear-to-br from-primary/20 to-primary/40' : 'bg-linear-to-br from-indigo-100 to-indigo-200'}`}
-        />
-      ) : canCertify ? (
-        <div className="w-full h-32.5 bg-primary-light flex flex-col items-center justify-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center">
-            <span className="text-[22px] font-light text-primary/60 leading-none">+</span>
-          </div>
-          <span className="text-[12px] text-primary/50">인증 전 (사진 미선택)</span>
-        </div>
-      ) : (
-        <div className="w-full h-32.5 bg-gray-50" />
-      )}
-
-      {/* 평가 버튼 */}
-      {canEvaluate && !evaluated && (
-        <div className="flex gap-2 px-4 py-3 bg-white border-t border-border/50">
-          <button
-            type="button"
-            disabled={isEvaluating}
-            onClick={(e) => {
-              e.stopPropagation()
-              onEvaluatePass()
-            }}
-            className="flex-1 py-2 bg-emerald-500 text-white text-[13px] font-semibold rounded-[10px] transition-all duration-200 hover:bg-emerald-600 disabled:opacity-50 active:scale-[0.98]"
-          >
-            긍정 (Pass)
-          </button>
-          <button
-            type="button"
-            disabled={isEvaluating}
-            onClick={(e) => {
-              e.stopPropagation()
-              onEvaluateFail()
-            }}
-            className="flex-1 py-2 bg-red-500 text-white text-[13px] font-semibold rounded-[10px] transition-all duration-200 hover:bg-red-600 disabled:opacity-50 active:scale-[0.98]"
-          >
-            부정 (Fail)
-          </button>
-        </div>
-      )}
-      {canEvaluate && evaluated && (
-        <div className="px-4 py-3 bg-white border-t border-border/50">
-          <p className="text-[13px] text-center text-emerald-600 font-semibold">평가 완료</p>
-        </div>
-      )}
-    </div>
+      {/* 이모지 피커 - overflow:hidden 밖에 렌더링하기 위해 포털 사용 */}
+      {showReactions &&
+        pickerRect &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setShowReactions(false)} />
+            <div
+              className="fixed z-50 flex items-end gap-2.5"
+              style={{
+                bottom: window.innerHeight - pickerRect.top + 10,
+                right: window.innerWidth - pickerRect.right,
+              }}
+            >
+              {REACTIONS.map((r, i) => (
+                <button
+                  key={r.emoji}
+                  type="button"
+                  disabled={isEvaluating}
+                  style={{ animationDelay: `${i * 55}ms` }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowReactions(false)
+                    if (r.type === 'POSITIVE') onEvaluatePass()
+                    else onEvaluateFail()
+                  }}
+                  className="flex flex-col items-center gap-0.5 animate-emoji-pop disabled:opacity-50 hover:scale-125 transition-transform duration-150"
+                >
+                  <span className="text-[28px] leading-none">{r.emoji}</span>
+                  <span className="text-[9px] text-muted font-medium">{r.label}</span>
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body
+        )}
+    </>
   )
 }
 
