@@ -26,8 +26,8 @@ const VOICE_PRIORITY = [
 ]
 
 const VOICE_SETTINGS: Record<Persona, { rate: number; pitch: number; volume: number }> = {
-  ANGEL: { rate: 0.87, pitch: 1.32, volume: 1.0 },
-  DEVIL: { rate: 0.94, pitch: 0.42, volume: 0.92 },
+  ANGEL: { rate: 0.88, pitch: 1.08, volume: 1.0 },
+  DEVIL: { rate: 0.92, pitch: 0.48, volume: 0.95 },
 }
 
 function getBestKoreanVoice(): SpeechSynthesisVoice | null {

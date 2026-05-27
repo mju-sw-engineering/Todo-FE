@@ -176,14 +176,21 @@ export default function TeamNewPage() {
                   const isVoicePlaying = voice.isPlaying && voice.activePersona === persona
                   const isVoiceLoading = voice.isLoading && voice.activePersona === persona
                   return (
-                    <button
+                    <div
                       key={persona}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => {
                         setAiPersona(persona)
                         if (error === 'AI 페르소나를 선택해주세요') setError('')
                       }}
-                      className={`relative w-full rounded-2xl overflow-hidden transition-all duration-250 ring-offset-2 ${
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          setAiPersona(persona)
+                          if (error === 'AI 페르소나를 선택해주세요') setError('')
+                        }
+                      }}
+                      className={`relative w-full rounded-2xl overflow-hidden transition-all duration-250 ring-offset-2 cursor-pointer ${
                         selected
                           ? `ring-2 ${ring} scale-[1.015] shadow-[0_8px_28px_rgba(0,0,0,0.15)]`
                           : 'shadow-sm hover:shadow-md'
@@ -269,7 +276,7 @@ export default function TeamNewPage() {
                           </button>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   )
                 }
               )}
