@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { ApiError } from '@/lib/apiClient'
 import { getTeams, joinTeam } from '@/services/teamService'
@@ -25,24 +26,6 @@ function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
     inputRef.current?.focus()
   }, [])
 
-  useLayoutEffect(() => {
-    const scrollY = window.scrollY
-    const body = document.body
-    body.style.position = 'fixed'
-    body.style.top = `-${scrollY}px`
-    body.style.left = '0'
-    body.style.right = '0'
-    body.style.overflow = 'hidden'
-    return () => {
-      body.style.position = ''
-      body.style.top = ''
-      body.style.left = ''
-      body.style.right = ''
-      body.style.overflow = ''
-      window.scrollTo(0, scrollY)
-    }
-  }, [])
-
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
     setError('')
@@ -62,7 +45,7 @@ function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
     }
   }
 
-  return (
+  return createPortal(
     <>
       {/* 딤 배경 */}
       <motion.div
@@ -76,7 +59,7 @@ function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
 
       {/* 바텀 시트 */}
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[28px] px-5 pt-6 pb-10 safe-area-pb"
+        className="fixed bottom-0 left-0 right-0 z-50 max-w-97.5 mx-auto bg-white rounded-t-[28px] px-5 pt-6 pb-10"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -118,7 +101,8 @@ function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
           돌아가기
         </button>
       </motion.div>
-    </>
+    </>,
+    document.body
   )
 }
 
