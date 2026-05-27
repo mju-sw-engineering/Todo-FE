@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { formatDate, formatDeadline, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
+import { useVoice } from '@/hooks/useVoice'
 import { getDailyEvaluation } from '@/services/teamService'
 import { getTodayTodos } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
@@ -48,6 +49,8 @@ function AiEvaluationCard({
 }: {
   evaluation: DailyEvaluationResponse | 'error' | 'loading'
 }) {
+  const voice = useVoice()
+
   if (evaluation === 'loading') {
     return (
       <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3 flex items-center justify-center h-14">
@@ -67,11 +70,12 @@ function AiEvaluationCard({
   }
 
   const isDevil = evaluation.persona === 'DEVIL'
+  const persona = isDevil ? 'DEVIL' : 'ANGEL'
 
   return (
     <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3">
       <div className="flex items-start gap-3">
-        <div className="relative w-[52px] h-[52px] rounded-full overflow-hidden shrink-0">
+        <div className="relative w-13 h-13 rounded-full overflow-hidden shrink-0">
           <Image
             src={isDevil ? '/images/devil.png' : '/images/angel.png'}
             alt={isDevil ? '악마 AI' : '천사 AI'}
@@ -81,9 +85,34 @@ function AiEvaluationCard({
           />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-primary font-semibold mb-0.5">
-            ({formatEvalDate(evaluation.date)})
-          </p>
+          <div className="flex items-center justify-between mb-0.5">
+            <p className="text-[11px] text-primary font-semibold">
+              ({formatEvalDate(evaluation.date)})
+            </p>
+            <button
+              type="button"
+              onClick={() => voice.toggle({ persona, text: evaluation.message })}
+              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 ${
+                isDevil
+                  ? 'bg-primary/10 hover:bg-primary/20 text-primary'
+                  : 'bg-pink-100 hover:bg-pink-200 text-pink-500'
+              }`}
+              aria-label={voice.isPlaying ? '정지' : '재생'}
+            >
+              {voice.isLoading ? (
+                <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+              ) : voice.isPlaying ? (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                  <rect x="1" y="1" width="3" height="8" rx="1" />
+                  <rect x="6" y="1" width="3" height="8" rx="1" />
+                </svg>
+              ) : (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                  <path d="M2 1.5l7 3.5-7 3.5V1.5z" />
+                </svg>
+              )}
+            </button>
+          </div>
           <p className="text-[12px] text-ink leading-relaxed line-clamp-5">{evaluation.message}</p>
         </div>
       </div>
@@ -245,15 +274,15 @@ function TodoListContent() {
   return (
     <div className={CARD_CLASS}>
       {/* 헤더 (스크롤 고정) */}
-      <div className="px-6 pt-8 pb-4">
+      <div className="px-6 pt-5 pb-2">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-4 flex items-center gap-1 hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-primary transition-colors"
         >
           ← 뒤로
         </button>
-        <p className="text-[13px] text-muted mb-1">{formatDate(today)} 오늘</p>
-        <h1 className="text-[26px] font-bold text-ink mb-4">할 일</h1>
+        <p className="text-[13px] text-muted mb-0.5">{formatDate(today)} 오늘</p>
+        <h1 className="text-[26px] font-bold text-ink mb-2">할 일</h1>
       </div>
 
       {/* AI 하루 평가 카드 */}

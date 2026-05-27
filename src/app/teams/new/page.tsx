@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { AuthInput } from '@/components/ui/AuthInput'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
+import { useVoice } from '@/hooks/useVoice'
 import { ApiError } from '@/lib/apiClient'
 import { createTeam } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
@@ -21,6 +22,7 @@ export default function TeamNewPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const voice = useVoice()
 
   const { upload, isUploading } = usePresignedUpload({ type: 'TEAM', token: token ?? undefined })
 
@@ -131,38 +133,72 @@ export default function TeamNewPage() {
                   const isDevil = persona === 'DEVIL'
                   const selected = aiPersona === persona
                   return (
-                    <button
-                      key={persona}
-                      type="button"
-                      onClick={() => {
-                        setAiPersona(persona)
-                        if (error === 'AI 페르소나를 선택해주세요') setError('')
-                      }}
-                      className={`flex flex-col items-center gap-2 p-2.5 rounded-2xl transition-all duration-200 ${
-                        selected
-                          ? isDevil
-                            ? 'border-2 border-primary scale-105 bg-white shadow-[0_2px_12px_rgba(91,79,207,0.18)]'
-                            : 'border-2 border-pink-400 scale-105 bg-white shadow-[0_2px_12px_rgba(236,72,153,0.18)]'
-                          : 'border-2 border-transparent hover:border-border hover:bg-white/60'
-                      }`}
-                    >
-                      <div className="relative w-25 h-25 rounded-full overflow-hidden">
-                        <Image
-                          src={isDevil ? '/images/devil.png' : '/images/angel.png'}
-                          alt={isDevil ? '악마 AI' : '천사 AI'}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                      <span
-                        className={`text-[12px] font-bold transition-colors ${
-                          selected ? (isDevil ? 'text-primary' : 'text-pink-500') : 'text-muted'
+                    <div key={persona} className="flex flex-col items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAiPersona(persona)
+                          if (error === 'AI 페르소나를 선택해주세요') setError('')
+                        }}
+                        className={`flex flex-col items-center gap-2 p-2.5 rounded-2xl transition-all duration-200 ${
+                          selected
+                            ? isDevil
+                              ? 'border-2 border-primary scale-105 bg-white shadow-[0_2px_12px_rgba(91,79,207,0.18)]'
+                              : 'border-2 border-pink-400 scale-105 bg-white shadow-[0_2px_12px_rgba(236,72,153,0.18)]'
+                            : 'border-2 border-transparent hover:border-border hover:bg-white/60'
                         }`}
                       >
-                        {isDevil ? '악마 AI' : '천사 AI'}
-                      </span>
-                    </button>
+                        <div className="relative w-25 h-25 rounded-full overflow-hidden">
+                          <Image
+                            src={isDevil ? '/images/devil.png' : '/images/angel.png'}
+                            alt={isDevil ? '악마 AI' : '천사 AI'}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <span
+                          className={`text-[12px] font-bold transition-colors ${
+                            selected ? (isDevil ? 'text-primary' : 'text-pink-500') : 'text-muted'
+                          }`}
+                        >
+                          {isDevil ? '악마 AI' : '천사 AI'}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => voice.toggle({ persona, isSample: true })}
+                        disabled={voice.isLoading && voice.activePersona !== persona}
+                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${
+                          voice.isPlaying && voice.activePersona === persona
+                            ? isDevil
+                              ? 'bg-primary text-white'
+                              : 'bg-pink-400 text-white'
+                            : isDevil
+                              ? 'bg-primary-light text-primary hover:bg-primary hover:text-white'
+                              : 'bg-pink-50 text-pink-500 hover:bg-pink-400 hover:text-white'
+                        } disabled:opacity-40`}
+                      >
+                        {voice.isLoading && voice.activePersona === persona ? (
+                          <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                        ) : voice.isPlaying && voice.activePersona === persona ? (
+                          <>
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                              <rect x="1" y="1" width="3" height="8" rx="1" />
+                              <rect x="6" y="1" width="3" height="8" rx="1" />
+                            </svg>
+                            정지
+                          </>
+                        ) : (
+                          <>
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                              <path d="M2 1.5l7 3.5-7 3.5V1.5z" />
+                            </svg>
+                            샘플 듣기
+                          </>
+                        )}
+                      </button>
+                    </div>
                   )
                 })}
               </div>
