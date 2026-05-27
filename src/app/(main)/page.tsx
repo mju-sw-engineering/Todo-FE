@@ -8,7 +8,8 @@ import { getTeams } from '@/services/teamService'
 import { getTodayTodos } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import type { TeamListItem } from '@/types/team.types'
-import type { MyTodoStatus, Todo, TodoStatus } from '@/types/todo.types'
+import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
+import type { MyTodoStatus, Todo } from '@/types/todo.types'
 
 type TabType = 'all' | 'incomplete' | 'complete'
 
@@ -17,27 +18,13 @@ interface TodoWithTeam extends Todo {
   teamName: string
 }
 
-const STATUS_LABEL: Record<TodoStatus, string> = {
-  IN_PROGRESS: '진행중',
-  SUCCESS: '성공',
-  FAIL: '실패',
-}
-
-const STATUS_STYLE: Record<TodoStatus, string> = {
-  IN_PROGRESS: 'bg-gray-100 text-gray-500',
-  SUCCESS: 'bg-emerald-50 text-emerald-600',
-  FAIL: 'bg-red-50 text-red-500',
-}
-
 const MY_STATUS_STYLE: Record<MyTodoStatus, string> = {
   완료: 'bg-primary text-white',
-  '평가 대기중': 'bg-indigo-400 text-white',
   미완료: 'bg-gray-100 text-gray-400',
 }
 
 const BAR_COLOR: Record<MyTodoStatus, string> = {
   완료: 'bg-primary',
-  '평가 대기중': 'bg-indigo-400',
   미완료: 'bg-gray-200',
 }
 
@@ -49,7 +36,7 @@ function MyTodoCard({ todo, onClick }: { todo: TodoWithTeam; onClick: () => void
   return (
     <div
       onClick={onClick}
-      className="rounded-[18px] border border-border bg-white px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:border-primary/30 hover:shadow-[0_2px_12px_rgba(91,79,207,0.08)] active:scale-[0.99]"
+      className={`rounded-[18px] border border-border bg-white px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:border-primary/30 hover:shadow-[0_2px_12px_rgba(91,79,207,0.08)] active:scale-[0.99] ${myStatus === '완료' || todo.status === 'FAIL' ? 'opacity-55' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -57,11 +44,7 @@ function MyTodoCard({ todo, onClick }: { todo: TodoWithTeam; onClick: () => void
             <span className="text-[11px] font-semibold text-primary bg-primary-light px-2 py-0.5 rounded-full truncate max-w-30">
               {todo.teamName}
             </span>
-            <span
-              className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_STYLE[todo.status]}`}
-            >
-              {STATUS_LABEL[todo.status]}
-            </span>
+            <TodoStatusBadge status={todo.status} />
           </div>
           <p className="text-[15px] font-semibold text-ink leading-snug">{todo.title}</p>
           <p className="text-[12px] text-muted mt-0.5">{formatDeadline(todo.deadline)} 마감</p>
@@ -70,7 +53,7 @@ function MyTodoCard({ todo, onClick }: { todo: TodoWithTeam; onClick: () => void
           <span
             className={`shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full mt-0.5 ${MY_STATUS_STYLE[myStatus]}`}
           >
-            {myStatus === '평가 대기중' ? '평가 대기' : myStatus}
+            {myStatus}
           </span>
         )}
       </div>
@@ -140,15 +123,17 @@ export default function HomePage() {
 
   const today = new Date()
 
-  const filteredTodos = todos.filter((t) => {
-    if (tab === 'complete') return t.myStatus === '완료' || t.myStatus === '평가 대기중'
-    if (tab === 'incomplete') return t.myStatus === '미완료'
-    return true
-  })
+  const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
 
-  const completeCount = todos.filter(
-    (t) => t.myStatus === '완료' || t.myStatus === '평가 대기중'
-  ).length
+  const filteredTodos = todos
+    .filter((t) => {
+      if (tab === 'complete') return t.myStatus === '완료'
+      if (tab === 'incomplete') return t.myStatus === '미완료'
+      return true
+    })
+    .sort((a, b) => (STATUS_ORDER[a.status] ?? 0) - (STATUS_ORDER[b.status] ?? 0))
+
+  const completeCount = todos.filter((t) => t.myStatus === '완료').length
   const incompleteCount = todos.filter((t) => t.myStatus === '미완료').length
 
   const TAB_ITEMS: { key: TabType; label: string; count: number }[] = [

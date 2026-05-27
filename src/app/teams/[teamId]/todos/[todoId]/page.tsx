@@ -1,193 +1,138 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { createPortal } from 'react-dom'
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { AVATAR_COLORS, formatDeadline, getInitials, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
-import { evaluateTodo, getTodoDetail } from '@/services/todoService'
+import { getTodoDetail, postReaction } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
-import type { MyTodoStatus, TodoDetail, TodoParticipant, TodoStatus } from '@/types/todo.types'
+import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
+import type { MyTodoStatus, ReactionType, TodoDetail, TodoParticipant } from '@/types/todo.types'
 
-const STATUS_LABEL: Record<TodoStatus, string> = {
-  IN_PROGRESS: '진행중',
-  SUCCESS: '성공',
-  FAIL: '실패',
+const PROGRESS_MESSAGES = {
+  none: ['아직 아무도 안됐어요 ㅠ', '다들 뭐하는 거예요? 😴', '누가 먼저 할까요? 🫠'],
+  one: ['첫 번째 용사 등장! 🙌', '드디어 한 명! 🎉', '스타트를 끊었어요 🏃'],
+  few: (n: number) => [`${n}명 완료! 화이팅 🔥`, `${n}명이나 했어요! 💪`, '점점 달아오르는 중! 🌡️'],
+  half: ['절반 넘었어요! 🚀', '중반 돌파! 👏', '반이나 됐어요 ✨'],
+  most: ['거의 다 왔어요! 😤', '마지막 한 명만! 🎯', '조금만 더! ⚡'],
+  all: ['전원 완료! 🎊', '모두 다 했어요! 🏆', '완벽한 팀이에요! ✨'],
 }
 
-const STATUS_STYLE: Record<TodoStatus, string> = {
-  IN_PROGRESS: 'bg-gray-100 text-gray-500',
-  SUCCESS: 'bg-emerald-50 text-emerald-600',
-  FAIL: 'bg-red-50 text-red-500',
+function getProgressMessage(achieved: number, total: number, seed: number): string {
+  const pick = (arr: string[]) => arr[seed % arr.length]
+  if (total === 0) return ''
+  if (achieved === 0) return pick(PROGRESS_MESSAGES.none)
+  if (achieved === total) return pick(PROGRESS_MESSAGES.all)
+  const ratio = achieved / total
+  if (ratio >= 0.8) return pick(PROGRESS_MESSAGES.most)
+  if (ratio > 0.5) return pick(PROGRESS_MESSAGES.half)
+  if (achieved === 1) return pick(PROGRESS_MESSAGES.one)
+  return pick(PROGRESS_MESSAGES.few(achieved))
 }
 
 const CERT_BADGE_LABEL: Record<MyTodoStatus, string> = {
   완료: '완료',
-  '평가 대기중': '평가 대기',
   미완료: '미완료',
 }
 
 const CERT_BADGE_STYLE: Record<MyTodoStatus, string> = {
   완료: 'bg-primary text-white',
-  '평가 대기중': 'bg-indigo-400 text-white',
   미완료: 'bg-gray-100 text-gray-400',
 }
-
-const REACTIONS = [
-  { emoji: '👍', label: '좋아요', type: 'POSITIVE' as const },
-  { emoji: '❤️', label: '하트', type: 'POSITIVE' as const },
-  { emoji: '😮', label: '놀람', type: 'POSITIVE' as const },
-  { emoji: '👎', label: '싫어요', type: 'NEGATIVE' as const },
-  { emoji: '😡', label: '화나요', type: 'NEGATIVE' as const },
-]
 
 function MemberCertCard({
   member,
   index,
   isCurrentUser,
   onCertify,
-  canEvaluate,
-  evaluated,
-  isEvaluating,
-  onEvaluatePass,
-  onEvaluateFail,
+  onReact,
 }: {
   member: TodoParticipant
   index: number
   isCurrentUser: boolean
   onCertify: () => void
-  canEvaluate: boolean
-  evaluated: boolean
-  isEvaluating: boolean
-  onEvaluatePass: () => void
-  onEvaluateFail: () => void
+  onReact: (type: ReactionType) => void
 }) {
-  const [showReactions, setShowReactions] = useState(false)
-  const [pickerRect, setPickerRect] = useState<DOMRect | null>(null)
-  const heartBtnRef = useRef<HTMLButtonElement>(null)
   const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length]
   const status = member.status
   const isCompleted = status === '완료'
-  const isPending = status === '평가 대기중'
   const canCertify = isCurrentUser && status === '미완료'
-
-  function handleHeartClick(e: React.MouseEvent) {
-    e.stopPropagation()
-    if (!showReactions && heartBtnRef.current) {
-      setPickerRect(heartBtnRef.current.getBoundingClientRect())
-    }
-    setShowReactions((v) => !v)
-  }
+  const showReactions = !isCurrentUser && !!member.proofImageUrl
 
   return (
-    <>
-      <div
-        className={`rounded-[18px] overflow-hidden border border-border ${canCertify ? 'cursor-pointer active:scale-[0.99] transition-transform' : ''}`}
-        onClick={canCertify ? onCertify : undefined}
-      >
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
-          <div className="flex items-center gap-2.5">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
-            >
-              {getInitials(member.nickname)}
-            </div>
-            <span className="text-[14px] font-semibold text-ink">{member.nickname}</span>
-          </div>
-          {status && (
-            <span
-              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${CERT_BADGE_STYLE[status]}`}
-            >
-              {CERT_BADGE_LABEL[status]}
-            </span>
-          )}
-        </div>
-
-        {(isCompleted || isPending) && member.proofImageUrl ? (
+    <div
+      className={`rounded-[18px] overflow-hidden border border-border ${canCertify ? 'cursor-pointer active:scale-[0.99] transition-transform' : ''}`}
+      onClick={canCertify ? onCertify : undefined}
+    >
+      <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
+        <div className="flex items-center gap-2.5">
           <div
-            className="w-full h-32.5 bg-cover bg-center relative"
-            style={{ backgroundImage: `url(${member.proofImageUrl})` }}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
           >
-            <div
-              className={`absolute inset-0 ${isCompleted ? 'bg-linear-to-t from-primary/30 to-transparent' : 'bg-linear-to-t from-indigo-900/20 to-transparent'}`}
-            />
+            {getInitials(member.nickname)}
           </div>
-        ) : (isCompleted || isPending) && !member.proofImageUrl ? (
-          <div
-            className={`w-full h-32.5 ${isCompleted ? 'bg-linear-to-br from-primary/20 to-primary/40' : 'bg-linear-to-br from-indigo-100 to-indigo-200'}`}
-          />
-        ) : canCertify ? (
-          <div className="w-full h-32.5 bg-primary-light flex flex-col items-center justify-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center">
-              <span className="text-[22px] font-light text-primary/60 leading-none">+</span>
-            </div>
-            <span className="text-[12px] text-primary/50">인증 전 (사진 미선택)</span>
-          </div>
-        ) : (
-          <div className="w-full h-32.5 bg-gray-50" />
-        )}
-
-        {/* 평가 버튼 - 본인 카드에는 절대 표시 안 함 */}
-        {!isCurrentUser && canEvaluate && !evaluated && (
-          <div className="flex justify-end px-4 py-2 bg-white border-t border-border/50">
-            <button
-              ref={heartBtnRef}
-              type="button"
-              disabled={isEvaluating}
-              onClick={handleHeartClick}
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-[20px] transition-all duration-200 active:scale-95 disabled:opacity-50 ${
-                showReactions
-                  ? 'bg-pink-100 scale-110'
-                  : 'bg-gray-100 hover:bg-pink-50 hover:scale-110'
-              }`}
-            >
-              {showReactions ? '❤️' : '🤍'}
-            </button>
-          </div>
-        )}
-        {!isCurrentUser && canEvaluate && evaluated && (
-          <div className="px-4 py-2 bg-white border-t border-border/50">
-            <p className="text-[13px] text-center text-emerald-600 font-semibold">평가 완료</p>
-          </div>
+          <span className="text-[14px] font-semibold text-ink">{member.nickname}</span>
+        </div>
+        {status && (
+          <span
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${CERT_BADGE_STYLE[status] ?? 'bg-gray-100 text-gray-400'}`}
+          >
+            {CERT_BADGE_LABEL[status] ?? status}
+          </span>
         )}
       </div>
 
-      {/* 이모지 피커 - overflow:hidden 밖에 렌더링하기 위해 포털 사용 */}
-      {showReactions &&
-        pickerRect &&
-        createPortal(
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setShowReactions(false)} />
-            <div
-              className="fixed z-50 flex items-end gap-2.5"
-              style={{
-                bottom: window.innerHeight - pickerRect.top + 10,
-                right: window.innerWidth - pickerRect.right,
-              }}
-            >
-              {REACTIONS.map((r, i) => (
-                <button
-                  key={r.emoji}
-                  type="button"
-                  disabled={isEvaluating}
-                  style={{ animationDelay: `${i * 55}ms` }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowReactions(false)
-                    if (r.type === 'POSITIVE') onEvaluatePass()
-                    else onEvaluateFail()
-                  }}
-                  className="flex flex-col items-center gap-0.5 animate-emoji-pop disabled:opacity-50 hover:scale-125 transition-transform duration-150"
-                >
-                  <span className="text-[28px] leading-none">{r.emoji}</span>
-                  <span className="text-[9px] text-muted font-medium">{r.label}</span>
-                </button>
-              ))}
-            </div>
-          </>,
-          document.body
-        )}
-    </>
+      {isCompleted && member.proofImageUrl ? (
+        <div
+          className="w-full h-32.5 bg-cover bg-center relative"
+          style={{ backgroundImage: `url(${member.proofImageUrl})` }}
+        >
+          <div className="absolute inset-0 bg-linear-to-t from-primary/30 to-transparent" />
+        </div>
+      ) : isCompleted && !member.proofImageUrl ? (
+        <div className="w-full h-32.5 bg-linear-to-br from-primary/20 to-primary/40" />
+      ) : canCertify ? (
+        <div className="w-full h-32.5 bg-primary-light flex flex-col items-center justify-center gap-2">
+          <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center">
+            <span className="text-[22px] font-light text-primary/60 leading-none">+</span>
+          </div>
+          <span className="text-[12px] text-primary/50">인증 전 (사진 미선택)</span>
+        </div>
+      ) : (
+        <div className="w-full h-32.5 bg-gray-50" />
+      )}
+
+      {showReactions && member.reactions?.length > 0 && (
+        <div className="flex items-center justify-around px-3 py-2.5 bg-white border-t border-border/50">
+          {member.reactions.map((reaction) => {
+            const isSelected = member.myReaction === reaction.type
+            return (
+              <button
+                key={reaction.type}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onReact(reaction.type)
+                }}
+                className={`flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-150 active:scale-95 ${
+                  isSelected ? 'bg-primary/10 ring-1 ring-primary/20' : 'hover:bg-gray-100'
+                }`}
+              >
+                <span className="text-[17px] leading-none">{reaction.emoji}</span>
+                {reaction.count > 0 && (
+                  <span
+                    className={`text-[10px] font-semibold ${isSelected ? 'text-primary' : 'text-gray-400'}`}
+                  >
+                    {reaction.count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -206,9 +151,12 @@ function TodoDetailContent() {
   const [error, setError] = useState('')
   const myStatusParam = searchParams.get('myStatus') as MyTodoStatus | null
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
-  const [evaluatedIds, setEvaluatedIds] = useState<Set<number>>(new Set())
-  const [evaluatingId, setEvaluatingId] = useState<number | null>(null)
-  const [evalError, setEvalError] = useState('')
+  const [showBubble, setShowBubble] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowBubble(true), 650)
+    return () => clearTimeout(t)
+  }, [])
 
   useEffect(() => {
     if (!showToast) return
@@ -226,21 +174,15 @@ function TodoDetailContent() {
       .finally(() => setIsLoading(false))
   }, [token, todoId])
 
-  async function handleEvaluate(participantUserId: number, voteType: 'POSITIVE' | 'NEGATIVE') {
-    if (!token || evaluatingId !== null) return
-    setEvalError('')
-    setEvaluatingId(participantUserId)
+  async function handleReact(participantId: number, type: ReactionType) {
+    if (!token) return
     try {
-      await evaluateTodo(todoId, { targetUserId: participantUserId, voteType }, token)
-      setEvaluatedIds((prev) => new Set([...prev, participantUserId]))
+      await postReaction(participantId, type, token)
       getTodoDetail(todoId, token)
         .then((res) => setTodo(res))
         .catch(() => null)
-    } catch (err) {
-      setEvalError(err instanceof ApiError ? err.message : '평가 중 오류가 발생했습니다.')
-      setTimeout(() => setEvalError(''), 3000)
-    } finally {
-      setEvaluatingId(null)
+    } catch {
+      // silently fail
     }
   }
 
@@ -288,11 +230,9 @@ function TodoDetailContent() {
 
         <div className="flex items-start gap-2 mb-2">
           <h1 className="text-[20px] font-bold text-ink flex-1 leading-snug">{todo.title}</h1>
-          <span
-            className={`shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full mt-0.5 ${STATUS_STYLE[todo.status]}`}
-          >
-            {STATUS_LABEL[todo.status]}
-          </span>
+          <div className="mt-0.5">
+            <TodoStatusBadge status={todo.status} />
+          </div>
         </div>
 
         <p className="text-[13px] text-muted mb-5">
@@ -306,11 +246,45 @@ function TodoDetailContent() {
               {achieved}/{total}명 · {percentage}%
             </span>
           </div>
-          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-500"
-              style={{ width: `${percentage}%` }}
-            />
+          <div className="relative pb-9">
+            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-primary"
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 0.75, ease: 'easeOut', delay: 0.2 }}
+              />
+            </div>
+            {showBubble && total > 0 && (
+              <motion.div
+                key={achieved}
+                initial={{ opacity: 0, scale: 0.55, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: 'spring', damping: 11, stiffness: 260 }}
+                className="absolute top-3 pointer-events-none"
+                style={{
+                  left: `${Math.max(6, Math.min(achieved === 0 ? 0 : percentage, 84))}%`,
+                  transform: 'translateX(-50%)',
+                }}
+              >
+                <div className="relative">
+                  <div className="absolute -top-1.25 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-white border border-border/60" />
+                  <div className="relative z-10 px-2.5 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white shadow-[0_2px_12px_rgba(0,0,0,0.10)] border border-border/60">
+                    <span
+                      className={
+                        achieved === 0
+                          ? 'text-slate-400'
+                          : achieved === total
+                            ? 'text-emerald-500'
+                            : 'text-primary'
+                      }
+                    >
+                      {getProgressMessage(achieved, total, todoId)}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
@@ -326,7 +300,6 @@ function TodoDetailContent() {
                 ? member.nickname === user.nickname
                 : false
             const isCurrentUser = byUserId || byNickname
-            const canEvaluate = !isCurrentUser && member.status === '평가 대기중'
             return (
               <MemberCertCard
                 key={member.userId}
@@ -334,11 +307,7 @@ function TodoDetailContent() {
                 index={idx}
                 isCurrentUser={isCurrentUser}
                 onCertify={navigateToCertify}
-                canEvaluate={canEvaluate}
-                evaluated={evaluatedIds.has(member.userId)}
-                isEvaluating={evaluatingId === member.userId}
-                onEvaluatePass={() => handleEvaluate(member.userId, 'POSITIVE')}
-                onEvaluateFail={() => handleEvaluate(member.userId, 'NEGATIVE')}
+                onReact={(type) => handleReact(member.todoParticipantId, type)}
               />
             )
           })}
@@ -346,18 +315,36 @@ function TodoDetailContent() {
       </div>
 
       {/* 바텀 버튼 (항상 고정) */}
-      <div className="px-6 py-5 border-t border-border">
+      <div className="px-6 py-5 border-t border-border flex gap-3">
+        <button
+          onClick={() =>
+            router.push(
+              `/teams/${teamId}/todos/${todoId}/chat?title=${encodeURIComponent(todo.title)}`
+            )
+          }
+          className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-primary-light text-primary hover:bg-[#e0daf8] transition-all duration-200 shrink-0"
+          aria-label="채팅"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path
+              d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H7l-4 3V4z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
         {canCertify ? (
           <button
             onClick={navigateToCertify}
-            className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+            className="flex-1 py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
           >
             인증하기
           </button>
         ) : (
           <button
             onClick={() => router.back()}
-            className="w-full py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+            className="flex-1 py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
           >
             돌아가기
           </button>
@@ -365,13 +352,8 @@ function TodoDetailContent() {
       </div>
 
       {showToast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up z-50">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up z-50">
           인증샷이 업로드되었습니다
-        </div>
-      )}
-      {evalError && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-red-50 text-red-500 text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(239,68,68,0.18)] animate-fade-up z-50">
-          {evalError}
         </div>
       )}
     </div>
