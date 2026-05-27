@@ -124,84 +124,155 @@ export default function TeamNewPage() {
             <span className="text-[13px] font-semibold text-primary tracking-wide">
               팀 가이드 AI 선택
             </span>
-            <div className="rounded-[18px] border border-border bg-input-bg p-4 flex flex-col items-center gap-4">
-              <p className="text-[12px] text-muted text-center">
-                우리 팀과 함께 할 AI를 선택해 주세요
-              </p>
-              <div className="flex justify-center gap-8">
-                {(['DEVIL', 'ANGEL'] as AiPersona[]).map((persona) => {
-                  const isDevil = persona === 'DEVIL'
+            <div className="flex flex-col gap-3">
+              {[
+                {
+                  persona: 'DEVIL' as AiPersona,
+                  emoji: '😈',
+                  name: '악마 AI',
+                  tagline: '엄격한 채찍 멘토',
+                  desc: '게으름은 절대 용납 불가. 목표를 향해 가차 없이 몰아붙여요.',
+                  bg: 'linear-gradient(135deg, #1a0a3b 0%, #2e1065 55%, #3b0764 100%)',
+                  ring: 'ring-purple-500',
+                  textColor: 'text-white',
+                  subColor: 'text-purple-300',
+                  descColor: 'text-purple-400/75',
+                  playBg: 'bg-white/15 hover:bg-white/25 text-white',
+                  playActive: 'bg-white/30 text-white',
+                  imgSrc: '/images/devil.png',
+                },
+                {
+                  persona: 'ANGEL' as AiPersona,
+                  emoji: '😇',
+                  name: '천사 AI',
+                  tagline: '따뜻한 응원 멘토',
+                  desc: '칭찬과 격려로 함께 성장해요. 작은 노력도 놓치지 않아요.',
+                  bg: 'linear-gradient(135deg, #fdf4ff 0%, #ede9fe 55%, #fce7f3 100%)',
+                  ring: 'ring-pink-400',
+                  textColor: 'text-[#4c1d95]',
+                  subColor: 'text-purple-500',
+                  descColor: 'text-purple-500/65',
+                  playBg: 'bg-purple-100 hover:bg-purple-200 text-purple-600',
+                  playActive: 'bg-pink-400 text-white',
+                  imgSrc: '/images/angel.png',
+                },
+              ].map(
+                ({
+                  persona,
+                  emoji,
+                  name,
+                  tagline,
+                  desc,
+                  bg,
+                  ring,
+                  textColor,
+                  subColor,
+                  descColor,
+                  playBg,
+                  playActive,
+                  imgSrc,
+                }) => {
                   const selected = aiPersona === persona
+                  const isVoicePlaying = voice.isPlaying && voice.activePersona === persona
+                  const isVoiceLoading = voice.isLoading && voice.activePersona === persona
                   return (
-                    <div key={persona} className="flex flex-col items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAiPersona(persona)
-                          if (error === 'AI 페르소나를 선택해주세요') setError('')
-                        }}
-                        className={`flex flex-col items-center gap-2 p-2.5 rounded-2xl transition-all duration-200 ${
-                          selected
-                            ? isDevil
-                              ? 'border-2 border-primary scale-105 bg-white shadow-[0_2px_12px_rgba(91,79,207,0.18)]'
-                              : 'border-2 border-pink-400 scale-105 bg-white shadow-[0_2px_12px_rgba(236,72,153,0.18)]'
-                            : 'border-2 border-transparent hover:border-border hover:bg-white/60'
-                        }`}
-                      >
-                        <div className="relative w-25 h-25 rounded-full overflow-hidden">
+                    <button
+                      key={persona}
+                      type="button"
+                      onClick={() => {
+                        setAiPersona(persona)
+                        if (error === 'AI 페르소나를 선택해주세요') setError('')
+                      }}
+                      className={`relative w-full rounded-2xl overflow-hidden transition-all duration-250 ring-offset-2 ${
+                        selected
+                          ? `ring-2 ${ring} scale-[1.015] shadow-[0_8px_28px_rgba(0,0,0,0.15)]`
+                          : 'shadow-sm hover:shadow-md'
+                      }`}
+                      style={{ background: bg }}
+                    >
+                      <div className="flex items-center gap-4 px-4 py-4">
+                        {/* Avatar */}
+                        <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 shadow-[0_4px_14px_rgba(0,0,0,0.25)]">
                           <Image
-                            src={isDevil ? '/images/devil.png' : '/images/angel.png'}
-                            alt={isDevil ? '악마 AI' : '천사 AI'}
+                            src={imgSrc}
+                            alt={name}
                             fill
                             className="object-cover"
                             unoptimized
                           />
                         </div>
-                        <span
-                          className={`text-[12px] font-bold transition-colors ${
-                            selected ? (isDevil ? 'text-primary' : 'text-pink-500') : 'text-muted'
-                          }`}
-                        >
-                          {isDevil ? '악마 AI' : '천사 AI'}
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => voice.toggle({ persona, isSample: true })}
-                        disabled={voice.isLoading && voice.activePersona !== persona}
-                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${
-                          voice.isPlaying && voice.activePersona === persona
-                            ? isDevil
-                              ? 'bg-primary text-white'
-                              : 'bg-pink-400 text-white'
-                            : isDevil
-                              ? 'bg-primary-light text-primary hover:bg-primary hover:text-white'
-                              : 'bg-pink-50 text-pink-500 hover:bg-pink-400 hover:text-white'
-                        } disabled:opacity-40`}
-                      >
-                        {voice.isLoading && voice.activePersona === persona ? (
-                          <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                        ) : voice.isPlaying && voice.activePersona === persona ? (
-                          <>
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                              <rect x="1" y="1" width="3" height="8" rx="1" />
-                              <rect x="6" y="1" width="3" height="8" rx="1" />
-                            </svg>
-                            정지
-                          </>
-                        ) : (
-                          <>
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                              <path d="M2 1.5l7 3.5-7 3.5V1.5z" />
-                            </svg>
-                            샘플 듣기
-                          </>
-                        )}
-                      </button>
-                    </div>
+
+                        {/* Text */}
+                        <div className="flex-1 text-left">
+                          <p className={`text-[17px] font-black leading-tight ${textColor}`}>
+                            {emoji} {name}
+                          </p>
+                          <p className={`text-[12px] font-semibold mt-0.5 ${subColor}`}>
+                            {tagline}
+                          </p>
+                          <p className={`text-[11px] leading-relaxed mt-1.5 ${descColor}`}>
+                            {desc}
+                          </p>
+                        </div>
+
+                        {/* Right: check + play */}
+                        <div className="flex flex-col items-center gap-2 shrink-0">
+                          <div
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                              selected
+                                ? 'bg-white border-transparent shadow-sm'
+                                : 'border-white/30 bg-transparent'
+                            }`}
+                          >
+                            {selected && (
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <path
+                                  d="M2 6l3 3 5-5"
+                                  stroke="#7c3aed"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              voice.toggle({ persona, isSample: true })
+                            }}
+                            disabled={voice.isLoading && !isVoiceLoading}
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-150 active:scale-90 disabled:opacity-40 ${
+                              isVoicePlaying ? playActive : playBg
+                            }`}
+                          >
+                            {isVoiceLoading ? (
+                              <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                            ) : isVoicePlaying ? (
+                              <>
+                                <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
+                                  <rect x="0.5" y="0.5" width="2.5" height="8" rx="1" />
+                                  <rect x="6" y="0.5" width="2.5" height="8" rx="1" />
+                                </svg>
+                                정지
+                              </>
+                            ) : (
+                              <>
+                                <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
+                                  <path d="M1.5 1l6.5 3.5-6.5 3.5V1z" />
+                                </svg>
+                                듣기
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </button>
                   )
-                })}
-              </div>
+                }
+              )}
             </div>
             {error === 'AI 페르소나를 선택해주세요' && (
               <p className="text-xs text-red-400">{error}</p>

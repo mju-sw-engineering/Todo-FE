@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     },
     body: JSON.stringify({
       text: resolvedText,
-      model_id: 'eleven_multilingual_v2',
+      model_id: 'eleven_turbo_v2_5',
       voice_settings: {
         stability: isDevil ? 0.3 : 0.65,
         similarity_boost: 0.75,
