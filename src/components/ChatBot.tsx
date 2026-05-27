@@ -144,7 +144,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
       {!isOpen && (
         <button
           onClick={handleOpen}
-          className="fixed bottom-17 right-5 z-40 w-14 h-14 rounded-full bg-primary shadow-[0_4px_20px_rgba(91,79,207,0.45)] flex items-center justify-center text-white transition-transform duration-200 hover:scale-105 active:scale-95"
+          className="fixed bottom-19 right-5 z-40 w-14 h-14 rounded-full bg-primary shadow-[0_4px_20px_rgba(91,79,207,0.45)] flex items-center justify-center text-white transition-transform duration-200 hover:scale-105 active:scale-95"
           aria-label="AI 챗봇 열기"
         >
           <svg

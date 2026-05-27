@@ -166,78 +166,79 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-white animate-fade-up">
-      {/* 헤더 (스크롤 고정) */}
-      <div className="px-5 pt-6 pb-4">
-        <p className="text-[13px] text-muted mb-1">{formatDate(today)} 오늘</p>
-        <h1 className="text-[26px] font-bold text-ink">내 할 일</h1>
-      </div>
+    <>
+      <div className="flex-1 flex flex-col min-h-0 bg-white animate-fade-up">
+        {/* 헤더 (스크롤 고정) */}
+        <div className="px-5 pt-6 pb-4">
+          <p className="text-[13px] text-muted mb-1">{formatDate(today)} 오늘</p>
+          <h1 className="text-[26px] font-bold text-ink">내 할 일</h1>
+        </div>
 
-      {/* 탭 (스크롤 고정) */}
-      <div className="flex border-b border-border px-5">
-        {TAB_ITEMS.map(({ key, label, count }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`pb-2.5 pt-1 mr-5 text-[14px] font-semibold border-b-2 transition-colors duration-150 ${
-              tab === key
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted hover:text-ink'
-            }`}
-          >
-            {label} {count}
-          </button>
-        ))}
-      </div>
-
-      {/* 할일 목록 (스크롤 / pb-32 = 바텀 네비 + FAB 높이) */}
-      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-20 flex flex-col gap-3">
-        {todos.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 py-20">
-            <div className="w-14 h-14 rounded-full bg-primary-light flex items-center justify-center mb-1">
-              <svg
-                className="w-6 h-6 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                />
-              </svg>
-            </div>
-            <p className="text-[15px] font-semibold text-ink">오늘 할당된 할 일이 없습니다</p>
-            <p className="text-[13px] text-muted">팀에서 할 일을 생성해보세요</p>
+        {/* 탭 (스크롤 고정) */}
+        <div className="flex border-b border-border px-5">
+          {TAB_ITEMS.map(({ key, label, count }) => (
             <button
-              onClick={() => router.push('/teams')}
-              className="mt-4 px-5 py-2.5 bg-primary text-white text-[14px] font-semibold rounded-xl shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+              key={key}
+              onClick={() => setTab(key)}
+              className={`pb-2.5 pt-1 mr-5 text-[14px] font-semibold border-b-2 transition-colors duration-150 ${
+                tab === key
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted hover:text-ink'
+              }`}
             >
-              내 팀 보기
+              {label} {count}
             </button>
-          </div>
-        ) : filteredTodos.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <p className="text-[14px] text-muted">해당하는 할 일이 없습니다</p>
-          </div>
-        ) : (
-          filteredTodos.map((todo) => (
-            <MyTodoCard
-              key={`${todo.teamId}-${todo.todoId}`}
-              todo={todo}
-              onClick={() =>
-                router.push(
-                  `/teams/${todo.teamId}/todos/${todo.todoId}?myStatus=${encodeURIComponent(todo.myStatus ?? '')}`
-                )
-              }
-            />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
 
+        {/* 할일 목록 (스크롤 / pb-32 = 바텀 네비 + FAB 높이) */}
+        <div className="flex-1 overflow-y-auto px-5 pt-4 pb-20 flex flex-col gap-3">
+          {todos.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 py-20">
+              <div className="w-14 h-14 rounded-full bg-primary-light flex items-center justify-center mb-1">
+                <svg
+                  className="w-6 h-6 text-primary"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                  />
+                </svg>
+              </div>
+              <p className="text-[15px] font-semibold text-ink">오늘 할당된 할 일이 없습니다</p>
+              <p className="text-[13px] text-muted">팀에서 할 일을 생성해보세요</p>
+              <button
+                onClick={() => router.push('/teams')}
+                className="mt-4 px-5 py-2.5 bg-primary text-white text-[14px] font-semibold rounded-xl shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+              >
+                내 팀 보기
+              </button>
+            </div>
+          ) : filteredTodos.length === 0 ? (
+            <div className="flex items-center justify-center py-20">
+              <p className="text-[14px] text-muted">해당하는 할 일이 없습니다</p>
+            </div>
+          ) : (
+            filteredTodos.map((todo) => (
+              <MyTodoCard
+                key={`${todo.teamId}-${todo.todoId}`}
+                todo={todo}
+                onClick={() =>
+                  router.push(
+                    `/teams/${todo.teamId}/todos/${todo.todoId}?myStatus=${encodeURIComponent(todo.myStatus ?? '')}`
+                  )
+                }
+              />
+            ))
+          )}
+        </div>
+      </div>
       {token && <ChatBot token={token} teams={teamList} />}
-    </div>
+    </>
   )
 }
