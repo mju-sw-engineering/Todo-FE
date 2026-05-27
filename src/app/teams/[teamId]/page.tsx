@@ -1,12 +1,31 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { createPortal } from 'react-dom'
+import { useEffect, useRef, useState } from 'react'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
+import { PlantIcon, getPlantStageLabel } from '@/components/ui/PlantIcon'
 import { ApiError } from '@/lib/apiClient'
 import { getTeamById } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import type { TeamDetailResponse, TeamMember } from '@/types/team.types'
+
+const PLANT_STAGES = [
+  { count: 0, label: '씨앗', range: '0일', desc: '아직 시작 전이에요' },
+  { count: 1, label: '새싹', range: '1~3일', desc: '이제 막 시작했어요' },
+  { count: 4, label: '식물', range: '4~10일', desc: '잘 자라고 있어요' },
+  { count: 11, label: '나무', range: '11~20일', desc: '많이 성장했어요' },
+  { count: 21, label: '꽃', range: '21일 이상', desc: '최고 단계예요!' },
+]
+
+function getStageIndex(count: number): number {
+  if (count >= 21) return 4
+  if (count >= 11) return 3
+  if (count >= 4) return 2
+  if (count >= 1) return 1
+  return 0
+}
 
 function getInitials(nickname: string): string {
   const trimmed = nickname.trim()
@@ -38,6 +57,93 @@ function MemberAvatar({ member }: { member: TeamMember }) {
   )
 }
 
+const POPOVER_WIDTH = 252
+
+function PlantInfoPopover({
+  count,
+  anchor,
+  onClose,
+}: {
+  count: number
+  anchor: DOMRect
+  onClose: () => void
+}) {
+  const gap = 10
+  const arrowSize = 6
+
+  let left = anchor.left + anchor.width / 2 - POPOVER_WIDTH / 2
+  left = Math.max(12, Math.min(left, window.innerWidth - POPOVER_WIDTH - 12))
+  const arrowLeft = anchor.left + anchor.width / 2 - left - arrowSize
+
+  const spaceBelow = window.innerHeight - anchor.bottom
+  const opensDown = spaceBelow > 280
+  const top = opensDown ? anchor.bottom + gap : undefined
+  const bottom = opensDown ? undefined : window.innerHeight - anchor.top + gap
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.88, y: opensDown ? -6 : 6 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.88, y: opensDown ? -6 : 6 }}
+        transition={{ type: 'spring', damping: 22, stiffness: 420, mass: 0.5 }}
+        style={{ top, bottom, left, width: POPOVER_WIDTH }}
+        className="fixed z-50 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.13)] border border-border p-3.5"
+      >
+        {opensDown && (
+          <div
+            className="absolute -top-1.5 w-3 h-3 bg-white border-l border-t border-border rotate-45 rounded-tl-sm"
+            style={{ left: arrowLeft }}
+          />
+        )}
+
+        <p className="text-[12px] font-bold text-ink mb-2.5 px-0.5">성장 단계</p>
+        <div className="flex flex-col gap-1">
+          {PLANT_STAGES.map((stage, i) => {
+            const isCurrent = getStageIndex(count) === i
+            return (
+              <div
+                key={stage.label}
+                className={`flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 ${
+                  isCurrent ? 'bg-primary-light' : ''
+                }`}
+              >
+                <div className="w-6 h-8 shrink-0">
+                  <PlantIcon count={stage.count} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`text-[12px] font-semibold leading-tight ${isCurrent ? 'text-primary' : 'text-ink'}`}
+                  >
+                    {stage.label}
+                  </p>
+                  <p className="text-[10px] text-muted mt-0.5">{stage.range}</p>
+                </div>
+                {isCurrent ? (
+                  <span className="text-[10px] font-semibold text-primary bg-white px-2 py-0.5 rounded-full border border-primary/20 shrink-0">
+                    현재
+                  </span>
+                ) : (
+                  <p className="text-[10px] text-muted shrink-0">{stage.desc}</p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {!opensDown && (
+          <div
+            className="absolute -bottom-1.5 w-3 h-3 bg-white border-r border-b border-border rotate-45 rounded-br-sm"
+            style={{ left: arrowLeft }}
+          />
+        )}
+      </motion.div>
+    </>,
+    document.body
+  )
+}
+
 export default function TeamDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -48,6 +154,8 @@ export default function TeamDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [membersOpen, setMembersOpen] = useState(true)
   const [copyDone, setCopyDone] = useState(false)
+  const [plantInfoAnchor, setPlantInfoAnchor] = useState<DOMRect | null>(null)
+  const infoButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!token || !teamId) return
@@ -129,6 +237,68 @@ export default function TeamDetailPage() {
           )}
         </div>
 
+        {/* 연속 성공 스트릭 카드 */}
+        <div className="bg-white rounded-[18px] border border-border mb-3 px-4 py-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-16 shrink-0 drop-shadow-sm">
+              <PlantIcon count={team.continuousTodoCount} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <p className="text-[11px] font-semibold text-muted tracking-wide uppercase">
+                  연속 성공 스트릭
+                </p>
+                <button
+                  ref={infoButtonRef}
+                  type="button"
+                  onClick={() =>
+                    setPlantInfoAnchor(
+                      plantInfoAnchor
+                        ? null
+                        : (infoButtonRef.current?.getBoundingClientRect() ?? null)
+                    )
+                  }
+                  className="text-muted hover:text-primary transition-colors duration-150 shrink-0"
+                  aria-label="성장 단계 안내"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.4" />
+                    <path
+                      d="M7 6.5v3M7 4.5v.5"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-[28px] font-bold text-ink leading-none">
+                  {team.continuousTodoCount}
+                </span>
+                <span className="text-[14px] font-semibold text-muted">일</span>
+              </div>
+              <span className="mt-1.5 inline-block text-[11px] font-semibold text-primary bg-primary-light px-2.5 py-0.5 rounded-full">
+                {getPlantStageLabel(team.continuousTodoCount)}
+              </span>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <p className="text-[10px] text-muted">단계별 성장</p>
+              <div className="flex gap-0.5 items-end">
+                {[1, 4, 11, 21].map((threshold, i) => (
+                  <div
+                    key={threshold}
+                    className={`w-1.5 rounded-sm transition-all duration-300 ${
+                      team.continuousTodoCount >= threshold ? 'bg-primary' : 'bg-border'
+                    }`}
+                    style={{ height: `${10 + i * 4}px` }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {team.inviteCode && (
           <button
             onClick={handleCopyInviteCode}
@@ -178,6 +348,16 @@ export default function TeamDetailPage() {
           목록으로
         </button>
       </div>
+
+      <AnimatePresence>
+        {plantInfoAnchor && (
+          <PlantInfoPopover
+            count={team.continuousTodoCount}
+            anchor={plantInfoAnchor}
+            onClose={() => setPlantInfoAnchor(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
