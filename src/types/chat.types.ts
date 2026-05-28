@@ -14,10 +14,10 @@ export interface ChatMessage {
 }
 
 export interface TodoChatMessage {
-  chatId: number
-  userId: number
-  nickname: string
-  profileImageUrl: string | null
+  messageId: number
+  senderId: number
+  senderNickname: string
+  senderProfileImageUrl: string | null
   content: string
   createdAt: string
 }

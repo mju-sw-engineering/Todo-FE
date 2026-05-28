@@ -54,25 +54,9 @@ export function useTodoChat(todoId: number, token: string | null) {
       reconnectDelay: 3000,
       onConnect: () => {
         setIsConnected(true)
-        client.subscribe(`/topic/todos/${todoId}`, (frame) => {
-          try {
-            const msg: TodoChatMessage = JSON.parse(frame.body)
-            queryClient.setQueryData<TodoChatMessage[]>(chatKey(todoId), (old) => {
-              const list = old ?? []
-              // Replace matching optimistic placeholder
-              const optIdx = list.findIndex((m) => m.chatId < 0 && m.content === msg.content)
-              if (optIdx !== -1) {
-                const next = [...list]
-                next[optIdx] = msg
-                return next
-              }
-              // Deduplicate real messages
-              if (list.some((m) => m.chatId === msg.chatId)) return list
-              return [...list, msg]
-            })
-          } catch {
-            // ignore malformed frames
-          }
+        // WS는 알림 트리거로만 사용 — 발신자 정보는 REST API로 가져옴
+        client.subscribe(`/topic/todos/${todoId}`, () => {
+          queryClient.invalidateQueries({ queryKey: chatKey(todoId) })
         })
       },
       onDisconnect: () => setIsConnected(false),
@@ -103,10 +87,10 @@ export function useTodoChat(todoId: number, token: string | null) {
       const previous = queryClient.getQueryData<TodoChatMessage[]>(chatKey(todoId))
 
       const optimistic: TodoChatMessage = {
-        chatId: nextTempId(),
-        userId: user?.userId ?? 0,
-        nickname: user?.nickname ?? '',
-        profileImageUrl: user?.profileImageUrl ?? null,
+        messageId: nextTempId(),
+        senderId: user?.userId ?? 0,
+        senderNickname: user?.loginId ?? user?.nickname ?? '',
+        senderProfileImageUrl: user?.profileImageUrl ?? null,
         content,
         createdAt: new Date().toISOString(),
       }

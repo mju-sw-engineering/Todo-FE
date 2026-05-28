@@ -60,7 +60,7 @@ export default function TodoChatPage() {
   // Group consecutive messages from same user
   const grouped = messages.map((msg, idx) => {
     const prev = messages[idx - 1]
-    const isFirst = !prev || prev.userId !== msg.userId
+    const isFirst = !prev || prev.senderId !== msg.senderId
     return { ...msg, isFirst }
   })
 
@@ -111,13 +111,18 @@ export default function TodoChatPage() {
               </p>
             )}
             {grouped.map((msg, idx) => {
-              const isMine = user?.loginId != null ? msg.nickname === user.loginId : msg.chatId < 0
+              const isMine =
+                msg.messageId < 0
+                  ? true
+                  : user?.loginId != null
+                    ? msg.senderNickname === user.loginId
+                    : false
               const avatarColor =
-                AVATAR_COLORS[Math.abs(msg.userId || msg.chatId) % AVATAR_COLORS.length]
+                AVATAR_COLORS[Math.abs(msg.senderId || msg.messageId) % AVATAR_COLORS.length]
 
               return (
                 <div
-                  key={`${msg.chatId}-${idx}`}
+                  key={`${msg.messageId}-${idx}`}
                   className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} ${msg.isFirst ? 'mt-3' : 'mt-0.5'}`}
                 >
                   {/* Avatar */}
@@ -127,7 +132,7 @@ export default function TodoChatPage() {
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold ${avatarColor}`}
                         >
-                          {getInitials(msg.nickname)}
+                          {getInitials(msg.senderNickname)}
                         </div>
                       ) : (
                         <div className="w-8" />
@@ -140,7 +145,7 @@ export default function TodoChatPage() {
                   >
                     {!isMine && msg.isFirst && (
                       <span className="text-[11px] font-semibold text-ink/50 ml-1">
-                        {msg.nickname}
+                        {msg.senderNickname}
                       </span>
                     )}
                     <div className="flex items-end gap-1.5">
