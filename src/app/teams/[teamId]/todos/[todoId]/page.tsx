@@ -1,8 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { AVATAR_COLORS, formatDeadline, getInitials, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { getTodoDetail, postReaction } from '@/services/todoService'
@@ -54,17 +54,27 @@ function MemberCertCard({
   onCertify: () => void
   onReact: (type: ReactionType) => void
 }) {
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
   const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length]
   const status = member.status
   const isCompleted = status === '완료'
   const canCertify = isCurrentUser && status === '미완료'
-  const showReactions = !isCurrentUser && !!member.proofImageUrl
+  const canReact = !isCurrentUser && isCompleted
+
+  const activeReactions = (member.reactions ?? []).filter((r) => r.count > 0)
+  const totalCount = activeReactions.reduce((s, r) => s + r.count, 0)
+  const myReactionEmoji = member.reactions?.find((r) => r.type === member.myReaction)?.emoji
 
   return (
     <div
       className={`rounded-[18px] overflow-hidden border border-border ${canCertify ? 'cursor-pointer active:scale-[0.99] transition-transform' : ''}`}
-      onClick={canCertify ? onCertify : undefined}
+      onClick={() => {
+        if (canCertify) onCertify()
+        if (showPicker) setShowPicker(false)
+      }}
     >
+      {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
         <div className="flex items-center gap-2.5">
           <div
@@ -83,55 +93,115 @@ function MemberCertCard({
         )}
       </div>
 
-      {isCompleted && member.proofImageUrl ? (
-        <div
-          className="w-full h-32.5 bg-cover bg-center relative"
-          style={{ backgroundImage: `url(${member.proofImageUrl})` }}
-        >
-          <div className="absolute inset-0 bg-linear-to-t from-primary/30 to-transparent" />
-        </div>
-      ) : isCompleted && !member.proofImageUrl ? (
-        <div className="w-full h-32.5 bg-linear-to-br from-primary/20 to-primary/40" />
-      ) : canCertify ? (
-        <div className="w-full h-32.5 bg-primary-light flex flex-col items-center justify-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center">
-            <span className="text-[22px] font-light text-primary/60 leading-none">+</span>
+      {/* Photo area */}
+      <div className="relative w-full h-44">
+        {isCompleted && member.proofImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={member.proofImageUrl}
+            alt="인증샷"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : isCompleted ? (
+          <div className="absolute inset-0 bg-linear-to-br from-primary/20 to-primary/40" />
+        ) : canCertify ? (
+          <div className="absolute inset-0 bg-primary-light flex flex-col items-center justify-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center">
+              <span className="text-[22px] font-light text-primary/60 leading-none">+</span>
+            </div>
+            <span className="text-[12px] text-primary/50">탭해서 인증하기</span>
           </div>
-          <span className="text-[12px] text-primary/50">인증 전 (사진 미선택)</span>
-        </div>
-      ) : (
-        <div className="w-full h-32.5 bg-gray-50" />
-      )}
+        ) : (
+          <div className="absolute inset-0 bg-gray-50" />
+        )}
 
-      {showReactions && member.reactions?.length > 0 && (
-        <div className="flex items-center justify-around px-3 py-2.5 bg-white border-t border-border/50">
-          {member.reactions.map((reaction) => {
-            const isSelected = member.myReaction === reaction.type
-            return (
-              <button
-                key={reaction.type}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onReact(reaction.type)
-                }}
-                className={`flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-150 active:scale-95 ${
-                  isSelected ? 'bg-primary/10 ring-1 ring-primary/20' : 'hover:bg-gray-100'
-                }`}
-              >
-                <span className="text-[17px] leading-none">{reaction.emoji}</span>
-                {reaction.count > 0 && (
-                  <span
-                    className={`text-[10px] font-semibold ${isSelected ? 'text-primary' : 'text-gray-400'}`}
-                  >
-                    {reaction.count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      )}
+        {/* Facebook-style reaction summary (bottom-left) */}
+        {activeReactions.length > 0 && (
+          <div className="absolute bottom-2.5 left-3 flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-2 py-0.5">
+            <div className="flex -space-x-0.5">
+              {activeReactions.slice(0, 3).map((r) => (
+                <span key={r.type} className="text-[13px] leading-none drop-shadow-sm">
+                  {r.emoji}
+                </span>
+              ))}
+            </div>
+            {totalCount > 0 && (
+              <span className="text-[11px] font-semibold text-white leading-none">
+                {totalCount}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Heart button + emoji picker (bottom-right) */}
+        {canReact && (
+          <div
+            ref={pickerRef}
+            className="absolute bottom-2.5 right-3 flex flex-col items-end gap-1.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Emoji picker pill */}
+            <AnimatePresence>
+              {showPicker && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.85, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.85, y: 6 }}
+                  transition={{ type: 'spring', damping: 20, stiffness: 380, mass: 0.5 }}
+                  className="flex items-center gap-0.5 bg-white/95 backdrop-blur-md rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.18)] px-2 py-1.5"
+                >
+                  {(member.reactions ?? []).map((r) => {
+                    const isSelected = member.myReaction === r.type
+                    return (
+                      <button
+                        key={r.type}
+                        type="button"
+                        onClick={() => {
+                          onReact(r.type)
+                          setShowPicker(false)
+                        }}
+                        className={`w-9 h-9 flex items-center justify-center rounded-full text-[22px] transition-all duration-150 active:scale-90 ${
+                          isSelected ? 'scale-125 bg-primary/10' : 'hover:scale-125'
+                        }`}
+                      >
+                        {r.emoji}
+                      </button>
+                    )
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Heart button */}
+            <button
+              type="button"
+              onClick={() => setShowPicker((v) => !v)}
+              className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-150 active:scale-90 ${
+                member.myReaction
+                  ? 'bg-red-500 text-white scale-110'
+                  : 'bg-white/85 backdrop-blur-sm text-gray-500 hover:bg-white'
+              }`}
+            >
+              {myReactionEmoji ? (
+                <span className="text-[16px] leading-none">{myReactionEmoji}</span>
+              ) : (
+                <svg
+                  width="15"
+                  height="14"
+                  viewBox="0 0 24 22"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20.84 3.61a5.5 5.5 0 0 0-7.78 0L12 4.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 20.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
