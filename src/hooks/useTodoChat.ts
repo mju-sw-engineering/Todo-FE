@@ -89,7 +89,7 @@ export function useTodoChat(todoId: number, token: string | null) {
       const optimistic: TodoChatMessage = {
         messageId: nextTempId(),
         senderId: user?.userId ?? 0,
-        senderNickname: user?.loginId ?? user?.nickname ?? '',
+        senderNickname: user?.nickname ?? user?.loginId ?? '',
         senderProfileImageUrl: user?.profileImageUrl ?? null,
         content,
         createdAt: new Date().toISOString(),
