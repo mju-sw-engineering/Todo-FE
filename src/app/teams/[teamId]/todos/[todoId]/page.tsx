@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef, useState } from 'react'
+import { FiHeart } from 'react-icons/fi'
 import { AVATAR_COLORS, formatDeadline, getInitials, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { getTodoDetail, postReaction } from '@/services/todoService'
@@ -64,7 +65,6 @@ function MemberCertCard({
 
   const activeReactions = (member.reactions ?? []).filter((r) => r.count > 0)
   const totalCount = activeReactions.reduce((s, r) => s + r.count, 0)
-  const myReactionEmoji = member.reactions?.find((r) => r.type === member.myReaction)?.emoji
 
   return (
     <div
@@ -177,27 +177,12 @@ function MemberCertCard({
               type="button"
               onClick={() => setShowPicker((v) => !v)}
               className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-150 active:scale-90 ${
-                member.myReaction
-                  ? 'bg-red-500 text-white scale-110'
+                showPicker
+                  ? 'bg-primary text-white'
                   : 'bg-white/85 backdrop-blur-sm text-gray-500 hover:bg-white'
               }`}
             >
-              {myReactionEmoji ? (
-                <span className="text-[16px] leading-none">{myReactionEmoji}</span>
-              ) : (
-                <svg
-                  width="15"
-                  height="14"
-                  viewBox="0 0 24 22"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20.84 3.61a5.5 5.5 0 0 0-7.78 0L12 4.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 20.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-              )}
+              <FiHeart size={15} strokeWidth={2.2} />
             </button>
           </div>
         )}
