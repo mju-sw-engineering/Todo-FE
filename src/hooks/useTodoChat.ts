@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 import { getTodoChatMessages } from '@/services/chatService'
 import type { TodoChatMessage } from '@/types/chat.types'
 
-function getWsUrl(): string {
+function getSockJsUrl(): string {
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
-  return apiBase.replace(/^http/, 'ws') + '/ws'
+  return apiBase + '/ws'
 }
 
 let tempId = -1
@@ -41,7 +42,7 @@ export function useTodoChat(todoId: number, token: string | null) {
     if (!token) return
 
     const client = new Client({
-      brokerURL: getWsUrl(),
+      webSocketFactory: () => new SockJS(getSockJsUrl()),
       connectHeaders: { Authorization: `Bearer ${token}` },
       reconnectDelay: 3000,
       onConnect: () => {
