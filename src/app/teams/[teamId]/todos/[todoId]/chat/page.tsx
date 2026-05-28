@@ -46,7 +46,7 @@ export default function TodoChatPage() {
 
   function handleSend() {
     if (!input.trim()) return
-    sendMessage(input, user?.userId ? { userId: user.userId, nickname: user.nickname } : null)
+    sendMessage(input)
     setInput('')
   }
 

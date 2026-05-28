@@ -11,8 +11,6 @@ function getSockJsUrl(): string {
   return apiBase + '/ws'
 }
 
-let tempId = -1
-
 export function useTodoChat(todoId: number, token: string | null) {
   const [messages, setMessages] = useState<TodoChatMessage[]>([])
   const [isConnected, setIsConnected] = useState(false)
@@ -81,27 +79,13 @@ export function useTodoChat(todoId: number, token: string | null) {
   }, [todoId, token])
 
   const sendMessage = useCallback(
-    (content: string, currentUser: { userId: number; nickname: string } | null) => {
+    (content: string) => {
       const client = clientRef.current
-      if (!content.trim()) return
-
-      // Optimistic insert
-      const optimistic: TodoChatMessage = {
-        chatId: tempId--,
-        userId: currentUser?.userId ?? 0,
-        nickname: currentUser?.nickname ?? '',
-        profileImageUrl: null,
-        content: content.trim(),
-        createdAt: new Date().toISOString(),
-      }
-      setMessages((prev) => [...prev, optimistic])
-
-      if (client?.connected) {
-        client.publish({
-          destination: `/app/todos/${todoId}/chat`,
-          body: JSON.stringify({ content: content.trim() }),
-        })
-      }
+      if (!content.trim() || !client?.connected) return
+      client.publish({
+        destination: `/app/todos/${todoId}/chat`,
+        body: JSON.stringify({ content: content.trim() }),
+      })
     },
     [todoId]
   )
