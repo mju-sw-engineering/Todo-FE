@@ -11,10 +11,10 @@ export function AuthInput({ label, hint, id, ...props }: AuthInputProps) {
       </label>
       <input
         id={id}
-        className="w-full px-4 py-[13px] rounded-[14px] border-[1.5px] border-border bg-input-bg text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(91,79,207,0.10)]"
+        className="w-full px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-input-bg text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(208,91,142,0.12)]"
         {...props}
       />
-      {hint && <p className="text-xs text-red-400">{hint}</p>}
+      {hint && <p className="text-xs text-rose-400">{hint}</p>}
     </div>
   )
 }

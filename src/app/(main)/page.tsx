@@ -19,13 +19,8 @@ interface TodoWithTeam extends Todo {
 }
 
 const MY_STATUS_STYLE: Record<MyTodoStatus, string> = {
-  완료: 'bg-primary text-white',
+  완료: 'text-white',
   미완료: 'bg-gray-100 text-gray-400',
-}
-
-const BAR_COLOR: Record<MyTodoStatus, string> = {
-  완료: 'bg-primary',
-  미완료: 'bg-gray-200',
 }
 
 function MyTodoCard({ todo, onClick }: { todo: TodoWithTeam; onClick: () => void }) {
@@ -36,7 +31,7 @@ function MyTodoCard({ todo, onClick }: { todo: TodoWithTeam; onClick: () => void
   return (
     <div
       onClick={onClick}
-      className={`rounded-[18px] border border-border bg-white px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:border-primary/30 hover:shadow-[0_2px_12px_rgba(91,79,207,0.08)] active:scale-[0.99] ${myStatus === '완료' || todo.status === 'FAIL' ? 'opacity-55' : ''}`}
+      className={`rounded-[20px] border border-border bg-white px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:shadow-[0_4px_20px_rgba(208,91,142,0.12)] hover:border-primary/20 active:scale-[0.99] ${myStatus === '완료' || todo.status === 'FAIL' ? 'opacity-55' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -52,6 +47,11 @@ function MyTodoCard({ todo, onClick }: { todo: TodoWithTeam; onClick: () => void
         {myStatus && (
           <span
             className={`shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full mt-0.5 ${MY_STATUS_STYLE[myStatus]}`}
+            style={
+              myStatus === '완료'
+                ? { background: 'linear-gradient(135deg, #D05B8E, #FF8C7A)' }
+                : undefined
+            }
           >
             {myStatus}
           </span>
@@ -63,12 +63,18 @@ function MyTodoCard({ todo, onClick }: { todo: TodoWithTeam; onClick: () => void
           <span className="text-[12px] text-muted">
             {achieved}/{total}명 인증
           </span>
-          <span className="text-[12px] text-muted">{percentage}%</span>
+          <span className="text-[12px] font-semibold text-primary">{percentage}%</span>
         </div>
-        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${myStatus ? BAR_COLOR[myStatus] : 'bg-gray-200'}`}
-            style={{ width: `${percentage}%` }}
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${percentage}%`,
+              background:
+                myStatus === '완료'
+                  ? 'linear-gradient(90deg, #D05B8E, #FF8C7A)'
+                  : 'linear-gradient(90deg, #F5E0EC, #E0B8CC)',
+            }}
           />
         </div>
       </div>
@@ -152,15 +158,18 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="flex-1 flex flex-col min-h-0 bg-white animate-fade-up">
-        {/* 헤더 (스크롤 고정) */}
-        <div className="px-5 pt-6 pb-4">
-          <p className="text-[13px] text-muted mb-1">{formatDate(today)} 오늘</p>
-          <h1 className="text-[26px] font-bold text-ink">내 할 일</h1>
+      <div className="flex-1 flex flex-col min-h-0 bg-surface animate-fade-up">
+        {/* 헤더 — 그라데이션 */}
+        <div
+          className="px-5 pt-8 pb-5 shrink-0"
+          style={{ background: 'linear-gradient(160deg, #FFF0F6 0%, #FFF8F2 60%, #F5FBFF 100%)' }}
+        >
+          <p className="text-[13px] font-medium text-muted mb-0.5">{formatDate(today)} 오늘</p>
+          <h1 className="text-[28px] font-black text-ink tracking-tight">내 할 일 ✅</h1>
         </div>
 
-        {/* 탭 (스크롤 고정) */}
-        <div className="flex border-b border-border px-5">
+        {/* 탭 */}
+        <div className="flex border-b border-border px-5 bg-white">
           {TAB_ITEMS.map(({ key, label, count }) => (
             <button
               key={key}
@@ -171,35 +180,33 @@ export default function HomePage() {
                   : 'border-transparent text-muted hover:text-ink'
               }`}
             >
-              {label} {count}
+              {label}{' '}
+              <span className={`text-[12px] ${tab === key ? 'text-primary' : 'text-muted'}`}>
+                {count}
+              </span>
             </button>
           ))}
         </div>
 
-        {/* 할일 목록 (스크롤 / pb-32 = 바텀 네비 + FAB 높이) */}
+        {/* 할일 목록 */}
         <div className="flex-1 overflow-y-auto px-5 pt-4 pb-20 flex flex-col gap-3">
           {todos.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-2 py-20">
-              <div className="w-14 h-14 rounded-full bg-primary-light flex items-center justify-center mb-1">
-                <svg
-                  className="w-6 h-6 text-primary"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.8}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                  />
-                </svg>
+              <div
+                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-1 shadow-sm"
+                style={{ background: 'linear-gradient(135deg, #FFF0F6, #FFE0EC)' }}
+              >
+                <span className="text-3xl">📋</span>
               </div>
-              <p className="text-[15px] font-semibold text-ink">오늘 할당된 할 일이 없습니다</p>
+              <p className="text-[15px] font-bold text-ink">오늘 할당된 할 일이 없습니다</p>
               <p className="text-[13px] text-muted">팀에서 할 일을 생성해보세요</p>
               <button
                 onClick={() => router.push('/teams')}
-                className="mt-4 px-5 py-2.5 bg-primary text-white text-[14px] font-semibold rounded-xl shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+                className="mt-4 px-6 py-2.5 text-white text-[14px] font-semibold rounded-xl transition-all duration-200 active:scale-95"
+                style={{
+                  background: 'linear-gradient(135deg, #D05B8E 0%, #FF8C7A 100%)',
+                  boxShadow: '0 4px 18px rgba(208,91,142,0.30)',
+                }}
               >
                 내 팀 보기
               </button>

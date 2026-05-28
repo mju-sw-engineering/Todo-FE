@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { formatDate, formatDeadline, parseAchievementCount } from '@/lib/formatters'
@@ -11,12 +10,13 @@ import { getTodayTodos } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import type { DailyEvaluationResponse } from '@/types/team.types'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
+import { AngelBlob, DevilBlob } from '@/components/ui/BlobCharacter'
 import type { MyTodoStatus, Todo } from '@/types/todo.types'
 
 type TabType = 'all' | 'incomplete' | 'complete'
 
 const MY_STATUS_STYLE: Record<MyTodoStatus, string> = {
-  완료: 'bg-primary text-white',
+  완료: 'text-white',
   미완료: 'bg-gray-100 text-gray-400',
 }
 
@@ -45,15 +45,15 @@ function AiEvaluationCard({
     return (
       <div
         className="mx-6 mb-3 rounded-2xl overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 60%, #fce7f3 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #FFF0F6 0%, #FFE8F2 60%, #FFF4EC 100%)' }}
       >
         <div className="flex items-center gap-3 px-4 py-3.5">
-          <div className="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center shrink-0 shadow-sm">
-            <span className="text-[18px] leading-none">✨</span>
+          <div className="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center shrink-0 shadow-sm">
+            <span className="text-[20px] leading-none">✨</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-bold text-[#4c1d95] leading-tight">AI 평가 준비 중</p>
-            <p className="text-[11px] text-purple-400 mt-0.5">
+            <p className="text-[13px] font-bold text-primary leading-tight">AI 평가 준비 중</p>
+            <p className="text-[11px] text-muted mt-0.5">
               오늘 할 일을 완료하면 내일 평가가 도착해요
             </p>
           </div>
@@ -68,32 +68,26 @@ function AiEvaluationCard({
 
   return (
     <div
-      className="mx-6 mb-3 rounded-2xl overflow-hidden shadow-[0_2px_14px_rgba(0,0,0,0.10)]"
+      className="mx-6 mb-3 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(208,91,142,0.15)]"
       style={{
         background: isDevil
-          ? 'linear-gradient(135deg, #1a0a3b 0%, #2e1065 60%, #3b0764 100%)'
-          : 'linear-gradient(135deg, #fdf4ff 0%, #ede9fe 55%, #fce7f3 100%)',
+          ? 'linear-gradient(135deg, #2D0A1A 0%, #4A1030 55%, #3D0A20 100%)'
+          : 'linear-gradient(135deg, #FFF0F6 0%, #FFE8F2 55%, #FFF4EC 100%)',
       }}
     >
-      {/* Top row: identity + date + play */}
-      <div className="flex items-center gap-3 px-4 pt-3.5 pb-2.5">
-        <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 shadow-[0_3px_10px_rgba(0,0,0,0.22)]">
-          <Image
-            src={isDevil ? '/images/devil.png' : '/images/angel.png'}
-            alt={isDevil ? '악마 AI' : '천사 AI'}
-            fill
-            className="object-cover"
-            unoptimized
-          />
+      {/* Top row: blob character + identity + date + play */}
+      <div className="flex items-center gap-3 px-4 pt-3 pb-2.5">
+        <div className="shrink-0 animate-blob-float">
+          {isDevil ? <DevilBlob size={52} /> : <AngelBlob size={52} />}
         </div>
         <div className="flex-1 min-w-0">
           <p
-            className={`text-[14px] font-black leading-tight ${isDevil ? 'text-white' : 'text-[#4c1d95]'}`}
+            className={`text-[14px] font-black leading-tight ${isDevil ? 'text-white' : 'text-ink'}`}
           >
-            {isDevil ? '😈 악마 AI' : '😇 천사 AI'}
+            {isDevil ? '악마 AI 👹' : '천사 AI 🌸'}
           </p>
           <p
-            className={`text-[11px] font-semibold mt-0.5 ${isDevil ? 'text-purple-400' : 'text-purple-500'}`}
+            className={`text-[11px] font-semibold mt-0.5 ${isDevil ? 'text-[#FFAAC8]' : 'text-primary'}`}
           >
             {formatEvalDate(evaluation.date)}
           </p>
@@ -101,15 +95,17 @@ function AiEvaluationCard({
         <button
           type="button"
           onClick={() => voice.toggle({ persona, text: evaluation.message })}
-          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-90 shrink-0 ${
-            isVoicePlaying
+          className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-90 shrink-0"
+          style={{
+            background: isVoicePlaying
               ? isDevil
-                ? 'bg-white/25 text-white'
-                : 'bg-pink-400 text-white'
+                ? 'rgba(255,255,255,0.25)'
+                : 'linear-gradient(135deg,#D05B8E,#FF8C7A)'
               : isDevil
-                ? 'bg-white/15 hover:bg-white/25 text-white'
-                : 'bg-purple-100 hover:bg-purple-200 text-purple-600'
-          }`}
+                ? 'rgba(255,255,255,0.12)'
+                : 'rgba(208,91,142,0.12)',
+            color: isDevil ? 'white' : isVoicePlaying ? 'white' : '#D05B8E',
+          }}
           aria-label={isVoicePlaying ? '정지' : '재생'}
         >
           {voice.isLoading && voice.activePersona === persona ? (
@@ -128,12 +124,12 @@ function AiEvaluationCard({
       </div>
 
       {/* Divider */}
-      <div className={`mx-4 h-px ${isDevil ? 'bg-white/10' : 'bg-purple-200/60'}`} />
+      <div className={`mx-4 h-px ${isDevil ? 'bg-white/10' : 'bg-border'}`} />
 
       {/* Message */}
       <div className="px-4 pt-2.5 pb-4">
         <p
-          className={`text-[13px] leading-relaxed line-clamp-5 ${isDevil ? 'text-purple-200/90' : 'text-[#4c1d95]/80'}`}
+          className={`text-[13px] leading-relaxed line-clamp-5 ${isDevil ? 'text-white/85' : 'text-ink/75'}`}
         >
           {evaluation.message}
         </p>
@@ -152,7 +148,7 @@ function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
   return (
     <div
       onClick={onClick}
-      className={`rounded-[18px] border border-border bg-white px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:border-primary/30 hover:shadow-[0_2px_12px_rgba(91,79,207,0.08)] active:scale-[0.99] ${isDone ? 'opacity-55' : ''}`}
+      className={`rounded-[20px] border border-border bg-white px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:shadow-[0_4px_20px_rgba(208,91,142,0.12)] hover:border-primary/20 active:scale-[0.99] ${isDone ? 'opacity-55' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-[15px] font-semibold text-ink leading-snug flex-1">{todo.title}</span>
@@ -160,6 +156,11 @@ function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
           {myStatus && (
             <span
               className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${MY_STATUS_STYLE[myStatus]}`}
+              style={
+                myStatus === '완료'
+                  ? { background: 'linear-gradient(135deg,#D05B8E,#FF8C7A)' }
+                  : undefined
+              }
             >
               {myStatus}
             </span>
@@ -263,7 +264,11 @@ function TodoListContent() {
         <div className="px-6 py-5 border-t border-border">
           <button
             onClick={() => router.push(`/teams/${teamId}/todos/new`)}
-            className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+            className="w-full py-3.75 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+            style={{
+              background: 'linear-gradient(135deg, #D05B8E 0%, #FF8C7A 100%)',
+              boxShadow: '0 4px 18px rgba(208,91,142,0.30)',
+            }}
           >
             오늘의 할 일 생성
           </button>
@@ -295,16 +300,19 @@ function TodoListContent() {
 
   return (
     <div className={CARD_CLASS}>
-      {/* 헤더 (스크롤 고정) */}
-      <div className="px-6 pt-5 pb-2">
+      {/* 헤더 — 그라데이션 */}
+      <div
+        className="px-6 pt-8 pb-4 shrink-0"
+        style={{ background: 'linear-gradient(160deg, #FFF0F6 0%, #FFF8F2 60%, #F5FBFF 100%)' }}
+      >
         <button
           onClick={() => router.back()}
           className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-primary transition-colors"
         >
           ← 뒤로
         </button>
-        <p className="text-[13px] text-muted mb-0.5">{formatDate(today)} 오늘</p>
-        <h1 className="text-[26px] font-bold text-ink mb-2">할 일</h1>
+        <p className="text-[13px] font-medium text-muted mb-0.5">{formatDate(today)} 오늘</p>
+        <h1 className="text-[28px] font-black text-ink tracking-tight">팀 할 일 📌</h1>
       </div>
 
       {/* AI 하루 평가 카드 */}
@@ -348,19 +356,23 @@ function TodoListContent() {
         )}
       </div>
 
-      {/* 바텀 버튼 (항상 고정) */}
+      {/* 바텀 버튼 */}
       <div className="px-6 py-5 border-t border-border">
         <button
           onClick={() => router.push(`/teams/${teamId}/todos/new`)}
-          className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+          className="w-full py-3.75 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+          style={{
+            background: 'linear-gradient(135deg, #D05B8E 0%, #FF8C7A 100%)',
+            boxShadow: '0 4px 18px rgba(208,91,142,0.30)',
+          }}
         >
           할 일 추가
         </button>
       </div>
 
       {showToast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up z-50">
-          할 일이 생성되었습니다
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(208,91,142,0.18)] animate-fade-up z-50">
+          ✅ 할 일이 생성되었습니다
         </div>
       )}
     </div>
