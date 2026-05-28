@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AuthButton } from '@/components/ui/AuthButton'
 import { AuthInput } from '@/components/ui/AuthInput'
+import { AngelBlob, DevilBlob } from '@/components/ui/BlobCharacter'
 import { ApiError } from '@/lib/apiClient'
 import { getMyProfile, login } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
@@ -40,22 +41,48 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up">
-      {/* 상단 그라데이션 장식 */}
+    <div className="flex-1 flex flex-col bg-white animate-fade-up overflow-hidden">
+      {/* Hero: bold characters */}
       <div
-        className="w-full pt-14 pb-10 px-6 text-center"
-        style={{ background: 'linear-gradient(160deg, #FFF0F6 0%, #FFF8F2 60%, #F5FBFF 100%)' }}
+        className="relative flex flex-col items-center pt-14 pb-8 px-6 overflow-hidden"
+        style={{ background: 'linear-gradient(180deg,#FFF8FC 0%,#FFF0F8 60%,#ffffff 100%)' }}
       >
-        <div className="flex items-center justify-center gap-1 mb-3">
-          <span className="text-3xl">✅</span>
+        {/* Sparkle accents */}
+        <div
+          className="absolute top-6 left-8 w-2.5 h-2.5 rounded-full bg-[#FFD84D] opacity-70 animate-blob-float"
+          style={{ animationDelay: '0.2s' }}
+        />
+        <div
+          className="absolute top-10 right-10 w-2 h-2 rounded-full bg-[#FFCDC8] opacity-80 animate-blob-float"
+          style={{ animationDelay: '1.1s' }}
+        />
+        <div
+          className="absolute bottom-12 left-6 w-3 h-3 rounded-full bg-[#C8F0D0] opacity-60 animate-blob-float"
+          style={{ animationDelay: '0.7s' }}
+        />
+        <div
+          className="absolute bottom-8 right-5 w-2 h-2 rounded-full bg-[#FFD6E8] opacity-75 animate-blob-float"
+          style={{ animationDelay: '1.5s' }}
+        />
+
+        {/* Main characters side by side */}
+        <div className="flex items-end justify-center gap-1 mb-5">
+          <div className="animate-blob-float" style={{ animationDelay: '0.4s' }}>
+            <DevilBlob size={100} />
+          </div>
+          <div className="animate-blob-float">
+            <AngelBlob size={120} />
+          </div>
         </div>
-        <h1 className="text-[36px] font-black text-ink tracking-tight leading-none mb-2">
-          Todo<span className="text-primary">Team</span>
+
+        <h1 className="text-[38px] font-black text-gray-900 tracking-tighter leading-none mb-1.5">
+          TodoTeam
         </h1>
-        <p className="text-[13.5px] text-muted">팀과 함께 완성하는 하루</p>
+        <p className="text-[13.5px] text-gray-400 font-medium">팀과 함께 완성하는 하루</p>
       </div>
 
-      <div className="flex-1 flex flex-col px-6 pt-8 pb-12">
+      {/* Form */}
+      <div className="flex-1 flex flex-col px-6 pt-7 pb-10">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <AuthInput
             id="loginId"
@@ -85,7 +112,7 @@ export default function LoginPage() {
 
         <Link
           href="/signup"
-          className="block text-center mt-auto pt-8 text-[14px] font-medium text-ink hover:text-primary transition-colors duration-200"
+          className="block text-center mt-auto pt-8 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
         >
           회원가입
         </Link>

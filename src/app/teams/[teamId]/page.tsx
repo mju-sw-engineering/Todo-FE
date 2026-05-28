@@ -50,7 +50,7 @@ function MemberAvatar({ member }: { member: TeamMember }) {
   return (
     <div
       className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-[13px] font-bold ${
-        isLeader ? 'bg-primary-light text-primary' : 'bg-[#eaf6ef] text-[#2d7a56]'
+        isLeader ? 'bg-gray-100 text-gray-700' : 'bg-[#eaf6ef] text-[#2d7a56]'
       }`}
     >
       {getInitials(member.nickname)}
@@ -107,7 +107,7 @@ function PlantInfoPopover({
               <div
                 key={stage.label}
                 className={`flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 ${
-                  isCurrent ? 'bg-primary-light' : ''
+                  isCurrent ? 'bg-gray-100' : ''
                 }`}
               >
                 <div className="w-6 h-8 shrink-0">
@@ -115,14 +115,14 @@ function PlantInfoPopover({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p
-                    className={`text-[12px] font-semibold leading-tight ${isCurrent ? 'text-primary' : 'text-ink'}`}
+                    className={`text-[12px] font-semibold leading-tight ${isCurrent ? 'text-gray-900' : 'text-ink'}`}
                   >
                     {stage.label}
                   </p>
                   <p className="text-[10px] text-muted mt-0.5">{stage.range}</p>
                 </div>
                 {isCurrent ? (
-                  <span className="text-[10px] font-semibold text-primary bg-white px-2 py-0.5 rounded-full border border-primary/20 shrink-0">
+                  <span className="text-[10px] font-semibold text-gray-900 bg-white px-2 py-0.5 rounded-full border border-gray-200 shrink-0">
                     현재
                   </span>
                 ) : (
@@ -184,7 +184,7 @@ export default function TeamDetailPage() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -193,9 +193,30 @@ export default function TeamDetailPage() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
-      <div className="flex-1 overflow-y-auto px-5 pt-8 pb-4">
-        <h1 className="text-[22px] font-bold text-ink text-center">TodoTeam</h1>
-        <p className="text-[13px] text-muted text-center mt-1 mb-7">팀 상세 정보</p>
+      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-4">
+        <div className="flex items-center gap-2 mb-6">
+          <button
+            onClick={() => router.back()}
+            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors shrink-0"
+            aria-label="뒤로가기"
+          >
+            <svg
+              className="w-5 h-5 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-[20px] font-black text-ink leading-tight truncate">
+              {team.teamName}
+            </h1>
+            <p className="text-[12px] text-muted mt-0.5">팀 정보</p>
+          </div>
+        </div>
 
         <div className="bg-white rounded-[18px] border border-border mb-3 overflow-hidden">
           <div className="flex items-center gap-4 px-4 py-4">
@@ -208,7 +229,7 @@ export default function TeamDetailPage() {
             </div>
             <button
               onClick={() => setMembersOpen((prev) => !prev)}
-              className="text-[13px] font-semibold text-primary shrink-0 px-3 py-1.5 rounded-lg bg-primary-light hover:bg-[#e0daf8] transition-colors duration-200"
+              className="text-[13px] font-semibold text-gray-700 shrink-0 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
             >
               {membersOpen ? '접기' : '펼치기'}
             </button>
@@ -229,7 +250,7 @@ export default function TeamDetailPage() {
                       <div className="flex-1 min-w-0">
                         <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
                         {member.role === 'LEADER' && (
-                          <span className="ml-2 text-[11px] font-semibold text-primary bg-primary-light px-2 py-0.5 rounded-full">
+                          <span className="ml-2 text-[11px] font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
                             팀장
                           </span>
                         )}
@@ -263,7 +284,7 @@ export default function TeamDetailPage() {
                         : (infoButtonRef.current?.getBoundingClientRect() ?? null)
                     )
                   }
-                  className="text-muted hover:text-primary transition-colors duration-150 shrink-0"
+                  className="text-muted hover:text-gray-700 transition-colors duration-150 shrink-0"
                   aria-label="성장 단계 안내"
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -283,7 +304,7 @@ export default function TeamDetailPage() {
                 </span>
                 <span className="text-[14px] font-semibold text-muted">일</span>
               </div>
-              <span className="mt-1.5 inline-block text-[11px] font-semibold text-primary bg-primary-light px-2.5 py-0.5 rounded-full">
+              <span className="mt-1.5 inline-block text-[11px] font-semibold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-full">
                 {getPlantStageLabel(team.continuousTodoCount)}
               </span>
             </div>
@@ -294,7 +315,7 @@ export default function TeamDetailPage() {
                   <div
                     key={threshold}
                     className={`w-1.5 rounded-sm transition-all duration-300 ${
-                      team.continuousTodoCount >= threshold ? 'bg-primary' : 'bg-border'
+                      team.continuousTodoCount >= threshold ? 'bg-gray-900' : 'bg-border'
                     }`}
                     style={{ height: `${10 + i * 4}px` }}
                   />
@@ -307,12 +328,12 @@ export default function TeamDetailPage() {
         {team.inviteCode && (
           <button
             onClick={handleCopyInviteCode}
-            className="w-full flex items-center justify-between bg-white rounded-[18px] border border-border px-4 py-4 mb-3 transition-all duration-200 hover:border-primary/50 hover:shadow-[0_4px_18px_rgba(91,79,207,0.10)] active:scale-[0.99]"
+            className="w-full flex items-center justify-between bg-white rounded-[18px] border border-border px-4 py-4 mb-3 transition-all duration-200 hover:border-gray-300 hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] active:scale-[0.99]"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                 <svg
-                  className="w-4 h-4 text-primary"
+                  className="w-4 h-4 text-gray-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -331,7 +352,7 @@ export default function TeamDetailPage() {
               </div>
             </div>
             <span
-              className={`text-[12px] font-semibold shrink-0 ml-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${copyDone ? 'text-[#2d7a56] bg-[#eaf6ef]' : 'text-primary bg-primary-light'}`}
+              className={`text-[12px] font-semibold shrink-0 ml-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${copyDone ? 'text-[#2d7a56] bg-[#eaf6ef]' : 'text-gray-700 bg-gray-100'}`}
             >
               {copyDone ? '복사됨 ✓' : '복사'}
             </span>
@@ -342,13 +363,13 @@ export default function TeamDetailPage() {
       <div className="px-5 py-4 border-t border-border flex flex-col gap-2">
         <button
           onClick={() => router.push(`/teams/${teamId}/todos`)}
-          className="w-full py-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+          className="w-full py-4 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85"
         >
           오늘의 할 일
         </button>
         <button
           onClick={() => router.push('/teams')}
-          className="w-full py-4 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+          className="w-full py-4 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-gray-200"
         >
           목록으로
         </button>

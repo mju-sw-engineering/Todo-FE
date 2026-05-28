@@ -84,13 +84,13 @@ export default function TeamNewPage() {
           />
 
           <div className="flex flex-col gap-2">
-            <span className="text-[13px] font-semibold text-primary tracking-wide">
+            <span className="text-[13px] font-semibold text-gray-700 tracking-wide">
               팀 이미지 (선택)
             </span>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="relative w-20 h-20 rounded-[14px] border-2 border-dashed border-border bg-input-bg flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-primary hover:bg-primary-light"
+              className="relative w-20 h-20 rounded-[14px] border-2 border-dashed border-border bg-input-bg flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-gray-400 hover:bg-gray-50"
             >
               {previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -121,7 +121,7 @@ export default function TeamNewPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-[13px] font-semibold text-primary tracking-wide">
+            <span className="text-[13px] font-semibold text-gray-700 tracking-wide">
               팀 가이드 AI 선택
             </span>
             <div className="flex flex-col gap-3">
@@ -133,7 +133,7 @@ export default function TeamNewPage() {
                     tagline: '엄격한 채찍 멘토',
                     desc: '게으름은 절대 용납 불가. 목표를 향해 가차 없이 몰아붙여요.',
                     bg: 'linear-gradient(135deg, #2D0A1A 0%, #4A1030 55%, #3D0A20 100%)',
-                    ring: 'ring-[#D05B8E]',
+                    ring: 'ring-gray-900',
                     isLight: false,
                   },
                   {
@@ -141,8 +141,8 @@ export default function TeamNewPage() {
                     name: '천사 AI',
                     tagline: '따뜻한 응원 멘토',
                     desc: '칭찬과 격려로 함께 성장해요. 작은 노력도 놓치지 않아요.',
-                    bg: 'linear-gradient(135deg, #FFF0F6 0%, #FFE8F2 55%, #FFF4EC 100%)',
-                    ring: 'ring-primary',
+                    bg: 'linear-gradient(135deg, #FFF8FC 0%, #FFE8F4 55%, #FFF0F9 100%)',
+                    ring: 'ring-gray-900',
                     isLight: true,
                   },
                 ] as const
@@ -167,8 +167,8 @@ export default function TeamNewPage() {
                     }}
                     className={`relative w-full rounded-2xl overflow-hidden transition-all duration-200 ring-offset-2 cursor-pointer ${
                       selected
-                        ? `ring-2 ${ring} scale-[1.015] shadow-[0_8px_28px_rgba(208,91,142,0.25)]`
-                        : 'shadow-sm hover:shadow-[0_4px_16px_rgba(208,91,142,0.15)]'
+                        ? `ring-2 ${ring} scale-[1.015] shadow-[0_8px_28px_rgba(0,0,0,0.12)]`
+                        : 'shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]'
                     }`}
                     style={{ background: bg }}
                   >
@@ -186,7 +186,7 @@ export default function TeamNewPage() {
                           {name}
                         </p>
                         <p
-                          className={`text-[12px] font-semibold mt-0.5 ${isLight ? 'text-primary' : 'text-[#FFAAC8]'}`}
+                          className={`text-[12px] font-semibold mt-0.5 ${isLight ? 'text-gray-500' : 'text-[#FFAAC8]'}`}
                         >
                           {tagline}
                         </p>
@@ -210,7 +210,7 @@ export default function TeamNewPage() {
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                               <path
                                 d="M2 6l3 3 5-5"
-                                stroke="#D05B8E"
+                                stroke="#111"
                                 strokeWidth="2"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -230,12 +230,12 @@ export default function TeamNewPage() {
                           style={{
                             background: isVoicePlaying
                               ? isLight
-                                ? 'linear-gradient(135deg,#D05B8E,#FF8C7A)'
+                                ? '#111'
                                 : 'rgba(255,255,255,0.25)'
                               : isLight
-                                ? 'rgba(208,91,142,0.12)'
+                                ? 'rgba(0,0,0,0.07)'
                                 : 'rgba(255,255,255,0.12)',
-                            color: isVoicePlaying ? 'white' : isLight ? '#D05B8E' : 'white',
+                            color: isVoicePlaying ? 'white' : isLight ? '#333' : 'white',
                           }}
                         >
                           {isVoiceLoading ? (
@@ -281,18 +281,14 @@ export default function TeamNewPage() {
           type="submit"
           form="team-new-form"
           disabled={isLoading || isUploading}
-          className="w-full py-3.75 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            background: 'linear-gradient(135deg, #D05B8E 0%, #FF8C7A 100%)',
-            boxShadow: '0 4px 18px rgba(208,91,142,0.30)',
-          }}
+          className="w-full py-3.75 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_14px_rgba(0,0,0,0.18)]"
         >
           {isUploading ? '이미지 업로드 중...' : isLoading ? '생성 중...' : '완료'}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="w-full py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-border"
+          className="w-full py-3.75 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-gray-200"
         >
           돌아가기
         </button>

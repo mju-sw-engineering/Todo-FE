@@ -194,3 +194,123 @@ export function DevilBlob({ size = 80, className = '' }: BlobProps) {
     </svg>
   )
 }
+
+export function AiBlob({ size = 80, className = '' }: BlobProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 120 120"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Antenna */}
+      <line
+        x1="60"
+        y1="26"
+        x2="60"
+        y2="9"
+        stroke="#6A90FF"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      {/* Tip glow */}
+      <circle cx="60" cy="7" r="7" fill="#4A6EFF" opacity="0.18" />
+      <circle cx="60" cy="7" r="4" fill="#5B7FFF" />
+      <circle cx="60" cy="7" r="2.5" fill="#9AB8FF" />
+      <circle cx="61" cy="5.8" r="1.2" fill="white" opacity="0.85" />
+
+      {/* Body blob */}
+      <path
+        d="M60 24 C82 22, 102 40, 104 63 C106 86, 88 102, 60 103 C32 103, 14 87, 16 63 C18 40, 38 26, 60 24Z"
+        fill="url(#aiGrad)"
+      />
+
+      {/* Body shine */}
+      <ellipse
+        cx="44"
+        cy="36"
+        rx="15"
+        ry="9"
+        fill="rgba(255,255,255,0.13)"
+        transform="rotate(-12 44 36)"
+      />
+
+      {/* Circuit accents — left */}
+      <path
+        d="M22 57 L32 57 L32 49 L38 49"
+        stroke="#6A90FF"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.42"
+      />
+      <circle cx="38" cy="49" r="2" fill="#6A90FF" opacity="0.48" />
+      <path
+        d="M20 72 L28 72 L28 79"
+        stroke="#6A90FF"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.28"
+      />
+
+      {/* Circuit accents — right */}
+      <path
+        d="M98 57 L88 57 L88 49 L82 49"
+        stroke="#6A90FF"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.42"
+      />
+      <circle cx="82" cy="49" r="2" fill="#6A90FF" opacity="0.48" />
+      <path
+        d="M100 72 L92 72 L92 79"
+        stroke="#6A90FF"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.28"
+      />
+
+      {/* Blue blush */}
+      <ellipse cx="38" cy="74" rx="9" ry="5" fill="#A0C0FF" opacity="0.32" />
+      <ellipse cx="82" cy="74" rx="9" ry="5" fill="#A0C0FF" opacity="0.32" />
+
+      {/* Eyes */}
+      <ellipse cx="46" cy="60" rx="7.5" ry="8" fill="white" />
+      <ellipse cx="74" cy="60" rx="7.5" ry="8" fill="white" />
+      {/* Blue iris */}
+      <circle cx="47.5" cy="61" r="4.5" fill="#2248D8" />
+      <circle cx="75.5" cy="61" r="4.5" fill="#2248D8" />
+      {/* Inner bright ring */}
+      <circle cx="47.5" cy="61" r="2.8" fill="#5B8FFF" />
+      <circle cx="75.5" cy="61" r="2.8" fill="#5B8FFF" />
+      {/* Pupil */}
+      <circle cx="47.5" cy="61" r="1.4" fill="#08144A" />
+      <circle cx="75.5" cy="61" r="1.4" fill="#08144A" />
+      {/* Highlights */}
+      <circle cx="49.2" cy="59.2" r="1.4" fill="white" />
+      <circle cx="77.2" cy="59.2" r="1.4" fill="white" />
+
+      {/* Smile */}
+      <path
+        d="M48 79 Q60 88 72 79"
+        stroke="#9AB8FF"
+        strokeWidth="2.5"
+        fill="none"
+        strokeLinecap="round"
+      />
+
+      <defs>
+        <linearGradient id="aiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#2C3E9A" />
+          <stop offset="50%" stopColor="#1A2778" />
+          <stop offset="100%" stopColor="#0E1550" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}

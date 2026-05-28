@@ -2,38 +2,75 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/store/authStore'
+import { BlobAvatar } from '@/components/ui/BlobAvatar'
 
 function TodoIcon({ active }: { active: boolean }) {
+  const c = active ? '#111111' : '#9CA3AF'
+  const sw = active ? 2.2 : 1.8
   return (
-    <svg
-      className={`w-6 h-6 transition-colors ${active ? 'text-primary' : 'text-muted'}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={active ? 2.2 : 1.8}
-    >
+    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+      {/* Rounded badge */}
+      <rect
+        x="3.5"
+        y="3.5"
+        width="17"
+        height="17"
+        rx="5"
+        stroke={c}
+        strokeWidth={sw}
+        fill={c}
+        fillOpacity={active ? 0.07 : 0}
+      />
+      {/* Check */}
       <path
+        d="M8 12.2l2.6 2.6 5.4-6"
+        stroke={c}
+        strokeWidth={sw}
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
       />
+      {/* Sparkle (active only) */}
+      {active && (
+        <path
+          d="M18 3l.55 1.65 1.65.55-1.65.55L18 7.4l-.55-1.65-1.65-.55 1.65-.55z"
+          fill={c}
+          opacity="0.45"
+        />
+      )}
     </svg>
   )
 }
 
 function TeamIcon({ active }: { active: boolean }) {
+  const c = active ? '#111111' : '#9CA3AF'
+  const sw = active ? 2.2 : 1.8
   return (
-    <svg
-      className={`w-6 h-6 transition-colors ${active ? 'text-primary' : 'text-muted'}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={active ? 2.2 : 1.8}
-    >
+    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+      {/* Main figure head */}
+      <circle cx="9" cy="7" r="2.8" stroke={c} strokeWidth={sw} />
+      {/* Main figure body */}
       <path
+        d="M3.5 19.2v-.7a5.5 5.5 0 015.5-5.5 5.5 5.5 0 015.5 5.5v.7"
+        stroke={c}
+        strokeWidth={sw}
         strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4a4 4 0 11-8 0 4 4 0 018 0zm6-4a2 2 0 11-4 0 2 2 0 014 0zM3 8a2 2 0 114 0 2 2 0 01-4 0z"
+      />
+      {/* Secondary figure head */}
+      <circle
+        cx="16.5"
+        cy="7"
+        r="2.2"
+        stroke={c}
+        strokeWidth={active ? 2 : 1.5}
+        opacity={active ? 0.8 : 0.55}
+      />
+      {/* Secondary figure body */}
+      <path
+        d="M14.2 14.6a5 5 0 014.3 5v.6"
+        stroke={c}
+        strokeWidth={active ? 2 : 1.5}
+        strokeLinecap="round"
+        opacity={active ? 0.8 : 0.55}
       />
     </svg>
   )
@@ -47,19 +84,19 @@ export function BottomNav() {
   const todoActive = pathname === '/'
   const teamsActive = pathname.startsWith('/teams')
 
-  const initials = user?.nickname?.trim().slice(0, 2) ?? '?'
-
   return (
-    <nav className="h-16 shrink-0 bg-white/95 backdrop-blur-sm border-t border-border flex">
+    <nav className="h-16 shrink-0 bg-white border-t border-gray-200 flex">
       <button
         onClick={() => router.push('/mypage')}
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-opacity duration-200 active:opacity-70"
       >
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm"
-          style={{ background: 'linear-gradient(135deg, #D05B8E 0%, #FF8C7A 100%)' }}
-        >
-          <span className="text-white text-[11px] font-bold leading-none">{initials}</span>
+        <div className="w-8 h-8 rounded-full overflow-hidden">
+          {user?.profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.profileImageUrl} alt="프로필" className="w-full h-full object-cover" />
+          ) : (
+            <BlobAvatar seed={user?.nickname ?? user?.loginId ?? ''} size={32} />
+          )}
         </div>
       </button>
 
@@ -68,13 +105,12 @@ export function BottomNav() {
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
       >
         {todoActive && (
-          <span
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
-            style={{ background: 'linear-gradient(90deg, #D05B8E, #FF8C7A)' }}
-          />
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
         )}
         <TodoIcon active={todoActive} />
-        <span className={`text-[11px] font-semibold ${todoActive ? 'text-primary' : 'text-muted'}`}>
+        <span
+          className={`text-[11px] font-semibold ${todoActive ? 'text-gray-900' : 'text-gray-400'}`}
+        >
           Todo
         </span>
       </button>
@@ -84,14 +120,11 @@ export function BottomNav() {
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
       >
         {teamsActive && (
-          <span
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
-            style={{ background: 'linear-gradient(90deg, #D05B8E, #FF8C7A)' }}
-          />
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
         )}
         <TeamIcon active={teamsActive} />
         <span
-          className={`text-[11px] font-semibold ${teamsActive ? 'text-primary' : 'text-muted'}`}
+          className={`text-[11px] font-semibold ${teamsActive ? 'text-gray-900' : 'text-gray-400'}`}
         >
           내 팀
         </span>

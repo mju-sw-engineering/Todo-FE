@@ -2,7 +2,7 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
-import { formatDate, formatDeadline, parseAchievementCount } from '@/lib/formatters'
+import { parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { useVoice } from '@/hooks/useVoice'
 import { getDailyEvaluation } from '@/services/teamService'
@@ -11,19 +11,73 @@ import { useAuth } from '@/store/authStore'
 import type { DailyEvaluationResponse } from '@/types/team.types'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
 import { AngelBlob, DevilBlob } from '@/components/ui/BlobCharacter'
-import type { MyTodoStatus, Todo } from '@/types/todo.types'
+import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import type { Todo } from '@/types/todo.types'
 
 type TabType = 'all' | 'incomplete' | 'complete'
 
-const MY_STATUS_STYLE: Record<MyTodoStatus, string> = {
-  완료: 'text-white',
-  미완료: 'bg-gray-100 text-gray-400',
+const CARD_PALETTES = [
+  {
+    bg: 'linear-gradient(135deg,#FFCDC8 0%,#FFDBD7 45%,#FFE8E5 100%)',
+    accent: '#C83030',
+    text: '#6A1010',
+    badge: 'rgba(255,255,255,0.75)',
+  },
+  {
+    bg: 'linear-gradient(135deg,#FFD6E8 0%,#FFE4F0 45%,#FFF0F7 100%)',
+    accent: '#B83078',
+    text: '#6A0840',
+    badge: 'rgba(255,255,255,0.75)',
+  },
+  {
+    bg: 'linear-gradient(135deg,#C8F0D0 0%,#D8F5DC 45%,#EAFAEC 100%)',
+    accent: '#208840',
+    text: '#0A3818',
+    badge: 'rgba(255,255,255,0.75)',
+  },
+  {
+    bg: 'linear-gradient(135deg,#C8E4FF 0%,#D8EDFF 45%,#EBF5FF 100%)',
+    accent: '#1A68C8',
+    text: '#0A2858',
+    badge: 'rgba(255,255,255,0.75)',
+  },
+  {
+    bg: 'linear-gradient(135deg,#FFF0B3 0%,#FFF5CC 45%,#FFFAE5 100%)',
+    accent: '#A87800',
+    text: '#3A2800',
+    badge: 'rgba(255,255,255,0.75)',
+  },
+]
+
+const MONTHS_EN = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
+const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+function formatTime(iso: string): string {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  const h = String(d.getHours()).padStart(2, '0')
+  const m = String(d.getMinutes()).padStart(2, '0')
+  return `${h}:${m}`
 }
 
 function formatEvalDate(dateStr: string): string {
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
-  return `${d.getMonth() + 1}월 ${d.getDate()}일 평가`
+  const m = MONTHS_EN[d.getMonth()]
+  return `${m} ${d.getDate()} evaluation`
 }
 
 function AiEvaluationCard({
@@ -35,28 +89,23 @@ function AiEvaluationCard({
 
   if (evaluation === 'loading') {
     return (
-      <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3 flex items-center justify-center h-14">
-        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="mx-5 mb-4 rounded-2xl bg-gray-50 px-4 py-3 flex items-center justify-center h-14">
+        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
       </div>
     )
   }
 
   if (evaluation === 'error') {
     return (
-      <div
-        className="mx-6 mb-3 rounded-2xl overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #FFF0F6 0%, #FFE8F2 60%, #FFF4EC 100%)' }}
-      >
-        <div className="flex items-center gap-3 px-4 py-3.5">
-          <div className="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center shrink-0 shadow-sm">
-            <span className="text-[20px] leading-none">✨</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-bold text-primary leading-tight">AI 평가 준비 중</p>
-            <p className="text-[11px] text-muted mt-0.5">
-              오늘 할 일을 완료하면 내일 평가가 도착해요
-            </p>
-          </div>
+      <div className="mx-5 mb-4 rounded-2xl bg-gray-50 px-4 py-3.5 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
+          <span className="text-[18px] leading-none">✨</span>
+        </div>
+        <div className="min-w-0">
+          <p className="text-[12px] font-bold text-gray-900">AI evaluation pending</p>
+          <p className="text-[11px] text-gray-400 mt-0.5">
+            Complete today&apos;s tasks to get feedback
+          </p>
         </div>
       </div>
     )
@@ -68,26 +117,23 @@ function AiEvaluationCard({
 
   return (
     <div
-      className="mx-6 mb-3 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(208,91,142,0.15)]"
+      className="mx-5 mb-4 rounded-2xl overflow-hidden"
       style={{
-        background: isDevil
-          ? 'linear-gradient(135deg, #2D0A1A 0%, #4A1030 55%, #3D0A20 100%)'
-          : 'linear-gradient(135deg, #FFF0F6 0%, #FFE8F2 55%, #FFF4EC 100%)',
+        background: isDevil ? 'linear-gradient(135deg, #1A0610 0%, #3A0A28 100%)' : '#F5F5F5',
       }}
     >
-      {/* Top row: blob character + identity + date + play */}
       <div className="flex items-center gap-3 px-4 pt-3 pb-2.5">
         <div className="shrink-0 animate-blob-float">
-          {isDevil ? <DevilBlob size={52} /> : <AngelBlob size={52} />}
+          {isDevil ? <DevilBlob size={48} /> : <AngelBlob size={48} />}
         </div>
         <div className="flex-1 min-w-0">
           <p
-            className={`text-[14px] font-black leading-tight ${isDevil ? 'text-white' : 'text-ink'}`}
+            className={`text-[13px] font-black leading-tight ${isDevil ? 'text-white' : 'text-gray-900'}`}
           >
-            {isDevil ? '악마 AI 👹' : '천사 AI 🌸'}
+            {isDevil ? 'Devil AI 👹' : 'Angel AI 🌸'}
           </p>
           <p
-            className={`text-[11px] font-semibold mt-0.5 ${isDevil ? 'text-[#FFAAC8]' : 'text-primary'}`}
+            className={`text-[10px] font-semibold mt-0.5 ${isDevil ? 'text-[#FFAAC8]' : 'text-gray-400'}`}
           >
             {formatEvalDate(evaluation.date)}
           </p>
@@ -95,41 +141,37 @@ function AiEvaluationCard({
         <button
           type="button"
           onClick={() => voice.toggle({ persona, text: evaluation.message })}
-          className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-90 shrink-0"
+          className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 active:scale-90 shrink-0"
           style={{
             background: isVoicePlaying
               ? isDevil
-                ? 'rgba(255,255,255,0.25)'
-                : 'linear-gradient(135deg,#D05B8E,#FF8C7A)'
+                ? 'rgba(255,255,255,0.2)'
+                : '#111'
               : isDevil
-                ? 'rgba(255,255,255,0.12)'
-                : 'rgba(208,91,142,0.12)',
-            color: isDevil ? 'white' : isVoicePlaying ? 'white' : '#D05B8E',
+                ? 'rgba(255,255,255,0.1)'
+                : 'rgba(0,0,0,0.07)',
+            color: isDevil ? 'white' : isVoicePlaying ? 'white' : '#111',
           }}
-          aria-label={isVoicePlaying ? '정지' : '재생'}
+          aria-label={isVoicePlaying ? 'stop' : 'play'}
         >
           {voice.isLoading && voice.activePersona === persona ? (
-            <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
           ) : isVoicePlaying ? (
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-              <rect x="1" y="1" width="3" height="9" rx="1.2" />
-              <rect x="7" y="1" width="3" height="9" rx="1.2" />
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+              <rect x="1" y="1" width="3" height="8" rx="1" />
+              <rect x="6" y="1" width="3" height="8" rx="1" />
             </svg>
           ) : (
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-              <path d="M2 1.5l8 4-8 4V1.5z" />
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+              <path d="M2 1.5l7 3.5-7 3.5V1.5z" />
             </svg>
           )}
         </button>
       </div>
-
-      {/* Divider */}
-      <div className={`mx-4 h-px ${isDevil ? 'bg-white/10' : 'bg-border'}`} />
-
-      {/* Message */}
+      <div className={`mx-4 h-px ${isDevil ? 'bg-white/10' : 'bg-gray-200'}`} />
       <div className="px-4 pt-2.5 pb-4">
         <p
-          className={`text-[13px] leading-relaxed line-clamp-5 ${isDevil ? 'text-white/85' : 'text-ink/75'}`}
+          className={`text-[12px] leading-relaxed line-clamp-4 ${isDevil ? 'text-white/80' : 'text-gray-600'}`}
         >
           {evaluation.message}
         </p>
@@ -138,62 +180,98 @@ function AiEvaluationCard({
   )
 }
 
-function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
+function TeamTodoCard({
+  todo,
+  colorIndex,
+  onClick,
+}: {
+  todo: Todo
+  colorIndex: number
+  onClick: () => void
+}) {
   const { achieved, total } = parseAchievementCount(todo.achievementCount)
   const percentage = total > 0 ? Math.round((achieved / total) * 100) : 0
   const myStatus = todo.myStatus
-
+  const palette = CARD_PALETTES[colorIndex % CARD_PALETTES.length]
+  const time = formatTime(todo.deadline)
   const isDone = myStatus === '완료' || todo.status === 'FAIL'
 
   return (
     <div
       onClick={onClick}
-      className={`rounded-[20px] border border-border bg-white px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:shadow-[0_4px_20px_rgba(208,91,142,0.12)] hover:border-primary/20 active:scale-[0.99] ${isDone ? 'opacity-55' : ''}`}
+      className={`rounded-[22px] px-5 py-5 flex flex-col gap-3 cursor-pointer transition-all duration-150 active:scale-[0.99] ${isDone ? 'opacity-50' : ''}`}
+      style={{
+        background: [
+          'radial-gradient(circle at 28% 22%, rgba(255,255,255,0.28) 0%, transparent 52%)',
+          'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 38%)',
+          palette.bg,
+        ].join(', '),
+        border: '1px solid rgba(255,255,255,0.55)',
+        boxShadow: [
+          'inset 0 1.5px 1px rgba(255,255,255,0.95)',
+          'inset 0 -1px 0 rgba(0,0,0,0.06)',
+          'inset 1px 0 1px rgba(255,255,255,0.45)',
+          '0 8px 32px rgba(0,0,0,0.09)',
+          '0 2px 6px rgba(0,0,0,0.04)',
+        ].join(', '),
+      }}
     >
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-[15px] font-semibold text-ink leading-snug flex-1">{todo.title}</span>
-        <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+      {/* Top: status badges + time */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <TodoStatusBadge status={todo.status} />
           {myStatus && (
             <span
-              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${MY_STATUS_STYLE[myStatus]}`}
-              style={
-                myStatus === '완료'
-                  ? { background: 'linear-gradient(135deg,#D05B8E,#FF8C7A)' }
-                  : undefined
-              }
+              className="text-[10px] font-black px-2 py-0.5 rounded-full text-white"
+              style={{ background: myStatus === '완료' ? palette.accent : 'rgba(0,0,0,0.18)' }}
             >
-              {myStatus}
+              {myStatus === '완료' ? 'Done' : 'Pending'}
             </span>
           )}
-          <TodoStatusBadge status={todo.status} />
         </div>
+        {time && (
+          <span
+            className="text-[14px] font-black tracking-tight shrink-0"
+            style={{ color: palette.accent }}
+          >
+            ~{time}
+          </span>
+        )}
       </div>
 
-      <div className="flex items-center gap-2 text-[13px] text-muted">
-        <span>{formatDeadline(todo.deadline)}</span>
-        <span>·</span>
-        <span>{todo.creatorNickname}</span>
-      </div>
+      {/* Title */}
+      <p className="text-[17px] font-black leading-snug" style={{ color: palette.text }}>
+        {todo.title}
+      </p>
 
+      {/* Creator */}
+      <p className="text-[11px] font-semibold -mt-1" style={{ color: palette.text, opacity: 0.5 }}>
+        by {todo.creatorNickname}
+      </p>
+
+      {/* Progress */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[12px] text-muted">
-            {achieved}/{total}명 인증
+          <span className="text-[11px] font-semibold" style={{ color: palette.text, opacity: 0.6 }}>
+            {achieved}/{total} certified
           </span>
-          <span className="text-[12px] text-muted">{percentage}%</span>
+          <span className="text-[12px] font-black" style={{ color: palette.accent }}>
+            {percentage}%
+          </span>
         </div>
-        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="w-full h-2 rounded-full overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.5)' }}
+        >
           <div
-            className={`h-full rounded-full transition-all duration-500 ${myStatus === '완료' || todo.status === 'SUCCESS' ? 'bg-primary' : 'bg-primary/40'}`}
-            style={{ width: `${percentage}%` }}
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${percentage}%`, background: palette.accent }}
           />
         </div>
       </div>
     </div>
   )
 }
-
-const CARD_CLASS = 'flex-1 flex flex-col overflow-hidden bg-white animate-fade-up'
 
 function TodoListContent() {
   const router = useRouter()
@@ -223,7 +301,7 @@ function TodoListContent() {
     getTodayTodos(teamId, token)
       .then((res) => setTodos(res))
       .catch((err) => {
-        setError(err instanceof ApiError ? err.message : '투두 목록을 불러오지 못했습니다.')
+        setError(err instanceof ApiError ? err.message : 'Failed to load tasks.')
       })
       .finally(() => setIsLoading(false))
   }, [token, teamId])
@@ -235,49 +313,11 @@ function TodoListContent() {
       .catch(() => setAiEvaluation('error'))
   }, [token, teamId])
 
-  if (isLoading) {
-    return (
-      <div className={`${CARD_CLASS} items-center justify-center`}>
-        <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (error || todos.length === 0) {
-    return (
-      <div className={`${CARD_CLASS}`}>
-        <div className="px-6 pt-8 pb-4">
-          <button
-            onClick={() => router.back()}
-            className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-primary transition-colors"
-          >
-            ← 뒤로
-          </button>
-          <h1 className="text-[22px] font-bold text-ink text-center">TodoTeam</h1>
-        </div>
-        <AiEvaluationCard evaluation={aiEvaluation} />
-        <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <p className="text-[15px] text-muted text-center mb-10">
-            {error ? '투두 목록을 불러오지 못했습니다.' : '오늘 생성된 할 일이 없습니다'}
-          </p>
-        </div>
-        <div className="px-6 py-5 border-t border-border">
-          <button
-            onClick={() => router.push(`/teams/${teamId}/todos/new`)}
-            className="w-full py-3.75 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.98]"
-            style={{
-              background: 'linear-gradient(135deg, #D05B8E 0%, #FF8C7A 100%)',
-              boxShadow: '0 4px 18px rgba(208,91,142,0.30)',
-            }}
-          >
-            오늘의 할 일 생성
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   const today = new Date()
+  const dayNum = String(today.getDate()).padStart(2, '0')
+  const monthNum = String(today.getMonth() + 1).padStart(2, '0')
+  const monthEn = MONTHS_EN[today.getMonth()]
+  const dayEn = DAYS_EN[today.getDay()]
 
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
 
@@ -293,41 +333,59 @@ function TodoListContent() {
   const incompleteCount = todos.filter((t) => t.status !== 'SUCCESS').length
 
   const TAB_ITEMS: { key: TabType; label: string; count: number }[] = [
-    { key: 'all', label: '전체', count: todos.length },
-    { key: 'incomplete', label: '미완료', count: incompleteCount },
-    { key: 'complete', label: '완료', count: completeCount },
+    { key: 'all', label: 'All', count: todos.length },
+    { key: 'incomplete', label: 'Pending', count: incompleteCount },
+    { key: 'complete', label: 'Done', count: completeCount },
   ]
 
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-[3px] border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   return (
-    <div className={CARD_CLASS}>
-      {/* 헤더 — 그라데이션 */}
-      <div
-        className="px-6 pt-8 pb-4 shrink-0"
-        style={{ background: 'linear-gradient(160deg, #FFF0F6 0%, #FFF8F2 60%, #F5FBFF 100%)' }}
-      >
+    <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
+      {/* Big date header */}
+      <div className="px-6 pt-5 pb-3 shrink-0">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-gray-400 mb-3 flex items-center gap-1 hover:text-gray-700 transition-colors"
         >
-          ← 뒤로
+          ← Back
         </button>
-        <p className="text-[13px] font-medium text-muted mb-0.5">{formatDate(today)} 오늘</p>
-        <h1 className="text-[28px] font-black text-ink tracking-tight">팀 할 일 📌</h1>
+        <p className="text-[13px] font-semibold text-gray-400 mb-1 tracking-wide">{dayEn}</p>
+        <div className="flex items-end gap-0 leading-none">
+          <span className="text-[72px] font-black text-gray-900 tracking-tighter leading-none">
+            {monthNum}.{dayNum}
+          </span>
+        </div>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-[24px] font-black text-gray-900">{monthEn}</p>
+          {todos.length > 0 && (
+            <p className="text-[13px] font-semibold text-gray-400">
+              <span className="font-black text-gray-900">{completeCount}</span>/{todos.length} done
+            </p>
+          )}
+        </div>
+        <p className="text-[13px] font-semibold text-gray-400 mt-1.5 tracking-wide">
+          Team&apos;s tasks
+        </p>
       </div>
 
-      {/* AI 하루 평가 카드 */}
+      {/* AI Evaluation Card */}
       <AiEvaluationCard evaluation={aiEvaluation} />
 
-      {/* 탭 (스크롤 고정) */}
-      <div className="flex border-b border-border px-6">
+      {/* Pill tabs */}
+      <div className="flex gap-1.5 px-5 pb-3 shrink-0">
         {TAB_ITEMS.map(({ key, label, count }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`pb-2.5 pt-1 mr-5 text-[14px] font-semibold border-b-2 transition-colors duration-150 ${
-              tab === key
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted hover:text-ink'
+            className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${
+              tab === key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             }`}
           >
             {label} {count}
@@ -335,17 +393,26 @@ function TodoListContent() {
         ))}
       </div>
 
-      {/* 투두 목록 (스크롤) */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
-        {filteredTodos.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center py-20">
-            <p className="text-[14px] text-muted">해당하는 할 일이 없습니다</p>
+      {/* Cards scroll */}
+      <div className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
+        {error || todos.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-20">
+            <div className="animate-blob-float mb-3">
+              <BlobAvatar seed="empty-team-todos" size={72} expressionOverride={3} />
+            </div>
+            <p className="text-[15px] font-bold text-gray-900">No tasks today</p>
+            <p className="text-[13px] text-gray-400 mt-1">Create the first task for your team</p>
+          </div>
+        ) : filteredTodos.length === 0 ? (
+          <div className="flex items-center justify-center py-20">
+            <p className="text-[14px] text-gray-400">No matching tasks</p>
           </div>
         ) : (
-          filteredTodos.map((todo) => (
-            <TodoCard
+          filteredTodos.map((todo, idx) => (
+            <TeamTodoCard
               key={todo.todoId}
               todo={todo}
+              colorIndex={idx}
               onClick={() =>
                 router.push(
                   `/teams/${teamId}/todos/${todo.todoId}?myStatus=${encodeURIComponent(todo.myStatus ?? '')}`
@@ -356,23 +423,19 @@ function TodoListContent() {
         )}
       </div>
 
-      {/* 바텀 버튼 */}
-      <div className="px-6 py-5 border-t border-border">
+      {/* Add Task footer */}
+      <div className="shrink-0 px-5 py-4 border-t border-gray-100">
         <button
           onClick={() => router.push(`/teams/${teamId}/todos/new`)}
-          className="w-full py-3.75 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.98]"
-          style={{
-            background: 'linear-gradient(135deg, #D05B8E 0%, #FF8C7A 100%)',
-            boxShadow: '0 4px 18px rgba(208,91,142,0.30)',
-          }}
+          className="w-full py-4 bg-gray-900 text-white text-[15px] font-bold rounded-[18px] transition-all duration-200 hover:opacity-85 active:scale-[0.98] shadow-[0_8px_32px_rgba(0,0,0,0.18)]"
         >
-          할 일 추가
+          + Add Task
         </button>
       </div>
 
       {showToast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(208,91,142,0.18)] animate-fade-up z-50">
-          ✅ 할 일이 생성되었습니다
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-gray-900 text-white text-[13px] font-bold text-center py-3.5 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] animate-fade-up z-50">
+          할 일이 추가되었습니다
         </div>
       )}
     </div>
@@ -384,7 +447,7 @@ export default function TodoListPage() {
     <Suspense
       fallback={
         <div className="flex-1 flex items-center justify-center overflow-hidden bg-white">
-          <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-gray-200 border-t-gray-900 rounded-full animate-spin" />
         </div>
       }
     >
