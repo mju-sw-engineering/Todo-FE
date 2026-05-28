@@ -1,5 +1,6 @@
 export type TodoStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAIL'
-export type MyTodoStatus = '미완료' | '완료' | '평가 대기중'
+export type MyTodoStatus = '미완료' | '완료'
+export type ReactionType = 'LIKE' | 'HEART' | 'SURPRISED' | 'DISLIKE' | 'ANGRY'
 
 export interface Todo {
   todoId: number
@@ -32,12 +33,21 @@ export interface CreateTodoResponse {
   createdAt: string
 }
 
+export interface Reaction {
+  type: ReactionType
+  emoji: string
+  count: number
+}
+
 export interface TodoParticipant {
   userId: number
+  todoParticipantId: number
   nickname: string
   profileImageUrl: string | null
   proofImageUrl: string | null
   status: MyTodoStatus | null
+  reactions: Reaction[]
+  myReaction: ReactionType | null
 }
 
 export interface TodoDetail {
@@ -56,7 +66,6 @@ export interface SubmitTodoRequest {
   proofImageKey: string
 }
 
-export interface EvaluateRequest {
-  targetUserId: number
-  voteType: 'POSITIVE' | 'NEGATIVE'
+export interface ReactRequest {
+  type: ReactionType
 }

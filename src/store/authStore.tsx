@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { clearAllCache } from '@/lib/requestCache'
 import type { AuthUser } from '@/types/auth.types'
 
 interface AuthSlice {
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('user')
+    clearAllCache()
     setAuthSlice({ token: null, user: null, isInitialized: true })
   }, [])
 

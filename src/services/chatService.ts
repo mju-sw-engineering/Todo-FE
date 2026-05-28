@@ -1,4 +1,5 @@
-import type { ChatRequest, ChatResponse } from '@/types/chat.types'
+import { getJson } from '@/lib/apiClient'
+import type { ChatRequest, ChatResponse, TodoChatMessagesResponse } from '@/types/chat.types'
 
 const AI_BASE_URL = 'https://ai.swe.bluerack.org'
 
@@ -18,4 +19,15 @@ export async function sendChatMessage(request: ChatRequest, token: string): Prom
 
   const data: ChatResponse = await response.json()
   return data.reply
+}
+
+export async function getTodoChatMessages(
+  todoId: number,
+  token: string,
+  cursorId?: number,
+  size = 20
+): Promise<TodoChatMessagesResponse> {
+  const params = new URLSearchParams({ size: String(size) })
+  if (cursorId != null) params.set('cursorId', String(cursorId))
+  return getJson<TodoChatMessagesResponse>(`/api/todos/${todoId}/chat/messages?${params}`, token)
 }

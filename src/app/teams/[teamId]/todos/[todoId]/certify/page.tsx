@@ -44,7 +44,7 @@ function CertifyContent() {
       await uploadFileToStorage(uploadUrl, file)
       await submitTodo(todoId, { proofImageKey: objectKey }, token)
       router.replace(
-        `/teams/${teamId}/todos/${todoId}?certified=1&myStatus=${encodeURIComponent('평가 대기중')}`
+        `/teams/${teamId}/todos/${todoId}?certified=1&myStatus=${encodeURIComponent('완료')}`
       )
     } catch (err) {
       setError(
@@ -87,27 +87,51 @@ function CertifyContent() {
       </div>
 
       {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-4">
-        {/* 미리보기 영역 — label로 갤러리 트리거 */}
+      <div className="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-3 min-h-0">
+        {/* 미리보기 영역 — 고정 높이, 이미지 크기와 무관하게 레이아웃 유지 */}
         <label
           htmlFor="certify-gallery"
-          className="w-full rounded-[18px] bg-primary-light overflow-hidden flex items-center justify-center cursor-pointer"
-          style={{ minHeight: '220px', flex: '1' }}
+          className="w-full rounded-[18px] bg-primary-light overflow-hidden flex items-center justify-center cursor-pointer shrink-0"
+          style={{ height: '52vw', minHeight: '200px', maxHeight: '320px' }}
         >
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={preview}
-              alt="인증샷 미리보기"
-              className="w-full h-full object-cover"
-              style={{ minHeight: '220px' }}
-            />
+            <img src={preview} alt="인증샷 미리보기" className="w-full h-full object-contain" />
           ) : (
-            <p className="text-[13px] text-primary/50 select-none">사진을 선택하거나 촬영하세요</p>
+            <div className="flex flex-col items-center gap-2">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 28 28"
+                fill="none"
+                className="text-primary/40"
+              >
+                <rect
+                  x="2"
+                  y="6"
+                  width="24"
+                  height="18"
+                  rx="3"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <circle cx="14" cy="15" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+                <path
+                  d="M10 6l1.5-3h5L18 6"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <p className="text-[13px] text-primary/40 select-none">
+                사진을 선택하거나 촬영하세요
+              </p>
+            </div>
           )}
         </label>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 shrink-0">
           <label
             htmlFor="certify-camera"
             className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-primary hover:text-primary"
@@ -123,7 +147,9 @@ function CertifyContent() {
         </div>
 
         {error && (
-          <p className="text-[13px] text-red-400 bg-red-50 rounded-[10px] px-4 py-2.5">{error}</p>
+          <p className="text-[13px] text-red-400 bg-red-50 rounded-[10px] px-4 py-2.5 shrink-0">
+            {error}
+          </p>
         )}
       </div>
 

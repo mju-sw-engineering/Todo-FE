@@ -5,36 +5,19 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { formatDate, formatDeadline, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
+import { useVoice } from '@/hooks/useVoice'
 import { getDailyEvaluation } from '@/services/teamService'
 import { getTodayTodos } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import type { DailyEvaluationResponse } from '@/types/team.types'
-import type { MyTodoStatus, Todo, TodoStatus } from '@/types/todo.types'
+import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
+import type { MyTodoStatus, Todo } from '@/types/todo.types'
 
 type TabType = 'all' | 'incomplete' | 'complete'
 
-const STATUS_LABEL: Record<TodoStatus, string> = {
-  IN_PROGRESS: '진행중',
-  SUCCESS: '성공',
-  FAIL: '실패',
-}
-
-const STATUS_STYLE: Record<TodoStatus, string> = {
-  IN_PROGRESS: 'bg-gray-100 text-gray-500',
-  SUCCESS: 'bg-emerald-50 text-emerald-600',
-  FAIL: 'bg-red-50 text-red-500',
-}
-
 const MY_STATUS_STYLE: Record<MyTodoStatus, string> = {
   완료: 'bg-primary text-white',
-  '평가 대기중': 'bg-indigo-400 text-white',
   미완료: 'bg-gray-100 text-gray-400',
-}
-
-const BAR_COLOR: Record<MyTodoStatus, string> = {
-  완료: 'bg-primary',
-  '평가 대기중': 'bg-indigo-400',
-  미완료: 'bg-gray-200',
 }
 
 function formatEvalDate(dateStr: string): string {
@@ -48,6 +31,8 @@ function AiEvaluationCard({
 }: {
   evaluation: DailyEvaluationResponse | 'error' | 'loading'
 }) {
+  const voice = useVoice()
+
   if (evaluation === 'loading') {
     return (
       <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3 flex items-center justify-center h-14">
@@ -58,20 +43,41 @@ function AiEvaluationCard({
 
   if (evaluation === 'error') {
     return (
-      <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3">
-        <p className="text-[12px] text-muted text-center">
-          어제의 평가가 아직 준비되지 않았습니다.
-        </p>
+      <div
+        className="mx-6 mb-3 rounded-2xl overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 60%, #fce7f3 100%)' }}
+      >
+        <div className="flex items-center gap-3 px-4 py-3.5">
+          <div className="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center shrink-0 shadow-sm">
+            <span className="text-[18px] leading-none">✨</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-bold text-[#4c1d95] leading-tight">AI 평가 준비 중</p>
+            <p className="text-[11px] text-purple-400 mt-0.5">
+              오늘 할 일을 완료하면 내일 평가가 도착해요
+            </p>
+          </div>
+        </div>
       </div>
     )
   }
 
   const isDevil = evaluation.persona === 'DEVIL'
+  const persona = isDevil ? 'DEVIL' : 'ANGEL'
+  const isVoicePlaying = voice.isPlaying && voice.activePersona === persona
 
   return (
-    <div className="mx-6 mb-3 rounded-2xl bg-primary-light px-4 py-3">
-      <div className="flex items-start gap-3">
-        <div className="relative w-[52px] h-[52px] rounded-full overflow-hidden shrink-0">
+    <div
+      className="mx-6 mb-3 rounded-2xl overflow-hidden shadow-[0_2px_14px_rgba(0,0,0,0.10)]"
+      style={{
+        background: isDevil
+          ? 'linear-gradient(135deg, #1a0a3b 0%, #2e1065 60%, #3b0764 100%)'
+          : 'linear-gradient(135deg, #fdf4ff 0%, #ede9fe 55%, #fce7f3 100%)',
+      }}
+    >
+      {/* Top row: identity + date + play */}
+      <div className="flex items-center gap-3 px-4 pt-3.5 pb-2.5">
+        <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 shadow-[0_3px_10px_rgba(0,0,0,0.22)]">
           <Image
             src={isDevil ? '/images/devil.png' : '/images/angel.png'}
             alt={isDevil ? '악마 AI' : '천사 AI'}
@@ -81,11 +87,56 @@ function AiEvaluationCard({
           />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-primary font-semibold mb-0.5">
-            ({formatEvalDate(evaluation.date)})
+          <p
+            className={`text-[14px] font-black leading-tight ${isDevil ? 'text-white' : 'text-[#4c1d95]'}`}
+          >
+            {isDevil ? '😈 악마 AI' : '😇 천사 AI'}
           </p>
-          <p className="text-[12px] text-ink leading-relaxed line-clamp-5">{evaluation.message}</p>
+          <p
+            className={`text-[11px] font-semibold mt-0.5 ${isDevil ? 'text-purple-400' : 'text-purple-500'}`}
+          >
+            {formatEvalDate(evaluation.date)}
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={() => voice.toggle({ persona, text: evaluation.message })}
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-90 shrink-0 ${
+            isVoicePlaying
+              ? isDevil
+                ? 'bg-white/25 text-white'
+                : 'bg-pink-400 text-white'
+              : isDevil
+                ? 'bg-white/15 hover:bg-white/25 text-white'
+                : 'bg-purple-100 hover:bg-purple-200 text-purple-600'
+          }`}
+          aria-label={isVoicePlaying ? '정지' : '재생'}
+        >
+          {voice.isLoading && voice.activePersona === persona ? (
+            <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : isVoicePlaying ? (
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+              <rect x="1" y="1" width="3" height="9" rx="1.2" />
+              <rect x="7" y="1" width="3" height="9" rx="1.2" />
+            </svg>
+          ) : (
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+              <path d="M2 1.5l8 4-8 4V1.5z" />
+            </svg>
+          )}
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className={`mx-4 h-px ${isDevil ? 'bg-white/10' : 'bg-purple-200/60'}`} />
+
+      {/* Message */}
+      <div className="px-4 pt-2.5 pb-4">
+        <p
+          className={`text-[13px] leading-relaxed line-clamp-5 ${isDevil ? 'text-purple-200/90' : 'text-[#4c1d95]/80'}`}
+        >
+          {evaluation.message}
+        </p>
       </div>
     </div>
   )
@@ -93,25 +144,28 @@ function AiEvaluationCard({
 
 function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
   const { achieved, total } = parseAchievementCount(todo.achievementCount)
-  const ratio = total > 0 ? achieved / total : 0
-  const percentage = Math.round(ratio * 100)
-  const isSuccess = todo.status === 'SUCCESS'
+  const percentage = total > 0 ? Math.round((achieved / total) * 100) : 0
   const myStatus = todo.myStatus
+
+  const isDone = myStatus === '완료' || todo.status === 'FAIL'
 
   return (
     <div
       onClick={onClick}
-      className={`rounded-[18px] border border-border px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:border-primary/30 hover:shadow-[0_2px_12px_rgba(91,79,207,0.08)] active:scale-[0.99] ${
-        isSuccess ? 'bg-amber-50/60' : 'bg-white'
-      }`}
+      className={`rounded-[18px] border border-border bg-white px-5 py-4 flex flex-col gap-3 cursor-pointer transition-all duration-150 hover:border-primary/30 hover:shadow-[0_2px_12px_rgba(91,79,207,0.08)] active:scale-[0.99] ${isDone ? 'opacity-55' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-[15px] font-semibold text-ink leading-snug flex-1">{todo.title}</span>
-        <span
-          className={`shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLE[todo.status]}`}
-        >
-          {STATUS_LABEL[todo.status]}
-        </span>
+        <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+          {myStatus && (
+            <span
+              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${MY_STATUS_STYLE[myStatus]}`}
+            >
+              {myStatus}
+            </span>
+          )}
+          <TodoStatusBadge status={todo.status} />
+        </div>
       </div>
 
       <div className="flex items-center gap-2 text-[13px] text-muted">
@@ -119,14 +173,6 @@ function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
         <span>·</span>
         <span>{todo.creatorNickname}</span>
       </div>
-
-      {myStatus && (
-        <div
-          className={`w-full py-2.5 rounded-[10px] text-[13px] font-semibold text-center ${MY_STATUS_STYLE[myStatus]}`}
-        >
-          {myStatus}
-        </div>
-      )}
 
       <div>
         <div className="flex items-center justify-between mb-1.5">
@@ -137,7 +183,7 @@ function TodoCard({ todo, onClick }: { todo: Todo; onClick: () => void }) {
         </div>
         <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${myStatus ? BAR_COLOR[myStatus] : 'bg-gray-200'}`}
+            className={`h-full rounded-full transition-all duration-500 ${myStatus === '완료' || todo.status === 'SUCCESS' ? 'bg-primary' : 'bg-primary/40'}`}
             style={{ width: `${percentage}%` }}
           />
         </div>
@@ -166,9 +212,10 @@ function TodoListContent() {
 
   useEffect(() => {
     if (!showToast) return
+    router.replace(`/teams/${teamId}/todos`)
     const t = setTimeout(() => setShowToast(false), 3000)
     return () => clearTimeout(t)
-  }, [showToast])
+  }, [showToast, router, teamId])
 
   useEffect(() => {
     if (!token || !teamId) return
@@ -227,11 +274,15 @@ function TodoListContent() {
 
   const today = new Date()
 
-  const filteredTodos = todos.filter((t) => {
-    if (tab === 'complete') return t.status === 'SUCCESS'
-    if (tab === 'incomplete') return t.status !== 'SUCCESS'
-    return true
-  })
+  const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
+
+  const filteredTodos = todos
+    .filter((t) => {
+      if (tab === 'complete') return t.status === 'SUCCESS'
+      if (tab === 'incomplete') return t.status !== 'SUCCESS'
+      return true
+    })
+    .sort((a, b) => (STATUS_ORDER[a.status] ?? 0) - (STATUS_ORDER[b.status] ?? 0))
 
   const completeCount = todos.filter((t) => t.status === 'SUCCESS').length
   const incompleteCount = todos.filter((t) => t.status !== 'SUCCESS').length
@@ -245,15 +296,15 @@ function TodoListContent() {
   return (
     <div className={CARD_CLASS}>
       {/* 헤더 (스크롤 고정) */}
-      <div className="px-6 pt-8 pb-4">
+      <div className="px-6 pt-5 pb-2">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-4 flex items-center gap-1 hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-primary transition-colors"
         >
           ← 뒤로
         </button>
-        <p className="text-[13px] text-muted mb-1">{formatDate(today)} 오늘</p>
-        <h1 className="text-[26px] font-bold text-ink mb-4">할 일</h1>
+        <p className="text-[13px] text-muted mb-0.5">{formatDate(today)} 오늘</p>
+        <h1 className="text-[26px] font-bold text-ink mb-2">할 일</h1>
       </div>
 
       {/* AI 하루 평가 카드 */}
@@ -308,7 +359,7 @@ function TodoListContent() {
       </div>
 
       {showToast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up z-50">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up z-50">
           할 일이 생성되었습니다
         </div>
       )}

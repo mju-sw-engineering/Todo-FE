@@ -28,5 +28,5 @@ export const AVATAR_COLORS = [
 ]
 
 export function getInitials(nickname: string): string {
-  return nickname.trim().slice(0, 2)
+  return (nickname ?? '').trim().slice(0, 2)
 }
