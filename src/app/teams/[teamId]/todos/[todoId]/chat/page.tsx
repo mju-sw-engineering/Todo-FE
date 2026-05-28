@@ -111,8 +111,9 @@ export default function TodoChatPage() {
               </p>
             )}
             {grouped.map((msg, idx) => {
-              const isMine = user?.userId === msg.userId
-              const avatarColor = AVATAR_COLORS[msg.userId % AVATAR_COLORS.length]
+              const isMine = user?.loginId != null ? msg.nickname === user.loginId : msg.chatId < 0
+              const avatarColor =
+                AVATAR_COLORS[Math.abs(msg.userId || msg.chatId) % AVATAR_COLORS.length]
 
               return (
                 <div

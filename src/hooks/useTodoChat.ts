@@ -60,9 +60,7 @@ export function useTodoChat(todoId: number, token: string | null) {
             queryClient.setQueryData<TodoChatMessage[]>(chatKey(todoId), (old) => {
               const list = old ?? []
               // Replace matching optimistic placeholder
-              const optIdx = list.findIndex(
-                (m) => m.chatId < 0 && m.content === msg.content && m.userId === msg.userId
-              )
+              const optIdx = list.findIndex((m) => m.chatId < 0 && m.content === msg.content)
               if (optIdx !== -1) {
                 const next = [...list]
                 next[optIdx] = msg
