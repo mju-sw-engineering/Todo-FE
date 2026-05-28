@@ -72,7 +72,7 @@ function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-semibold text-primary tracking-wide">
+            <label className="text-[13px] font-semibold text-gray-700 tracking-wide">
               초대 코드
             </label>
             <input
@@ -82,14 +82,14 @@ function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
               onChange={(e) => setInviteCode(e.target.value)}
               placeholder="초대 코드 8자리를 입력하세요"
               maxLength={8}
-              className="w-full px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-input-bg text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(91,79,207,0.10)]"
+              className="w-full px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-input-bg text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-gray-900 focus:bg-white focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
             />
             {error && <p className="text-xs text-red-400">{error}</p>}
           </div>
           <button
             type="submit"
             disabled={isLoading || inviteCode.trim().length === 0}
-            className="w-full py-4 mt-1 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 mt-1 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? '참여 중...' : '참여하기'}
           </button>
@@ -136,7 +136,7 @@ function TeamsContent() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -151,9 +151,9 @@ function TeamsContent() {
 
         {teams.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2">
-            <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center mb-2">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-2">
               <svg
-                className="w-7 h-7 text-primary"
+                className="w-7 h-7 text-gray-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -175,7 +175,7 @@ function TeamsContent() {
               <li key={team.teamId}>
                 <button
                   onClick={() => router.push(`/teams/${team.teamId}`)}
-                  className="w-full flex items-center gap-4 bg-white rounded-[18px] border border-border px-4 py-3.5 text-left transition-all duration-200 hover:border-primary/50 hover:shadow-[0_4px_18px_rgba(91,79,207,0.10)] active:scale-[0.99]"
+                  className="w-full flex items-center gap-4 bg-white rounded-[18px] border border-border px-4 py-3.5 text-left transition-all duration-200 hover:border-gray-300 hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] active:scale-[0.99]"
                 >
                   <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} />
                   <div className="flex-1 min-w-0">
@@ -206,13 +206,13 @@ function TeamsContent() {
       <div className="shrink-0 px-5 py-3 border-t border-border bg-white flex flex-col gap-2">
         <button
           onClick={() => router.push('/teams/new')}
-          className="w-full py-3.5 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+          className="w-full py-3.5 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85"
         >
           팀 생성하기
         </button>
         <button
           onClick={() => setShowJoinModal(true)}
-          className="w-full py-3.5 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+          className="w-full py-3.5 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-gray-200"
         >
           팀 참여하기
         </button>
@@ -242,7 +242,7 @@ export default function TeamsPage() {
     <Suspense
       fallback={
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

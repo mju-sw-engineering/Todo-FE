@@ -9,6 +9,8 @@ import { ApiError } from '@/lib/apiClient'
 import { getTodoDetail, postReaction } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
+import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { ReactionEmoji } from '@/components/ui/ReactionEmoji'
 import type { MyTodoStatus, ReactionType, TodoDetail, TodoParticipant } from '@/types/todo.types'
 
 const PROGRESS_MESSAGES = {
@@ -38,7 +40,7 @@ const CERT_BADGE_LABEL: Record<MyTodoStatus, string> = {
 }
 
 const CERT_BADGE_STYLE: Record<MyTodoStatus, string> = {
-  완료: 'bg-primary text-white',
+  완료: 'bg-gray-900 text-white',
   미완료: 'bg-gray-100 text-gray-400',
 }
 
@@ -103,16 +105,21 @@ function MemberCertCard({
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : isCompleted ? (
-          <div className="absolute inset-0 bg-linear-to-br from-primary/20 to-primary/40" />
+          <div className="absolute inset-0 bg-linear-to-br from-gray-100 to-gray-200" />
         ) : canCertify ? (
-          <div className="absolute inset-0 bg-primary-light flex flex-col items-center justify-center gap-2">
+          <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
             <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center">
-              <span className="text-[22px] font-light text-primary/60 leading-none">+</span>
+              <span className="text-[22px] font-light text-gray-400 leading-none">+</span>
             </div>
-            <span className="text-[12px] text-primary/50">탭해서 인증하기</span>
+            <span className="text-[12px] text-gray-400">탭해서 인증하기</span>
           </div>
         ) : (
-          <div className="absolute inset-0 bg-gray-50" />
+          <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
+            <div className="animate-blob-float">
+              <BlobAvatar seed={member.nickname} size={64} expressionOverride={3} />
+            </div>
+            <span className="text-[11px] font-semibold text-gray-400">아직 완료 전...</span>
+          </div>
         )}
 
         {/* Facebook-style reaction summary (bottom-left) */}
@@ -120,8 +127,8 @@ function MemberCertCard({
           <div className="absolute bottom-2.5 left-3 flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-2 py-0.5">
             <div className="flex -space-x-0.5">
               {activeReactions.slice(0, 3).map((r) => (
-                <span key={r.type} className="text-[13px] leading-none drop-shadow-sm">
-                  {r.emoji}
+                <span key={r.type} className="leading-none drop-shadow-sm">
+                  <ReactionEmoji type={r.type} size={16} />
                 </span>
               ))}
             </div>
@@ -160,11 +167,13 @@ function MemberCertCard({
                           onReact(r.type)
                           setShowPicker(false)
                         }}
-                        className={`w-9 h-9 flex items-center justify-center rounded-full text-[22px] transition-all duration-150 active:scale-90 ${
-                          isSelected ? 'scale-125 bg-primary/10' : 'hover:scale-125'
+                        className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-150 active:scale-90 ${
+                          isSelected
+                            ? 'scale-125 bg-gray-100 shadow-inner'
+                            : 'hover:scale-125 hover:bg-gray-50'
                         }`}
                       >
-                        {r.emoji}
+                        <ReactionEmoji type={r.type} size={28} />
                       </button>
                     )
                   })}
@@ -178,7 +187,7 @@ function MemberCertCard({
               onClick={() => setShowPicker((v) => !v)}
               className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-150 active:scale-90 ${
                 showPicker
-                  ? 'bg-primary text-white'
+                  ? 'bg-gray-900 text-white'
                   : 'bg-white/85 backdrop-blur-sm text-gray-500 hover:bg-white'
               }`}
             >
@@ -244,7 +253,7 @@ function TodoDetailContent() {
   if (isLoading) {
     return (
       <div className={`${CARD_CLASS} items-center justify-center`}>
-        <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -254,7 +263,7 @@ function TodoDetailContent() {
       <div className={`${CARD_CLASS} px-6 py-10`}>
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-8 text-left hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-muted mb-8 text-left hover:text-gray-700 transition-colors"
         >
           ← 뒤로
         </button>
@@ -278,7 +287,7 @@ function TodoDetailContent() {
       <div className="px-6 pt-8 pb-4">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-gray-700 transition-colors"
         >
           ← 할 일 상세
         </button>
@@ -297,14 +306,14 @@ function TodoDetailContent() {
         <div>
           <div className="flex justify-between items-center mb-1.5">
             <span className="text-[12px] font-semibold text-ink/60">달성 현황</span>
-            <span className="text-[12px] text-primary font-semibold">
+            <span className="text-[12px] text-gray-700 font-semibold">
               {achieved}/{total}명 · {percentage}%
             </span>
           </div>
           <div className="relative pb-9">
             <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <motion.div
-                className="h-full rounded-full bg-primary"
+                className="h-full rounded-full bg-gray-900"
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}
                 transition={{ duration: 0.75, ease: 'easeOut', delay: 0.2 }}
@@ -331,7 +340,7 @@ function TodoDetailContent() {
                           ? 'text-slate-400'
                           : achieved === total
                             ? 'text-emerald-500'
-                            : 'text-primary'
+                            : 'text-gray-700'
                       }
                     >
                       {getProgressMessage(achieved, total, todoId)}
@@ -377,7 +386,7 @@ function TodoDetailContent() {
               `/teams/${teamId}/todos/${todoId}/chat?title=${encodeURIComponent(todo.title)}`
             )
           }
-          className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-primary-light text-primary hover:bg-[#e0daf8] transition-all duration-200 shrink-0"
+          className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200 shrink-0"
           aria-label="채팅"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -392,25 +401,66 @@ function TodoDetailContent() {
         {canCertify ? (
           <button
             onClick={navigateToCertify}
-            className="flex-1 py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover"
+            className="flex-1 py-3.75 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85"
           >
             인증하기
           </button>
         ) : (
           <button
             onClick={() => router.back()}
-            className="flex-1 py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+            className="flex-1 py-3.75 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-gray-200"
           >
             돌아가기
           </button>
         )}
       </div>
 
-      {showToast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-primary-light text-ink text-[14px] font-semibold text-center py-4 rounded-[14px] shadow-[0_4px_24px_rgba(91,79,207,0.18)] animate-fade-up z-50">
-          인증샷이 업로드되었습니다
-        </div>
-      )}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center"
+            style={{ background: 'rgba(17,17,17,0.68)' }}
+            onClick={() => setShowToast(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.55, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 30, opacity: 0 }}
+              transition={{ type: 'spring', damping: 14, stiffness: 220 }}
+              className="flex flex-col items-center gap-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div
+                animate={{ y: [0, -16, 0, -10, 0] }}
+                transition={{ delay: 0.25, duration: 0.85, times: [0, 0.3, 0.55, 0.78, 1] }}
+              >
+                <BlobAvatar
+                  seed={user?.nickname ?? 'celebrate'}
+                  size={110}
+                  expressionOverride={1}
+                />
+              </motion.div>
+
+              <div className="bg-white rounded-3xl px-8 py-5 text-center shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
+                <p className="text-[22px] font-black text-gray-900">인증 완료!</p>
+                <p className="text-[13px] text-gray-500 mt-1.5">인증샷이 업로드됐어요</p>
+                <button
+                  onClick={() => setShowToast(false)}
+                  className="mt-4 w-full py-2.5 bg-gray-900 text-white text-[14px] font-bold rounded-2xl"
+                >
+                  확인
+                </button>
+              </div>
+
+              <p className="text-white/50 text-[11px]">탭해서 닫기</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -420,7 +470,7 @@ export default function TodoDetailPage() {
     <Suspense
       fallback={
         <div className="flex-1 flex items-center justify-center bg-white">
-          <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

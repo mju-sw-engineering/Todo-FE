@@ -16,13 +16,13 @@ export function TeamAvatar({ imageUrl, name, size = 'md' }: TeamAvatarProps) {
   const { wrapper, text } = SIZE[size]
   return (
     <div
-      className={`relative ${wrapper} shrink-0 rounded-full overflow-hidden border-2 border-primary/20 bg-primary-light`}
+      className={`relative ${wrapper} shrink-0 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100`}
     >
       {imageUrl ? (
         <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <span className={`${text} font-bold text-primary`}>{name.charAt(0)}</span>
+          <span className={`${text} font-bold text-gray-700`}>{name.charAt(0)}</span>
         </div>
       )}
     </div>

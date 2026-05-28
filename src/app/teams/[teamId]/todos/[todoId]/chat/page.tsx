@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useTodoChat } from '@/hooks/useTodoChat'
 import { useAuth } from '@/store/authStore'
 import { AVATAR_COLORS, getInitials } from '@/lib/formatters'
+import { BlobAvatar } from '@/components/ui/BlobAvatar'
 
 function formatTime(iso: string) {
   const d = new Date(iso)
@@ -70,7 +71,7 @@ export default function TodoChatPage() {
       <div className="px-6 pt-8 pb-4 border-b border-border shrink-0">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-gray-700 transition-colors"
         >
           ← {title}
         </button>
@@ -90,17 +91,24 @@ export default function TodoChatPage() {
       </div>
 
       {/* Message list */}
-      <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 min-h-0">
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 min-h-0 relative"
+      >
+        {/* Background mascot */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+          <BlobAvatar seed={title} size={200} className="opacity-[0.045]" />
+        </div>
         {isLoadingHistory ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="w-7 h-7 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="w-7 h-7 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <>
             {hasNext && (
               <button
                 onClick={loadMore}
-                className="self-center text-[12px] text-primary font-semibold py-1.5 px-4 rounded-full bg-primary-light mb-2 hover:bg-[#e0daf8] transition-colors"
+                className="self-center text-[12px] text-gray-700 font-semibold py-1.5 px-4 rounded-full bg-gray-100 mb-2 hover:bg-gray-200 transition-colors"
               >
                 이전 메시지 더 보기
               </button>
@@ -157,7 +165,7 @@ export default function TodoChatPage() {
                       <div
                         className={`px-3.5 py-2.5 rounded-2xl text-[14px] leading-relaxed wrap-break-word ${
                           isMine
-                            ? 'bg-primary text-white rounded-br-sm'
+                            ? 'bg-gray-900 text-white rounded-br-sm'
                             : 'bg-gray-100 text-ink rounded-bl-sm'
                         }`}
                       >
@@ -194,7 +202,7 @@ export default function TodoChatPage() {
           <button
             onClick={handleSend}
             disabled={!input.trim()}
-            className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-primary text-white shadow-[0_4px_14px_rgba(91,79,207,0.3)] disabled:opacity-35 disabled:shadow-none transition-all duration-150 active:scale-90 shrink-0"
+            className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-gray-900 text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] disabled:opacity-35 disabled:shadow-none transition-all duration-150 active:scale-90 shrink-0"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M17 10L3 4l3 6-3 6 14-6z" fill="currentColor" />
