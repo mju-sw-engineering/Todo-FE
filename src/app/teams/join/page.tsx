@@ -75,7 +75,7 @@ export default function TeamJoinPage() {
         </AuthButton>
         <button
           onClick={() => router.back()}
-          className="w-full py-3.75 bg-primary-light text-primary text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-[#e0daf8]"
+          className="w-full py-3.75 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-gray-200"
         >
           돌아가기
         </button>

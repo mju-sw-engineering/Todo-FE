@@ -34,3 +34,10 @@ export interface AuthUser {
   profileImageUrl: string | null
   userId?: number | null
 }
+
+export interface MyProfileResponse {
+  userId: number
+  loginId: string
+  nickname: string
+  profileImageUrl: string | null
+}

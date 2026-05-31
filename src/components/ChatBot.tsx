@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { AiBlob } from '@/components/ui/BlobCharacter'
 import { sendChatMessage } from '@/services/chatService'
 import type { ChatMessage } from '@/types/chat.types'
 import type { TeamListItem } from '@/types/team.types'
@@ -13,20 +14,8 @@ interface ChatBotProps {
 
 function BotAvatar() {
   return (
-    <div className="w-9 h-9 rounded-full bg-primary flex-shrink-0 flex items-center justify-center shadow-[0_2px_8px_rgba(91,79,207,0.25)]">
-      <svg
-        className="w-5 h-5 text-white"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.8}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
-        />
-      </svg>
+    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-[#0E1550]">
+      <AiBlob size={36} />
     </div>
   )
 }
@@ -144,22 +133,11 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
       {!isOpen && (
         <button
           onClick={handleOpen}
-          className="fixed bottom-19 right-5 z-40 w-14 h-14 rounded-full bg-primary shadow-[0_4px_20px_rgba(91,79,207,0.45)] flex items-center justify-center text-white transition-transform duration-200 hover:scale-105 active:scale-95"
+          className={`fixed ${teamIdProp !== undefined ? 'bottom-30' : 'bottom-19'} right-5 z-40 w-14 h-14 rounded-full shadow-[0_4px_22px_rgba(14,21,80,0.32)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95 overflow-hidden`}
+          style={{ background: 'linear-gradient(135deg,#2C3EA8 0%,#1A2778 100%)' }}
           aria-label="AI 챗봇 열기"
         >
-          <svg
-            className="w-7 h-7"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.8}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
+          <AiBlob size={44} />
         </button>
       )}
 
@@ -171,20 +149,8 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
           </div>
 
           <div className="flex items-center gap-3 px-5 py-3 border-b border-border shrink-0">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-[0_2px_10px_rgba(91,79,207,0.3)]">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
-                />
-              </svg>
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0E1550] shrink-0">
+              <AiBlob size={40} />
             </div>
             <div className="flex-1">
               <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
@@ -212,10 +178,10 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
               <button
                 key={team.teamId}
                 onClick={() => handleSelectTeam(team.teamId)}
-                className="flex items-center gap-4 px-4 py-4 rounded-[16px] border border-border bg-white hover:border-primary/40 hover:shadow-[0_2px_12px_rgba(91,79,207,0.10)] active:scale-[0.99] transition-all duration-150 text-left"
+                className="flex items-center gap-4 px-4 py-4 rounded-[16px] border border-border bg-white hover:border-gray-300 hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] active:scale-[0.99] transition-all duration-150 text-left"
               >
-                <div className="w-11 h-11 rounded-full bg-primary-light flex items-center justify-center shrink-0">
-                  <span className="text-[18px] font-bold text-primary">
+                <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                  <span className="text-[18px] font-bold text-gray-700">
                     {team.teamName.charAt(0)}
                   </span>
                 </div>
@@ -263,20 +229,8 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                 </svg>
               </button>
             )}
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-[0_2px_10px_rgba(91,79,207,0.3)]">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
-                />
-              </svg>
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0E1550] shrink-0">
+              <AiBlob size={40} />
             </div>
             <div className="flex-1">
               <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
@@ -321,7 +275,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
               ) : (
                 <div key={i} className="flex justify-end">
                   <div className="flex flex-col gap-1 items-end max-w-[78%]">
-                    <div className="bg-primary rounded-2xl rounded-tr-sm px-4 py-3">
+                    <div className="bg-gray-900 rounded-2xl rounded-tr-sm px-4 py-3">
                       <p className="text-[14px] text-white leading-relaxed whitespace-pre-wrap">
                         {msg.content}
                       </p>
@@ -344,7 +298,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                 key={action}
                 onClick={() => handleSend(action)}
                 disabled={isSending}
-                className="shrink-0 px-3.5 py-2 bg-primary-light text-primary text-[13px] font-semibold rounded-full transition-colors hover:bg-[#e0daf8] disabled:opacity-50"
+                className="shrink-0 px-3.5 py-2 bg-gray-100 text-gray-700 text-[13px] font-semibold rounded-full transition-colors hover:bg-gray-200 disabled:opacity-50"
               >
                 {action}
               </button>
@@ -363,12 +317,12 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                 }
               }}
               placeholder="메시지를 입력하세요..."
-              className="flex-1 px-4 py-2.5 bg-surface rounded-full text-[14px] text-ink placeholder:text-muted outline-none border border-border focus:border-primary transition-colors"
+              className="flex-1 px-4 py-2.5 bg-surface rounded-full text-[14px] text-ink placeholder:text-muted outline-none border border-border focus:border-gray-900 transition-colors"
             />
             <button
               onClick={() => handleSend(input)}
               disabled={!input.trim() || isSending}
-              className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-[0_2px_8px_rgba(91,79,207,0.3)] transition-all hover:bg-primary-hover disabled:opacity-40 disabled:shadow-none shrink-0"
+              className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white transition-all hover:opacity-85 disabled:opacity-40 disabled:shadow-none shrink-0"
               aria-label="전송"
             >
               <svg

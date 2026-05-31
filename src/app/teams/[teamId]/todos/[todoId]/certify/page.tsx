@@ -78,7 +78,7 @@ function CertifyContent() {
       <div className="px-6 pt-8 pb-4">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-gray-700 transition-colors"
         >
           ← 인증샷 업로드
         </button>
@@ -91,7 +91,7 @@ function CertifyContent() {
         {/* 미리보기 영역 — 고정 높이, 이미지 크기와 무관하게 레이아웃 유지 */}
         <label
           htmlFor="certify-gallery"
-          className="w-full rounded-[18px] bg-primary-light overflow-hidden flex items-center justify-center cursor-pointer shrink-0"
+          className="w-full rounded-[18px] bg-gray-50 overflow-hidden flex items-center justify-center cursor-pointer shrink-0"
           style={{ height: '52vw', minHeight: '200px', maxHeight: '320px' }}
         >
           {preview ? (
@@ -99,13 +99,7 @@ function CertifyContent() {
             <img src={preview} alt="인증샷 미리보기" className="w-full h-full object-contain" />
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 28 28"
-                fill="none"
-                className="text-primary/40"
-              >
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="text-gray-300">
                 <rect
                   x="2"
                   y="6"
@@ -124,9 +118,7 @@ function CertifyContent() {
                   strokeLinejoin="round"
                 />
               </svg>
-              <p className="text-[13px] text-primary/40 select-none">
-                사진을 선택하거나 촬영하세요
-              </p>
+              <p className="text-[13px] text-gray-300 select-none">사진을 선택하거나 촬영하세요</p>
             </div>
           )}
         </label>
@@ -134,13 +126,13 @@ function CertifyContent() {
         <div className="grid grid-cols-2 gap-3 shrink-0">
           <label
             htmlFor="certify-camera"
-            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-primary hover:text-primary"
+            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-gray-900 hover:text-gray-900"
           >
             카메라
           </label>
           <label
             htmlFor="certify-gallery"
-            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-primary hover:text-primary"
+            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-gray-900 hover:text-gray-900"
           >
             갤러리
           </label>
@@ -158,7 +150,7 @@ function CertifyContent() {
         <button
           onClick={handleSubmit}
           disabled={!file || isSubmitting}
-          className="w-full py-3.75 bg-primary text-white text-[15px] font-semibold rounded-[14px] shadow-[0_4px_18px_rgba(91,79,207,0.22)] transition-all duration-200 hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-3.75 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isSubmitting ? '업로드 중...' : '제출하기'}
         </button>
@@ -172,7 +164,7 @@ export default function CertifyPage() {
     <Suspense
       fallback={
         <div className="flex-1 flex items-center justify-center bg-white">
-          <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

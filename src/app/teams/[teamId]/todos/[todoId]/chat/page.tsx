@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useTodoChat } from '@/hooks/useTodoChat'
 import { useAuth } from '@/store/authStore'
 import { AVATAR_COLORS, getInitials } from '@/lib/formatters'
+import { BlobAvatar } from '@/components/ui/BlobAvatar'
 
 function formatTime(iso: string) {
   const d = new Date(iso)
@@ -46,12 +47,12 @@ export default function TodoChatPage() {
 
   function handleSend() {
     if (!input.trim()) return
-    sendMessage(input, user?.userId ? { userId: user.userId, nickname: user.nickname } : null)
+    sendMessage(input)
     setInput('')
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       handleSend()
     }
@@ -60,7 +61,7 @@ export default function TodoChatPage() {
   // Group consecutive messages from same user
   const grouped = messages.map((msg, idx) => {
     const prev = messages[idx - 1]
-    const isFirst = !prev || prev.userId !== msg.userId
+    const isFirst = !prev || prev.senderId !== msg.senderId
     return { ...msg, isFirst }
   })
 
@@ -70,7 +71,7 @@ export default function TodoChatPage() {
       <div className="px-6 pt-8 pb-4 border-b border-border shrink-0">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-gray-700 transition-colors"
         >
           ← {title}
         </button>
@@ -90,17 +91,24 @@ export default function TodoChatPage() {
       </div>
 
       {/* Message list */}
-      <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 min-h-0">
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 min-h-0 relative"
+      >
+        {/* Background mascot */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+          <BlobAvatar seed={title} size={200} className="opacity-[0.045]" />
+        </div>
         {isLoadingHistory ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="w-7 h-7 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="w-7 h-7 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <>
             {hasNext && (
               <button
                 onClick={loadMore}
-                className="self-center text-[12px] text-primary font-semibold py-1.5 px-4 rounded-full bg-primary-light mb-2 hover:bg-[#e0daf8] transition-colors"
+                className="self-center text-[12px] text-gray-700 font-semibold py-1.5 px-4 rounded-full bg-gray-100 mb-2 hover:bg-gray-200 transition-colors"
               >
                 이전 메시지 더 보기
               </button>
@@ -111,12 +119,18 @@ export default function TodoChatPage() {
               </p>
             )}
             {grouped.map((msg, idx) => {
-              const isMine = user?.userId === msg.userId
-              const avatarColor = AVATAR_COLORS[msg.userId % AVATAR_COLORS.length]
+              const isMine =
+                msg.messageId < 0
+                  ? true
+                  : user?.userId != null
+                    ? msg.senderId === user.userId
+                    : msg.senderNickname === (user?.nickname ?? user?.loginId)
+              const avatarColor =
+                AVATAR_COLORS[Math.abs(msg.senderId || msg.messageId) % AVATAR_COLORS.length]
 
               return (
                 <div
-                  key={`${msg.chatId}-${idx}`}
+                  key={`${msg.messageId}-${idx}`}
                   className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} ${msg.isFirst ? 'mt-3' : 'mt-0.5'}`}
                 >
                   {/* Avatar */}
@@ -126,7 +140,7 @@ export default function TodoChatPage() {
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold ${avatarColor}`}
                         >
-                          {getInitials(msg.nickname)}
+                          {getInitials(msg.senderNickname)}
                         </div>
                       ) : (
                         <div className="w-8" />
@@ -139,7 +153,7 @@ export default function TodoChatPage() {
                   >
                     {!isMine && msg.isFirst && (
                       <span className="text-[11px] font-semibold text-ink/50 ml-1">
-                        {msg.nickname}
+                        {msg.senderNickname}
                       </span>
                     )}
                     <div className="flex items-end gap-1.5">
@@ -151,7 +165,7 @@ export default function TodoChatPage() {
                       <div
                         className={`px-3.5 py-2.5 rounded-2xl text-[14px] leading-relaxed wrap-break-word ${
                           isMine
-                            ? 'bg-primary text-white rounded-br-sm'
+                            ? 'bg-gray-900 text-white rounded-br-sm'
                             : 'bg-gray-100 text-ink rounded-bl-sm'
                         }`}
                       >
@@ -188,7 +202,7 @@ export default function TodoChatPage() {
           <button
             onClick={handleSend}
             disabled={!input.trim()}
-            className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-primary text-white shadow-[0_4px_14px_rgba(91,79,207,0.3)] disabled:opacity-35 disabled:shadow-none transition-all duration-150 active:scale-90 shrink-0"
+            className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-gray-900 text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] disabled:opacity-35 disabled:shadow-none transition-all duration-150 active:scale-90 shrink-0"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M17 10L3 4l3 6-3 6 14-6z" fill="currentColor" />
