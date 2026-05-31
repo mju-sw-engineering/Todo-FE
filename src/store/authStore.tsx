@@ -12,6 +12,7 @@ interface AuthSlice {
 
 interface AuthState extends AuthSlice {
   setAuth: (token: string, user: AuthUser) => void
+  updateUser: (updates: Partial<AuthUser>) => void
   logout: () => void
 }
 
@@ -45,6 +46,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthSlice({ token, user, isInitialized: true })
   }, [])
 
+  const updateUser = useCallback((updates: Partial<AuthUser>) => {
+    setAuthSlice((prev) => {
+      const updatedUser = prev.user ? { ...prev.user, ...updates } : null
+      if (updatedUser) localStorage.setItem('user', JSON.stringify(updatedUser))
+      return { ...prev, user: updatedUser }
+    })
+  }, [])
+
   const logout = useCallback(() => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('user')
@@ -53,7 +62,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ ...auth, setAuth, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ ...auth, setAuth, updateUser, logout }}>
+      {children}
+    </AuthContext.Provider>
   )
 }
 
