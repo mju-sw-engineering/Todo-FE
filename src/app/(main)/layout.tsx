@@ -25,7 +25,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="h-dvh max-w-97.5 mx-auto overflow-hidden flex flex-col translate-x-0 relative">
+    <div className="h-dvh max-w-97.5 mx-auto overflow-hidden flex flex-col translate-x-0">
       <header className="h-14 shrink-0 bg-white/80 backdrop-blur-sm border-b border-border flex items-center px-5">
         <div className="flex items-center gap-2">
           <LogoBlob size={32} />

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/store/authStore'
@@ -75,7 +74,6 @@ export function BottomNav() {
   const router = useRouter()
   const pathname = usePathname()
   const { user } = useAuth()
-  const [navError, setNavError] = useState(false)
 
   const todoActive = pathname === '/'
   const teamsActive = pathname.startsWith('/teams')
@@ -88,76 +86,67 @@ export function BottomNav() {
       (path === '/mypage' && pathname.startsWith('/mypage'))
 
     if (isSamePage) return
-
-    try {
-      router.push(path)
-    } catch {
-      setNavError(true)
-      setTimeout(() => setNavError(false), 2500)
-    }
+    router.push(path)
   }
 
   return (
-    <>
-      {navError && (
-        <div className="absolute bottom-16 left-0 right-0 flex justify-center pointer-events-none z-40">
-          <div className="bg-ink/90 text-white text-[13px] font-medium rounded-xl px-4 py-2 shadow-lg">
-            페이지 이동 중 문제가 발생했습니다.
-          </div>
+    <nav className="h-16 shrink-0 bg-white border-t border-gray-200 flex">
+      <button
+        onClick={() => navigate('/')}
+        className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
+      >
+        {todoActive && (
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
+        )}
+        <TodoIcon active={todoActive} />
+        <span
+          className={`text-[11px] font-semibold ${todoActive ? 'text-gray-900' : 'text-gray-400'}`}
+        >
+          투두
+        </span>
+      </button>
+
+      <button
+        onClick={() => navigate('/teams')}
+        className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
+      >
+        {teamsActive && (
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
+        )}
+        <TeamIcon active={teamsActive} />
+        <span
+          className={`text-[11px] font-semibold ${teamsActive ? 'text-gray-900' : 'text-gray-400'}`}
+        >
+          팀
+        </span>
+      </button>
+
+      <button
+        onClick={() => navigate('/mypage')}
+        className="flex-1 flex flex-col items-center justify-center gap-1 transition-opacity duration-200 active:opacity-70 relative"
+      >
+        {myPageActive && (
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
+        )}
+        <div className="w-8 h-8 rounded-full overflow-hidden">
+          {user?.profileImageUrl ? (
+            <Image
+              src={user.profileImageUrl}
+              alt="프로필"
+              width={32}
+              height={32}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <BlobAvatar seed={user?.nickname ?? user?.loginId ?? ''} size={32} />
+          )}
         </div>
-      )}
-      <nav className="h-16 shrink-0 bg-white border-t border-gray-200 flex">
-        <button
-          onClick={() => navigate('/')}
-          className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
+        <span
+          className={`text-[11px] font-semibold ${myPageActive ? 'text-gray-900' : 'text-gray-400'}`}
         >
-          {todoActive && (
-            <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
-          )}
-          <TodoIcon active={todoActive} />
-          <span className={`text-[11px] font-semibold ${todoActive ? 'text-gray-900' : 'text-gray-400'}`}>
-            투두
-          </span>
-        </button>
-
-        <button
-          onClick={() => navigate('/teams')}
-          className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
-        >
-          {teamsActive && (
-            <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
-          )}
-          <TeamIcon active={teamsActive} />
-          <span className={`text-[11px] font-semibold ${teamsActive ? 'text-gray-900' : 'text-gray-400'}`}>
-            팀
-          </span>
-        </button>
-
-        <button
-          onClick={() => navigate('/mypage')}
-          className="flex-1 flex flex-col items-center justify-center gap-1 transition-opacity duration-200 active:opacity-70 relative"
-        >
-          {myPageActive && (
-            <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
-          )}
-          <div className="w-8 h-8 rounded-full overflow-hidden">
-            {user?.profileImageUrl ? (
-              <Image
-                src={user.profileImageUrl}
-                alt="프로필"
-                width={32}
-                height={32}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <BlobAvatar seed={user?.nickname ?? user?.loginId ?? ''} size={32} />
-            )}
-          </div>
-          <span className={`text-[11px] font-semibold ${myPageActive ? 'text-gray-900' : 'text-gray-400'}`}>
-            내 정보
-          </span>
-        </button>
-      </nav>
-    </>
+          내 정보
+        </span>
+      </button>
+    </nav>
   )
 }
