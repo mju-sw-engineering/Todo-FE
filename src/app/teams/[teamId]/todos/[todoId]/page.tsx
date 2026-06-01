@@ -64,6 +64,7 @@ function MemberCertCard({
   const isCompleted = status === '완료'
   const canCertify = isCurrentUser && status === '미완료'
   const canReact = !isCurrentUser && isCompleted
+  const proofImageUrl = member.proofThumbnailUrl ?? member.proofImageUrl
 
   const activeReactions = (member.reactions ?? []).filter((r) => r.count > 0)
   const totalCount = activeReactions.reduce((s, r) => s + r.count, 0)
@@ -97,12 +98,14 @@ function MemberCertCard({
 
       {/* Photo area */}
       <div className="relative w-full h-44">
-        {isCompleted && member.proofImageUrl ? (
+        {isCompleted && proofImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={member.proofImageUrl}
+            src={proofImageUrl}
             alt="인증샷"
             className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : isCompleted ? (
           <div className="absolute inset-0 bg-linear-to-br from-gray-100 to-gray-200" />
