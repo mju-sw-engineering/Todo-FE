@@ -3,6 +3,7 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { ApiError } from '@/lib/apiClient'
+import { compressImageFile } from '@/lib/imageCompression'
 import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
 import { submitTodo } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
@@ -37,11 +38,12 @@ function CertifyContent() {
     setError('')
     setIsSubmitting(true)
     try {
+      const uploadFile = await compressImageFile(file)
       const { uploadUrl, objectKey } = await getPresignedUploadUrl(
-        { type: 'PROFILE', fileName: file.name, contentType: file.type },
+        { type: 'PROOF', fileName: uploadFile.name, contentType: uploadFile.type },
         token
       )
-      await uploadFileToStorage(uploadUrl, file)
+      await uploadFileToStorage(uploadUrl, uploadFile)
       await submitTodo(todoId, { proofImageKey: objectKey }, token)
       router.replace(
         `/teams/${teamId}/todos/${todoId}?certified=1&myStatus=${encodeURIComponent('완료')}`
@@ -96,7 +98,12 @@ function CertifyContent() {
         >
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="인증샷 미리보기" className="w-full h-full object-contain" />
+            <img
+              src={preview}
+              alt="인증샷 미리보기"
+              className="w-full h-full object-contain"
+              decoding="async"
+            />
           ) : (
             <div className="flex flex-col items-center gap-2">
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="text-gray-300">

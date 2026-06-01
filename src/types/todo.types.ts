@@ -45,6 +45,7 @@ export interface TodoParticipant {
   nickname: string
   profileImageUrl: string | null
   proofImageUrl: string | null
+  proofThumbnailUrl?: string | null
   status: MyTodoStatus | null
   reactions: Reaction[]
   myReaction: ReactionType | null

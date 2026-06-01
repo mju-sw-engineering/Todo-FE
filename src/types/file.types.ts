@@ -1,5 +1,5 @@
 export interface PresignedUploadRequest {
-  type: 'PROFILE' | 'TEAM'
+  type: 'PROFILE' | 'TEAM' | 'PROOF'
   fileName: string
   contentType: string
 }

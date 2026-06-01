@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { ApiError } from '@/lib/apiClient'
+import { compressImageFile } from '@/lib/imageCompression'
 import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
+import type { PresignedUploadRequest } from '@/types/file.types'
 
 interface UsePresignedUploadOptions {
-  type: 'PROFILE' | 'TEAM'
+  type: PresignedUploadRequest['type']
   token?: string
 }
 
@@ -26,11 +28,12 @@ export function usePresignedUpload({
     setError(null)
     setIsUploading(true)
     try {
+      const uploadFile = await compressImageFile(file)
       const { uploadUrl, objectKey } = await getPresignedUploadUrl(
-        { type, fileName: file.name, contentType: file.type },
+        { type, fileName: uploadFile.name, contentType: uploadFile.type },
         token
       )
-      await uploadFileToStorage(uploadUrl, file)
+      await uploadFileToStorage(uploadUrl, uploadFile)
       return objectKey
     } catch (err) {
       const message = err instanceof ApiError ? err.message : '파일 업로드에 실패했습니다.'
