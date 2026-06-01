@@ -57,6 +57,29 @@ export async function getJson<T>(path: string, token?: string): Promise<T> {
   return handleResponse<T>(response)
 }
 
+export async function patchJson<T>(path: string, body: unknown, token?: string): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(body),
+  })
+  return handleResponse<T>(response)
+}
+
+export async function deleteJson<T>(path: string, token?: string): Promise<T> {
+  const headers: Record<string, string> = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'DELETE',
+    headers,
+  })
+  return handleResponse<T>(response)
+}
+
 // MinIO presigned URL에 직접 PUT — Authorization 헤더 없음 (서명 깨짐 방지)
 export async function putFile(url: string, file: File): Promise<void> {
   const response = await fetch(url, {
