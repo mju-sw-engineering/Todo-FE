@@ -11,6 +11,7 @@ import {
   updateNickname,
 } from '@/services/userService'
 import Image from 'next/image'
+import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import type { MyInfoResponse, MyTeam } from '@/types/user.types'
 
 function Toast({ message }: { message: string }) {
@@ -138,7 +139,8 @@ export default function MyPage() {
     }
   }
 
-  const initials = (myInfo?.nickname ?? user?.nickname ?? '?').trim().slice(0, 2)
+  const profileImageUrl = myInfo?.profileImageUrl ?? user?.profileImageUrl ?? null
+  const avatarSeed = myInfo?.nickname ?? user?.nickname ?? user?.loginId ?? ''
 
   if (loading) {
     return (
@@ -155,8 +157,18 @@ export default function MyPage() {
         {/* 프로필 카드 */}
         <div className="bg-white rounded-2xl border border-border p-5">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-ink flex items-center justify-center shrink-0">
-              <span className="text-white text-lg font-bold leading-none">{initials}</span>
+            <div className="w-14 h-14 rounded-full overflow-hidden shrink-0">
+              {profileImageUrl ? (
+                <Image
+                  src={profileImageUrl}
+                  alt="프로필 사진"
+                  width={56}
+                  height={56}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <BlobAvatar seed={avatarSeed} size={56} />
+              )}
             </div>
 
             <div className="flex-1 min-w-0">
