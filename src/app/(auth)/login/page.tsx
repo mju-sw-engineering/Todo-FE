@@ -3,12 +3,50 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { AuthButton } from '@/components/ui/AuthButton'
+import { motion } from 'framer-motion'
 import { AuthInput } from '@/components/ui/AuthInput'
+import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { AngelBlob, DevilBlob } from '@/components/ui/BlobCharacter'
 import { ApiError } from '@/lib/apiClient'
 import { getMyProfile, login } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
+
+interface FallingCharProps {
+  delay: number
+  initialRotate?: number
+  floatDuration?: number
+  className?: string
+  children: React.ReactNode
+}
+
+function FallingChar({
+  delay,
+  initialRotate = 0,
+  floatDuration = 3.5,
+  className = '',
+  children,
+}: FallingCharProps) {
+  return (
+    <motion.div
+      className={`absolute ${className}`}
+      initial={{ y: -420, opacity: 0, rotate: initialRotate }}
+      animate={{ y: 0, opacity: 1, rotate: 0 }}
+      transition={{ type: 'spring', damping: 11, stiffness: 90, delay }}
+    >
+      <motion.div
+        animate={{ y: [0, -7, 4, 0] }}
+        transition={{
+          delay: delay + 0.8,
+          duration: floatDuration,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      >
+        {children}
+      </motion.div>
+    </motion.div>
+  )
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -41,49 +79,89 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up overflow-hidden">
-      {/* Hero: bold characters */}
-      <div
-        className="relative flex flex-col items-center pt-14 pb-8 px-6 overflow-hidden"
-        style={{ background: 'linear-gradient(180deg,#FFF8FC 0%,#FFF0F8 60%,#ffffff 100%)' }}
-      >
-        {/* Sparkle accents */}
-        <div
-          className="absolute top-6 left-8 w-2.5 h-2.5 rounded-full bg-[#FFD84D] opacity-70 animate-blob-float"
-          style={{ animationDelay: '0.2s' }}
-        />
-        <div
-          className="absolute top-10 right-10 w-2 h-2 rounded-full bg-[#FFCDC8] opacity-80 animate-blob-float"
-          style={{ animationDelay: '1.1s' }}
-        />
-        <div
-          className="absolute bottom-12 left-6 w-3 h-3 rounded-full bg-[#C8F0D0] opacity-60 animate-blob-float"
-          style={{ animationDelay: '0.7s' }}
-        />
-        <div
-          className="absolute bottom-8 right-5 w-2 h-2 rounded-full bg-[#FFD6E8] opacity-75 animate-blob-float"
-          style={{ animationDelay: '1.5s' }}
-        />
-
-        {/* Main characters side by side */}
-        <div className="flex items-end justify-center gap-1 mb-5">
-          <div className="animate-blob-float" style={{ animationDelay: '0.4s' }}>
-            <DevilBlob size={100} />
-          </div>
-          <div className="animate-blob-float">
-            <AngelBlob size={120} />
-          </div>
+    <div
+      className="flex-1 flex flex-col animate-fade-up overflow-hidden"
+      style={{ background: 'linear-gradient(155deg, #FFE4F2 0%, #FFF8E6 40%, #E8F3FF 100%)' }}
+    >
+      {/* 캐릭터 영역 */}
+      <div className="flex-1 relative overflow-hidden">
+        {/* 타이틀 */}
+        <div className="absolute top-10 left-6 z-20">
+          <h1 className="text-[40px] font-black text-gray-900 tracking-tight leading-none">
+            TodoTeam
+          </h1>
+          <p className="text-[13px] text-gray-500 font-medium mt-2">팀과 함께 완성하는 하루</p>
         </div>
 
-        <h1 className="text-[38px] font-black text-gray-900 tracking-tighter leading-none mb-1.5">
-          TodoTeam
-        </h1>
-        <p className="text-[13.5px] text-gray-400 font-medium">팀과 함께 완성하는 하루</p>
+        {/* 우상단 — 작은 블롭 */}
+        <FallingChar delay={0.05} initialRotate={15} floatDuration={3.2} className="top-6 -right-2">
+          <BlobAvatar seed="login-e" size={80} />
+        </FallingChar>
+
+        {/* 메인 엔젤 — 우측 중앙 */}
+        <FallingChar
+          delay={0.18}
+          initialRotate={-12}
+          floatDuration={3.8}
+          className="top-[22%] -right-3.5"
+        >
+          <AngelBlob size={190} />
+        </FallingChar>
+
+        {/* 메인 데빌 — 좌측 중하단 */}
+        <FallingChar
+          delay={0.32}
+          initialRotate={10}
+          floatDuration={3.5}
+          className="top-[38%] -left-3"
+        >
+          <DevilBlob size={165} />
+        </FallingChar>
+
+        {/* 중앙 블롭 */}
+        <FallingChar
+          delay={0.44}
+          initialRotate={-8}
+          floatDuration={4.0}
+          className="top-[48%] left-[42%]"
+        >
+          <BlobAvatar seed="login-a" size={92} />
+        </FallingChar>
+
+        {/* 우하단 블롭 */}
+        <FallingChar
+          delay={0.55}
+          initialRotate={18}
+          floatDuration={3.6}
+          className="bottom-10 -right-1.5"
+        >
+          <BlobAvatar seed="login-b" size={100} />
+        </FallingChar>
+
+        {/* 좌하단 블롭 */}
+        <FallingChar
+          delay={0.65}
+          initialRotate={-14}
+          floatDuration={3.3}
+          className="bottom-4 left-[28%]"
+        >
+          <BlobAvatar seed="login-c" size={76} />
+        </FallingChar>
+
+        {/* 상단 중앙 블롭 */}
+        <FallingChar
+          delay={0.75}
+          initialRotate={6}
+          floatDuration={2.9}
+          className="top-[18%] left-[34%]"
+        >
+          <BlobAvatar seed="login-f" size={64} />
+        </FallingChar>
       </div>
 
-      {/* Form */}
-      <div className="flex-1 flex flex-col px-6 pt-7 pb-10">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {/* 폼 바텀 시트 */}
+      <div className="bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-10 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
           <AuthInput
             id="loginId"
             label="이메일"
@@ -104,18 +182,28 @@ export default function LoginPage() {
           />
 
           {error && (
-            <p className="text-sm text-red-400 bg-red-50 rounded-xl px-3.5 py-2.5">{error}</p>
+            <p className="text-[13px] text-red-400 bg-red-50 rounded-xl px-4 py-2.5">{error}</p>
           )}
 
-          <AuthButton disabled={isLoading}>{isLoading ? '로그인 중...' : '로그인'}</AuthButton>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full mt-1 py-3.75 rounded-[14px] text-[15px] font-semibold text-white transition-all duration-200 hover:opacity-85 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: isLoading ? '#999' : '#111' }}
+          >
+            {isLoading ? '로그인 중...' : '로그인'}
+          </button>
         </form>
 
-        <Link
-          href="/signup"
-          className="block text-center mt-auto pt-8 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
-        >
-          회원가입
-        </Link>
+        <p className="text-center text-[13px] text-gray-400">
+          계정이 없으신가요?{' '}
+          <Link
+            href="/signup"
+            className="font-bold text-gray-900 hover:underline underline-offset-2"
+          >
+            회원가입
+          </Link>
+        </p>
       </div>
     </div>
   )
