@@ -70,3 +70,30 @@ export interface SubmitTodoRequest {
 export interface ReactRequest {
   type: ReactionType
 }
+
+export interface DailyTodoStat {
+  date: string
+  totalTodoCount: number
+  successCount: number
+  failCount: number
+  inProgressCount: number
+  achievementRate: number | null
+}
+
+export interface TodoPeriodReportResponse {
+  period: {
+    startDate: string
+    endDate: string
+    dateCount: number
+  }
+  summary: {
+    totalTodoCount: number
+    successCount: number
+    failCount: number
+    inProgressCount: number
+    achievementRate: number | null
+  }
+  weakestDay: string | null
+  dailyStats: DailyTodoStat[]
+  actionCandidates: unknown[]
+}
