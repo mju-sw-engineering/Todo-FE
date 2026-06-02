@@ -74,6 +74,13 @@ body {
   color: #2a0f1c;
 }
 
+/* Prevent iOS Safari auto-zoom on input focus */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
 /* Gradient button utility */
 .btn-gradient {
   background: linear-gradient(135deg, #d05b8e 0%, #ff8c7a 100%);
