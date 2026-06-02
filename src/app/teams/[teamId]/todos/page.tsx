@@ -102,9 +102,9 @@ function AiEvaluationCard({
           <span className="text-[18px] leading-none">✨</span>
         </div>
         <div className="min-w-0">
-          <p className="text-[12px] font-bold text-gray-900">AI evaluation pending</p>
+          <p className="text-[12px] font-bold text-gray-900">AI 평가 대기 중</p>
           <p className="text-[11px] text-gray-400 mt-0.5">
-            Complete today&apos;s tasks to get feedback
+            오늘 할 일을 완료하면 피드백을 받을 수 있어요
           </p>
         </div>
       </div>
@@ -409,12 +409,12 @@ function TodoListContent() {
             <div className="animate-blob-float mb-3">
               <BlobAvatar seed="empty-team-todos" size={72} expressionOverride={3} />
             </div>
-            <p className="text-[15px] font-bold text-gray-900">No tasks today</p>
-            <p className="text-[13px] text-gray-400 mt-1">Create the first task for your team</p>
+            <p className="text-[15px] font-bold text-gray-900">오늘 할 일이 없어요</p>
+            <p className="text-[13px] text-gray-400 mt-1">팀의 첫 번째 할 일을 추가해보세요</p>
           </div>
         ) : filteredTodos.length === 0 ? (
           <div className="flex items-center justify-center py-20">
-            <p className="text-[14px] text-gray-400">No matching tasks</p>
+            <p className="text-[14px] text-gray-400">해당하는 할 일이 없어요</p>
           </div>
         ) : (
           filteredTodos.map((todo, idx) => (
@@ -438,7 +438,7 @@ function TodoListContent() {
           onClick={() => router.push(`/teams/${teamId}/todos/new`)}
           className="w-full py-4 bg-gray-900 text-white text-[15px] font-bold rounded-[18px] transition-all duration-200 hover:opacity-85 active:scale-[0.98] shadow-[0_8px_32px_rgba(0,0,0,0.18)]"
         >
-          + Add Task
+          + 할 일 추가
         </button>
       </div>
 

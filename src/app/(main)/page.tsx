@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import { ChatBot } from '@/components/ChatBot'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { Calendar } from '@/components/ui/Calendar'
@@ -35,6 +36,7 @@ type TabType = 'all' | 'incomplete' | 'complete'
 interface TodoWithTeam extends Todo {
   teamId: number
   teamName: string
+  teamImageUrl: string | null
 }
 
 const CARD_PALETTES = [
@@ -142,10 +144,25 @@ function MyTodoCard({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap min-w-0">
           <span
-            className="text-[11px] font-bold px-2.5 py-1 rounded-full truncate max-w-32"
+            className="flex items-center gap-1.5 text-[11px] font-bold pl-1 pr-2.5 py-1 rounded-full truncate max-w-40"
             style={{ background: palette.badge, color: palette.text }}
           >
-            Team {todo.teamName}
+            {todo.teamImageUrl ? (
+              <span className="w-4 h-4 rounded-full overflow-hidden shrink-0 inline-block relative">
+                <Image
+                  src={todo.teamImageUrl}
+                  alt={todo.teamName}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </span>
+            ) : (
+              <span className="shrink-0 inline-block">
+                <BlobAvatar seed={todo.teamName} size={16} />
+              </span>
+            )}
+            {todo.teamName}
           </span>
           <TodoStatusBadge status={todo.status} />
         </div>
@@ -281,7 +298,12 @@ export default function HomePage() {
             getHistoryTodos(team.teamId, date, tk).then((todos) =>
               todos
                 .filter((t) => t.myStatus !== null)
-                .map((t) => ({ ...t, teamId: team.teamId, teamName: team.teamName }))
+                .map((t) => ({
+                  ...t,
+                  teamId: team.teamId,
+                  teamName: team.teamName,
+                  teamImageUrl: team.teamImageUrl ?? null,
+                }))
             )
           )
         )
@@ -514,13 +536,13 @@ export default function HomePage() {
               </div>
               {isToday ? (
                 <>
-                  <p className="text-[15px] font-bold text-gray-900">No tasks for today</p>
-                  <p className="text-[13px] text-gray-400">Create a task in your team</p>
+                  <p className="text-[15px] font-bold text-gray-900">오늘 할 일이 없어요</p>
+                  <p className="text-[13px] text-gray-400">팀에서 할 일을 추가해보세요</p>
                   <button
                     onClick={() => router.push('/teams')}
                     className="mt-4 px-6 py-2.5 bg-gray-900 text-white text-[14px] font-semibold rounded-xl transition-all duration-200 active:scale-95 hover:opacity-85"
                   >
-                    My Teams
+                    내 팀 보기
                   </button>
                 </>
               ) : (
@@ -529,7 +551,7 @@ export default function HomePage() {
             </div>
           ) : filteredTodos.length === 0 ? (
             <div className="flex items-center justify-center py-20">
-              <p className="text-[14px] text-gray-400">No matching tasks</p>
+              <p className="text-[14px] text-gray-400">해당하는 할 일이 없어요</p>
             </div>
           ) : (
             filteredTodos.map((todo, idx) => (

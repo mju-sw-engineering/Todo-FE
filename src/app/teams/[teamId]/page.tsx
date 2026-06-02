@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
+import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { PlantIcon, getPlantStageLabel } from '@/components/ui/PlantIcon'
 import { StreakCelebration, isStreakSkippedToday } from '@/components/ui/StreakCelebration'
@@ -40,13 +41,7 @@ function getStageIndex(count: number): number {
   return 0
 }
 
-function getInitials(nickname: string): string {
-  const trimmed = nickname.trim()
-  return trimmed.length <= 2 ? trimmed : trimmed.slice(0, 2)
-}
-
 function MemberAvatar({ member }: { member: TeamMember }) {
-  const isLeader = member.role === 'LEADER'
   if (member.profileImageUrl) {
     return (
       <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 border border-border">
@@ -59,15 +54,7 @@ function MemberAvatar({ member }: { member: TeamMember }) {
       </div>
     )
   }
-  return (
-    <div
-      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-[13px] font-bold ${
-        isLeader ? 'bg-gray-100 text-gray-700' : 'bg-[#eaf6ef] text-[#2d7a56]'
-      }`}
-    >
-      {getInitials(member.nickname)}
-    </div>
-  )
+  return <BlobAvatar seed={member.nickname} size={40} />
 }
 
 const POPOVER_WIDTH = 252
