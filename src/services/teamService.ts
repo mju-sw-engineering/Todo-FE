@@ -1,4 +1,4 @@
-import { getJson, postJson } from '@/lib/apiClient'
+import { deleteJson, getJson, postJson } from '@/lib/apiClient'
 import { cachedRequest, invalidateCache } from '@/lib/requestCache'
 import type {
   CreateTeamRequest,
@@ -46,4 +46,27 @@ export async function joinTeam(request: JoinTeamRequest, token: string): Promise
   const result = await postJson<JoinTeamResponse>('/api/teams/join', request, token)
   invalidateCache('teams')
   return result
+}
+
+export async function removeMember(
+  teamId: number,
+  targetUserId: number,
+  token: string
+): Promise<void> {
+  await deleteJson<void>(`/api/teams/${teamId}/members/${targetUserId}`, token)
+  invalidateCache(`team:${teamId}`)
+}
+
+export async function leaveTeam(teamId: number, token: string): Promise<void> {
+  await deleteJson<void>(`/api/teams/${teamId}/leave`, token)
+  invalidateCache('teams')
+  invalidateCache(`team:${teamId}`)
+}
+
+export async function inviteByEmail(
+  teamId: number,
+  emails: string[],
+  token: string
+): Promise<void> {
+  await postJson<void>(`/api/teams/${teamId}/invitations`, { emails }, token)
 }

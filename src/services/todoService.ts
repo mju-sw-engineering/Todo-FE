@@ -8,6 +8,7 @@ import type {
   SubmitTodoRequest,
   Todo,
   TodoDetail,
+  TodoPeriodReportResponse,
   TodayTodoListResponse,
 } from '@/types/todo.types'
 
@@ -55,4 +56,28 @@ export async function postReaction(
   const request: ReactRequest = { type }
   await postJson<void>(`/api/todo-participants/${participantId}/reactions`, request, token)
   invalidateCache('todo:')
+}
+
+export async function getHistoryTodos(
+  teamId: number,
+  date: string,
+  token: string
+): Promise<Todo[]> {
+  const data = await getJson<Todo[] | null>(
+    `/api/teams/${teamId}/todos/history?date=${date}`,
+    token
+  )
+  return data ?? []
+}
+
+export async function getTeamTodoReport(
+  teamId: number,
+  startDate: string,
+  endDate: string,
+  token: string
+): Promise<TodoPeriodReportResponse> {
+  return getJson<TodoPeriodReportResponse>(
+    `/api/teams/${teamId}/todos/report?startDate=${startDate}&endDate=${endDate}`,
+    token
+  )
 }

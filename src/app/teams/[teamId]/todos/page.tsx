@@ -352,9 +352,18 @@ function TodoListContent() {
       <div className="px-6 pt-5 pb-3 shrink-0">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-gray-400 mb-3 flex items-center gap-1 hover:text-gray-700 transition-colors"
+          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors -ml-1.5 mb-2"
+          aria-label="뒤로가기"
         >
-          ← Back
+          <svg
+            className="w-5 h-5 text-gray-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
         </button>
         <p className="text-[13px] font-semibold text-gray-400 mb-1 tracking-wide">{dayEn}</p>
         <div className="flex items-end gap-0 leading-none">

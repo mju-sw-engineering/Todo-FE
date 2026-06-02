@@ -8,9 +8,21 @@ import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { PlantIcon, getPlantStageLabel } from '@/components/ui/PlantIcon'
 import { StreakCelebration, isStreakSkippedToday } from '@/components/ui/StreakCelebration'
 import { ApiError } from '@/lib/apiClient'
-import { getTeamById } from '@/services/teamService'
+import { getTeamById, inviteByEmail, leaveTeam, removeMember } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import type { TeamDetailResponse, TeamMember } from '@/types/team.types'
+
+function Toast({ message }: { message: string }) {
+  return (
+    <div className="fixed top-0 left-0 right-0 flex justify-center z-50 pt-4 pointer-events-none">
+      <div className="max-w-sm w-full mx-auto px-5">
+        <div className="bg-gray-900/90 text-white text-[13px] font-medium rounded-xl shadow-lg px-4 py-2.5 text-center">
+          {message}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const PLANT_STAGES = [
   { count: 0, label: '씨앗', range: '0일', desc: '아직 시작 전이에요' },
@@ -145,11 +157,62 @@ function PlantInfoPopover({
   )
 }
 
+interface ConfirmModalProps {
+  title: string
+  message: string
+  confirmLabel: string
+  confirmDanger?: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}
+
+function ConfirmModal({
+  title,
+  message,
+  confirmLabel,
+  confirmDanger,
+  onConfirm,
+  onCancel,
+}: ConfirmModalProps) {
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-end justify-center pb-6 px-4">
+      <div className="fixed inset-0 bg-black/40" onClick={onCancel} />
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 24 }}
+        transition={{ type: 'spring', damping: 26, stiffness: 380, mass: 0.5 }}
+        className="relative w-full max-w-sm bg-white rounded-[22px] shadow-[0_8px_40px_rgba(0,0,0,0.18)] p-6"
+      >
+        <p className="text-[16px] font-bold text-ink mb-1">{title}</p>
+        <p className="text-[13px] text-muted leading-relaxed mb-5">{message}</p>
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-3 rounded-xl bg-gray-100 text-[14px] font-semibold text-gray-700 transition-colors hover:bg-gray-200"
+          >
+            취소
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`flex-1 py-3 rounded-xl text-[14px] font-semibold text-white transition-opacity hover:opacity-85 ${
+              confirmDanger ? 'bg-red-500' : 'bg-gray-900'
+            }`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </motion.div>
+    </div>,
+    document.body
+  )
+}
+
 export default function TeamDetailPage() {
   const router = useRouter()
   const params = useParams()
   const teamId = Number(params.teamId)
-  const { token } = useAuth()
+  const { token, user } = useAuth()
 
   const [team, setTeam] = useState<TeamDetailResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -157,7 +220,32 @@ export default function TeamDetailPage() {
   const [copyDone, setCopyDone] = useState(false)
   const [plantInfoAnchor, setPlantInfoAnchor] = useState<DOMRect | null>(null)
   const [showStreak, setShowStreak] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [kickTarget, setKickTarget] = useState<TeamMember | null>(null)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const infoButtonRef = useRef<HTMLButtonElement>(null)
+
+  function showToast(message: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast(message)
+    toastTimer.current = setTimeout(() => setToast(null), 2500)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current)
+    }
+  }, [])
+
+  const currentUserId = user?.userId
+  const myRole = team?.members.find((m) => m.userId === currentUserId)?.role
 
   useEffect(() => {
     if (!token || !teamId) return
@@ -181,6 +269,93 @@ export default function TeamDetailPage() {
     setTimeout(() => setCopyDone(false), 2000)
   }
 
+  async function handleKickMember() {
+    if (!kickTarget || !token) return
+    setIsSubmitting(true)
+    setActionError(null)
+    try {
+      await removeMember(teamId, kickTarget.userId, token)
+      setTeam((prev) =>
+        prev
+          ? {
+              ...prev,
+              members: prev.members.filter((m) => m.userId !== kickTarget.userId),
+              memberCount: prev.memberCount - 1,
+            }
+          : prev
+      )
+      setKickTarget(null)
+    } catch (err) {
+      setKickTarget(null)
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          setActionError('로그인이 만료되었습니다')
+          setTimeout(() => router.push('/login'), 1500)
+        } else if (err.status === 403) {
+          setActionError('권한이 없습니다')
+        } else {
+          setActionError('권한 이양 중 문제가 발생했습니다')
+        }
+      } else {
+        setActionError('권한 이양 중 문제가 발생했습니다')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleInvite() {
+    if (!token || !inviteEmail.trim()) return
+    setInviting(true)
+    setInviteError(null)
+    try {
+      await inviteByEmail(teamId, [inviteEmail.trim()], token)
+      setInviteEmail('')
+      setInviteOpen(false)
+      showToast('초대 메일이 발송되었습니다.')
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) setInviteError('로그인이 만료되었습니다.')
+        else if (err.status === 403) setInviteError('권한이 없습니다.')
+        else if (err.status === 400) setInviteError('올바른 이메일 주소를 입력해 주세요.')
+        else if (err.status === 500)
+          setInviteError('메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+        else setInviteError(err.message || '초대에 실패했습니다.')
+      } else {
+        setInviteError('초대에 실패했습니다.')
+      }
+    } finally {
+      setInviting(false)
+    }
+  }
+
+  async function handleLeaveTeam() {
+    if (!token) return
+    setIsSubmitting(true)
+    setActionError(null)
+    try {
+      await leaveTeam(teamId, token)
+      setShowLeaveConfirm(false)
+      router.replace('/teams')
+    } catch (err) {
+      setShowLeaveConfirm(false)
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          setActionError('로그인이 만료되었습니다')
+          setTimeout(() => router.push('/login'), 1500)
+        } else if (err.status === 403) {
+          setActionError('권한이 없습니다')
+        } else {
+          setActionError('권한 이양 중 문제가 발생했습니다')
+        }
+      } else {
+        setActionError('권한 이양 중 문제가 발생했습니다')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-white">
@@ -191,8 +366,16 @@ export default function TeamDetailPage() {
 
   if (!team) return null
 
+  const leaveConfirmMessage =
+    myRole === 'LEADER' && team.memberCount > 1
+      ? '팀장 권한이 다른 팀원에게 자동으로 이양됩니다. 정말 탈퇴하시겠습니까?'
+      : myRole === 'LEADER' && team.memberCount === 1
+        ? '혼자 남은 팀장이 탈퇴하면 팀 데이터가 삭제됩니다. 정말 탈퇴하시겠습니까?'
+        : '팀에서 탈퇴하시겠습니까?'
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
+      {toast && <Toast message={toast} />}
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-4">
         <div className="flex items-center gap-2 mb-6">
           <button
@@ -217,6 +400,21 @@ export default function TeamDetailPage() {
             <p className="text-[12px] text-muted mt-0.5">팀 정보</p>
           </div>
         </div>
+
+        {/* Error banner */}
+        <AnimatePresence>
+          {actionError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="mb-3 px-4 py-3 bg-red-50 border border-red-200 rounded-[14px] text-[13px] font-semibold text-red-600"
+              onAnimationComplete={() => setTimeout(() => setActionError(null), 3000)}
+            >
+              {actionError}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="bg-white rounded-[18px] border border-border mb-3 overflow-hidden">
           <div className="flex items-center gap-4 px-4 py-4">
@@ -244,19 +442,35 @@ export default function TeamDetailPage() {
                 <p className="text-[13px] text-muted">아직 팀원이 없습니다</p>
               ) : (
                 <ul className="flex flex-col gap-3">
-                  {team.members.map((member) => (
-                    <li key={member.userId} className="flex items-center gap-3">
-                      <MemberAvatar member={member} />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
-                        {member.role === 'LEADER' && (
-                          <span className="ml-2 text-[11px] font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
-                            팀장
+                  {team.members.map((member) => {
+                    const isMe = member.userId === currentUserId
+                    const canKick = myRole === 'LEADER' && !isMe && member.role !== 'LEADER'
+                    return (
+                      <li key={member.userId} className="flex items-center gap-3">
+                        <MemberAvatar member={member} />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[14px] font-medium text-ink">
+                            {member.nickname}
+                            {isMe && <span className="ml-1.5 text-[11px] text-muted">(나)</span>}
                           </span>
+                          {member.role === 'LEADER' && (
+                            <span className="ml-2 text-[11px] font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                              팀장
+                            </span>
+                          )}
+                        </div>
+                        {canKick && (
+                          <button
+                            onClick={() => setKickTarget(member)}
+                            disabled={isSubmitting}
+                            className="shrink-0 text-[12px] font-semibold text-red-500 bg-red-50 px-2.5 py-1 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                          >
+                            탈퇴
+                          </button>
                         )}
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </div>
@@ -325,6 +539,69 @@ export default function TeamDetailPage() {
           </div>
         </div>
 
+        {/* 이메일 초대 */}
+        <div className="bg-white rounded-[18px] border border-border mb-3 overflow-hidden">
+          <button
+            onClick={() => {
+              setInviteOpen((p) => !p)
+              setInviteError(null)
+            }}
+            className="w-full flex items-center gap-3 px-4 py-4 transition-colors hover:bg-gray-50"
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+              <svg
+                className="w-4 h-4 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <p className="flex-1 text-left text-[14px] font-semibold text-ink">이메일로 초대</p>
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${inviteOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {inviteOpen && (
+            <div className="border-t border-border px-4 py-4 flex flex-col gap-2.5">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
+                  placeholder="example@email.com"
+                  className="flex-1 border border-border rounded-xl px-3 py-2.5 text-[14px] text-ink focus:outline-none focus:border-gray-900 transition-colors"
+                  disabled={inviting}
+                />
+                <button
+                  onClick={handleInvite}
+                  disabled={inviting || !inviteEmail.trim()}
+                  className="px-4 py-2.5 bg-gray-900 text-white text-[13px] font-semibold rounded-xl disabled:opacity-50 transition-opacity hover:opacity-85 shrink-0"
+                >
+                  {inviting ? '발송 중' : '초대'}
+                </button>
+              </div>
+              {inviteError && (
+                <p className="text-[12px] font-semibold text-red-500">{inviteError}</p>
+              )}
+            </div>
+          )}
+        </div>
+
         {team.inviteCode && (
           <button
             onClick={handleCopyInviteCode}
@@ -373,6 +650,13 @@ export default function TeamDetailPage() {
         >
           목록으로
         </button>
+        <button
+          onClick={() => setShowLeaveConfirm(true)}
+          disabled={isSubmitting}
+          className="w-full py-3 text-[14px] font-semibold text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+        >
+          팀 탈퇴
+        </button>
       </div>
 
       <AnimatePresence>
@@ -381,6 +665,32 @@ export default function TeamDetailPage() {
             count={team.continuousTodoCount}
             anchor={plantInfoAnchor}
             onClose={() => setPlantInfoAnchor(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {kickTarget && (
+          <ConfirmModal
+            title={`${kickTarget.nickname}님을 팀에서 내보낼까요?`}
+            message="해당 팀원이 팀에서 제외됩니다."
+            confirmLabel="내보내기"
+            confirmDanger
+            onConfirm={handleKickMember}
+            onCancel={() => setKickTarget(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showLeaveConfirm && (
+          <ConfirmModal
+            title="팀 탈퇴"
+            message={leaveConfirmMessage}
+            confirmLabel="탈퇴하기"
+            confirmDanger
+            onConfirm={handleLeaveTeam}
+            onCancel={() => setShowLeaveConfirm(false)}
           />
         )}
       </AnimatePresence>
