@@ -348,11 +348,11 @@ function TodoListContent() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
-      {/* Big date header */}
-      <div className="px-6 pt-5 pb-3 shrink-0">
+      {/* 압축 헤더 */}
+      <div className="px-5 pt-4 pb-3 shrink-0 flex items-center gap-3 border-b border-gray-100">
         <button
           onClick={() => router.back()}
-          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors -ml-1.5 mb-2"
+          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors shrink-0"
           aria-label="뒤로가기"
         >
           <svg
@@ -365,74 +365,76 @@ function TodoListContent() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <p className="text-[13px] font-semibold text-gray-400 mb-1 tracking-wide">{dayEn}</p>
-        <div className="flex items-end gap-0 leading-none">
-          <span className="text-[72px] font-black text-gray-900 tracking-tighter leading-none">
-            {monthNum}.{dayNum}
-          </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-semibold text-gray-400 tracking-wide uppercase">{dayEn}</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-[26px] font-black text-gray-900 tracking-tight leading-tight">
+              {monthNum}.{dayNum} {monthEn}
+            </span>
+            {todos.length > 0 && (
+              <span className="text-[12px] font-semibold text-gray-400">
+                <span className="font-black text-gray-900">{completeCount}</span>/{todos.length}{' '}
+                done
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-[24px] font-black text-gray-900">{monthEn}</p>
-          {todos.length > 0 && (
-            <p className="text-[13px] font-semibold text-gray-400">
-              <span className="font-black text-gray-900">{completeCount}</span>/{todos.length} done
-            </p>
-          )}
-        </div>
-        <p className="text-[13px] font-semibold text-gray-400 mt-1.5 tracking-wide">
-          Team&apos;s tasks
-        </p>
       </div>
 
-      {/* AI Evaluation Card */}
+      {/* AI 평가 카드 — 항상 노출 */}
       <AiEvaluationCard evaluation={aiEvaluation} />
 
-      {/* Pill tabs */}
-      <div className="flex gap-1.5 px-5 pb-3 shrink-0">
-        {TAB_ITEMS.map(({ key, label, count }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${
-              tab === key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            }`}
-          >
-            {label} {count}
-          </button>
-        ))}
-      </div>
+      {/* Pill tabs + 카드 스크롤 */}
+      <div className="flex-1 overflow-y-auto pb-4 flex flex-col">
+        {/* Pill tabs */}
+        <div className="flex gap-1.5 px-5 py-3 shrink-0">
+          {TAB_ITEMS.map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${
+                tab === key
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+            >
+              {label} {count}
+            </button>
+          ))}
+        </div>
 
-      {/* Cards scroll */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
-        {error || todos.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-20">
-            <div className="animate-blob-float mb-3">
-              <BlobAvatar seed="empty-team-todos" size={72} expressionOverride={3} />
+        <div className="flex flex-col gap-3 px-4 pb-4">
+          {error || todos.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-20">
+              <div className="animate-blob-float mb-3">
+                <BlobAvatar seed="empty-team-todos" size={72} expressionOverride={3} />
+              </div>
+              <p className="text-[15px] font-bold text-gray-900">오늘 할 일이 없어요</p>
+              <p className="text-[13px] text-gray-400 mt-1">팀의 첫 번째 할 일을 추가해보세요</p>
             </div>
-            <p className="text-[15px] font-bold text-gray-900">오늘 할 일이 없어요</p>
-            <p className="text-[13px] text-gray-400 mt-1">팀의 첫 번째 할 일을 추가해보세요</p>
-          </div>
-        ) : filteredTodos.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <p className="text-[14px] text-gray-400">해당하는 할 일이 없어요</p>
-          </div>
-        ) : (
-          filteredTodos.map((todo, idx) => (
-            <TeamTodoCard
-              key={todo.todoId}
-              todo={todo}
-              colorIndex={idx}
-              onClick={() =>
-                router.push(
-                  `/teams/${teamId}/todos/${todo.todoId}?myStatus=${encodeURIComponent(todo.myStatus ?? '')}`
-                )
-              }
-            />
-          ))
-        )}
+          ) : filteredTodos.length === 0 ? (
+            <div className="flex items-center justify-center py-20">
+              <p className="text-[14px] text-gray-400">해당하는 할 일이 없어요</p>
+            </div>
+          ) : (
+            filteredTodos.map((todo, idx) => (
+              <TeamTodoCard
+                key={todo.todoId}
+                todo={todo}
+                colorIndex={idx}
+                onClick={() =>
+                  router.push(
+                    `/teams/${teamId}/todos/${todo.todoId}?myStatus=${encodeURIComponent(todo.myStatus ?? '')}`
+                  )
+                }
+              />
+            ))
+          )}
+        </div>
       </div>
 
       {/* Add Task footer */}
+
       <div className="shrink-0 px-5 py-4 border-t border-gray-100">
         <button
           onClick={() => router.push(`/teams/${teamId}/todos/new`)}
