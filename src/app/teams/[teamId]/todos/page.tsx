@@ -3,10 +3,9 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { parseAchievementCount } from '@/lib/formatters'
-import { ApiError } from '@/lib/apiClient'
 import { useVoice } from '@/hooks/useVoice'
 import { getDailyEvaluation } from '@/services/teamService'
-import { getHistoryTodos, getTeamTodoReport, getTodayTodos } from '@/services/todoService'
+import { getHistoryTodos, getTeamTodoReport } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import type { DailyEvaluationResponse } from '@/types/team.types'
 import { Calendar } from '@/components/ui/Calendar'
@@ -290,9 +289,8 @@ function TodoListContent() {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
   }, [])
 
-  const [todos, setTodos] = useState<Todo[]>([])
+  const [displayTodos, setDisplayTodos] = useState<Todo[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
   const [tab, setTab] = useState<TabType>('all')
   const [showToast, setShowToast] = useState(() => searchParams.get('created') === '1')
   const [aiEvaluation, setAiEvaluation] = useState<DailyEvaluationResponse | 'error' | 'loading'>(
@@ -305,12 +303,8 @@ function TodoListContent() {
   const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear())
   const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth() + 1)
   const [dailyCounts, setDailyCounts] = useState<Record<string, number>>({})
-  const [historyTodos, setHistoryTodos] = useState<Todo[] | null>(null)
-  const [historyLoading, setHistoryLoading] = useState(false)
 
   const isToday = selectedDate === todayStr
-  const displayTodos = isToday ? todos : (historyTodos ?? [])
-  const isDisplayLoading = isToday ? isLoading : historyLoading
 
   useEffect(() => {
     if (!showToast) return
@@ -319,16 +313,26 @@ function TodoListContent() {
     return () => clearTimeout(t)
   }, [showToast, router, teamId])
 
-  // Today's todos
+  // Todos by date (history API)
   useEffect(() => {
     if (!token || !teamId) return
-    getTodayTodos(teamId, token)
-      .then((res) => setTodos(res))
-      .catch((err) => {
-        setError(err instanceof ApiError ? err.message : 'Failed to load tasks.')
-      })
-      .finally(() => setIsLoading(false))
-  }, [token, teamId])
+
+    const tk = token
+
+    async function load() {
+      setIsLoading(true)
+      try {
+        const data = await getHistoryTodos(teamId, selectedDate, tk)
+        setDisplayTodos(data)
+      } catch {
+        setDisplayTodos([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    load()
+  }, [selectedDate, teamId, token])
 
   // AI evaluation
   useEffect(() => {
@@ -356,27 +360,6 @@ function TodoListContent() {
       .catch(() => {})
   }, [calendarOpen, calendarYear, calendarMonth, teamId, token])
 
-  // History todos for non-today date
-  useEffect(() => {
-    if (!token || !teamId || isToday) return
-
-    const tk = token
-
-    async function loadHistory() {
-      setHistoryLoading(true)
-      try {
-        const data = await getHistoryTodos(teamId, selectedDate, tk)
-        setHistoryTodos(data)
-      } catch {
-        setHistoryTodos([])
-      } finally {
-        setHistoryLoading(false)
-      }
-    }
-
-    loadHistory()
-  }, [selectedDate, teamId, token, isToday])
-
   const selectedDateObj = new Date(selectedDate + 'T00:00:00')
   const dayNum = pad(selectedDateObj.getDate())
   const monthNum = pad(selectedDateObj.getMonth() + 1)
@@ -402,7 +385,7 @@ function TodoListContent() {
     { key: 'complete', label: 'Done', count: completeCount },
   ]
 
-  if (isDisplayLoading && displayTodos.length === 0) {
+  if (isLoading && displayTodos.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center bg-white">
         <div className="w-8 h-8 border-[3px] border-gray-200 border-t-gray-900 rounded-full animate-spin" />
@@ -548,7 +531,7 @@ function TodoListContent() {
         </div>
 
         <div className="flex flex-col gap-3 px-4 pb-4">
-          {error || displayTodos.length === 0 ? (
+          {displayTodos.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20">
               <div className="animate-blob-float mb-3">
                 <BlobAvatar seed="empty-team-todos" size={72} expressionOverride={3} />
