@@ -31,17 +31,16 @@ export function TodoStatusBadge({ status }: { status: TodoStatus }) {
   }
 
   return (
-    <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-rose-50 text-rose-400">
+    <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-rose-100 text-rose-500">
       <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="shrink-0">
-        <rect x="2.5" y="5" width="6" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
         <path
-          d="M4 5V3.5a1.5 1.5 0 0 1 3 0V5"
+          d="M2.5 2.5L8.5 8.5M8.5 2.5L2.5 8.5"
           stroke="currentColor"
-          strokeWidth="1.3"
+          strokeWidth="1.6"
           strokeLinecap="round"
         />
       </svg>
-      마감
+      실패
     </span>
   )
 }

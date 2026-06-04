@@ -1,14 +1,15 @@
 'use client'
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { useVoice } from '@/hooks/useVoice'
 import { getDailyEvaluation } from '@/services/teamService'
-import { getTodayTodos } from '@/services/todoService'
+import { getHistoryTodos, getTeamTodoReport, getTodayTodos } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import type { DailyEvaluationResponse } from '@/types/team.types'
+import { Calendar } from '@/components/ui/Calendar'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
 import { AngelBlob, DevilBlob } from '@/components/ui/BlobCharacter'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
@@ -64,6 +65,10 @@ const MONTHS_EN = [
   'Dec',
 ]
 const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+function pad(n: number) {
+  return String(n).padStart(2, '0')
+}
 
 function formatTime(iso: string): string {
   const d = new Date(iso)
@@ -280,6 +285,11 @@ function TodoListContent() {
   const teamId = Number(params.teamId)
   const { token } = useAuth()
 
+  const todayStr = useMemo(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  }, [])
+
   const [todos, setTodos] = useState<Todo[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -289,6 +299,19 @@ function TodoListContent() {
     'loading'
   )
 
+  // Calendar
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(todayStr)
+  const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear())
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth() + 1)
+  const [dailyCounts, setDailyCounts] = useState<Record<string, number>>({})
+  const [historyTodos, setHistoryTodos] = useState<Todo[] | null>(null)
+  const [historyLoading, setHistoryLoading] = useState(false)
+
+  const isToday = selectedDate === todayStr
+  const displayTodos = isToday ? todos : (historyTodos ?? [])
+  const isDisplayLoading = isToday ? isLoading : historyLoading
+
   useEffect(() => {
     if (!showToast) return
     router.replace(`/teams/${teamId}/todos`)
@@ -296,6 +319,7 @@ function TodoListContent() {
     return () => clearTimeout(t)
   }, [showToast, router, teamId])
 
+  // Today's todos
   useEffect(() => {
     if (!token || !teamId) return
     getTodayTodos(teamId, token)
@@ -306,6 +330,7 @@ function TodoListContent() {
       .finally(() => setIsLoading(false))
   }, [token, teamId])
 
+  // AI evaluation
   useEffect(() => {
     if (!token || !teamId) return
     getDailyEvaluation(teamId, token)
@@ -313,15 +338,54 @@ function TodoListContent() {
       .catch(() => setAiEvaluation('error'))
   }, [token, teamId])
 
-  const today = new Date()
-  const dayNum = String(today.getDate()).padStart(2, '0')
-  const monthNum = String(today.getMonth() + 1).padStart(2, '0')
-  const monthEn = MONTHS_EN[today.getMonth()]
-  const dayEn = DAYS_EN[today.getDay()]
+  // Monthly report for calendar dots
+  useEffect(() => {
+    if (!calendarOpen || !token || !teamId) return
+    const startDate = `${calendarYear}-${pad(calendarMonth)}-01`
+    const lastDay = new Date(calendarYear, calendarMonth, 0).getDate()
+    const endDate = `${calendarYear}-${pad(calendarMonth)}-${pad(lastDay)}`
+
+    getTeamTodoReport(teamId, startDate, endDate, token)
+      .then((report) => {
+        const counts: Record<string, number> = {}
+        for (const stat of report?.dailyStats ?? []) {
+          if (stat.totalTodoCount > 0) counts[stat.date] = stat.totalTodoCount
+        }
+        setDailyCounts(counts)
+      })
+      .catch(() => {})
+  }, [calendarOpen, calendarYear, calendarMonth, teamId, token])
+
+  // History todos for non-today date
+  useEffect(() => {
+    if (!token || !teamId || isToday) return
+
+    const tk = token
+
+    async function loadHistory() {
+      setHistoryLoading(true)
+      try {
+        const data = await getHistoryTodos(teamId, selectedDate, tk)
+        setHistoryTodos(data)
+      } catch {
+        setHistoryTodos([])
+      } finally {
+        setHistoryLoading(false)
+      }
+    }
+
+    loadHistory()
+  }, [selectedDate, teamId, token, isToday])
+
+  const selectedDateObj = new Date(selectedDate + 'T00:00:00')
+  const dayNum = pad(selectedDateObj.getDate())
+  const monthNum = pad(selectedDateObj.getMonth() + 1)
+  const monthEn = MONTHS_EN[selectedDateObj.getMonth()]
+  const dayEn = DAYS_EN[selectedDateObj.getDay()]
 
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
 
-  const filteredTodos = todos
+  const filteredTodos = displayTodos
     .filter((t) => {
       if (tab === 'complete') return t.status === 'SUCCESS'
       if (tab === 'incomplete') return t.status !== 'SUCCESS'
@@ -329,16 +393,16 @@ function TodoListContent() {
     })
     .sort((a, b) => (STATUS_ORDER[a.status] ?? 0) - (STATUS_ORDER[b.status] ?? 0))
 
-  const completeCount = todos.filter((t) => t.status === 'SUCCESS').length
-  const incompleteCount = todos.filter((t) => t.status !== 'SUCCESS').length
+  const completeCount = displayTodos.filter((t) => t.status === 'SUCCESS').length
+  const incompleteCount = displayTodos.filter((t) => t.status !== 'SUCCESS').length
 
   const TAB_ITEMS: { key: TabType; label: string; count: number }[] = [
-    { key: 'all', label: 'All', count: todos.length },
+    { key: 'all', label: 'All', count: displayTodos.length },
     { key: 'incomplete', label: 'Pending', count: incompleteCount },
     { key: 'complete', label: 'Done', count: completeCount },
   ]
 
-  if (isLoading) {
+  if (isDisplayLoading && displayTodos.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center bg-white">
         <div className="w-8 h-8 border-[3px] border-gray-200 border-t-gray-900 rounded-full animate-spin" />
@@ -348,41 +412,121 @@ function TodoListContent() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
-      {/* 압축 헤더 */}
-      <div className="px-5 pt-4 pb-3 shrink-0 flex items-center gap-3 border-b border-gray-100">
-        <button
-          onClick={() => router.back()}
-          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors shrink-0"
-          aria-label="뒤로가기"
-        >
-          <svg
-            className="w-5 h-5 text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+      {/* Header */}
+      <div className="relative shrink-0">
+        <div className="px-5 pt-4 pb-3 flex items-center gap-3 border-b border-gray-100">
+          <button
+            onClick={() => router.back()}
+            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors shrink-0"
+            aria-label="뒤로가기"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-semibold text-gray-400 tracking-wide uppercase">{dayEn}</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-[26px] font-black text-gray-900 tracking-tight leading-tight">
-              {monthNum}.{dayNum} {monthEn}
-            </span>
-            {todos.length > 0 && (
-              <span className="text-[12px] font-semibold text-gray-400">
-                <span className="font-black text-gray-900">{completeCount}</span>/{todos.length}{' '}
-                done
+            <svg
+              className="w-5 h-5 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold text-gray-400 tracking-wide uppercase">
+              {dayEn}
+            </p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-[26px] font-black text-gray-900 tracking-tight leading-tight">
+                {monthNum}.{dayNum} {monthEn}
               </span>
-            )}
+              {displayTodos.length > 0 && (
+                <span className="text-[12px] font-semibold text-gray-400">
+                  <span className="font-black text-gray-900">{completeCount}</span>/
+                  {displayTodos.length} done
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-[11px] font-semibold text-gray-400 flex-1">
+                {isToday
+                  ? "Today's tasks"
+                  : `${selectedDateObj.getFullYear()}년 ${String(selectedDateObj.getMonth() + 1)}월 ${selectedDateObj.getDate()}일`}
+              </p>
+              <button
+                onClick={() => {
+                  setCalendarOpen((prev) => !prev)
+                  if (!calendarOpen) {
+                    setCalendarYear(selectedDateObj.getFullYear())
+                    setCalendarMonth(selectedDateObj.getMonth() + 1)
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all duration-200 ${
+                  calendarOpen
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                달력
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Calendar floating overlay */}
+        {calendarOpen && (
+          <>
+            <div className="fixed inset-0 z-20" onClick={() => setCalendarOpen(false)} />
+            <div
+              className="absolute top-full left-0 right-0 z-30 px-4 pt-1 pb-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="shadow-[0_8px_32px_rgba(0,0,0,0.13)] rounded-[18px]">
+                <Calendar
+                  selectedDate={selectedDate}
+                  year={calendarYear}
+                  month={calendarMonth}
+                  dailyCounts={dailyCounts}
+                  onSelectDate={(date) => {
+                    setSelectedDate(date)
+                    setTab('all')
+                    setCalendarOpen(false)
+                  }}
+                  onPrevMonth={() => {
+                    if (calendarMonth === 1) {
+                      setCalendarYear((y) => y - 1)
+                      setCalendarMonth(12)
+                    } else {
+                      setCalendarMonth((m) => m - 1)
+                    }
+                  }}
+                  onNextMonth={() => {
+                    if (calendarMonth === 12) {
+                      setCalendarYear((y) => y + 1)
+                      setCalendarMonth(1)
+                    } else {
+                      setCalendarMonth((m) => m + 1)
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* AI 평가 카드 — 항상 노출 */}
-      <AiEvaluationCard evaluation={aiEvaluation} />
+      {/* AI 평가 카드 — 오늘만 노출 */}
+      {isToday && <AiEvaluationCard evaluation={aiEvaluation} />}
 
       {/* Pill tabs + 카드 스크롤 */}
       <div className="flex-1 overflow-y-auto pb-4 flex flex-col">
@@ -404,13 +548,17 @@ function TodoListContent() {
         </div>
 
         <div className="flex flex-col gap-3 px-4 pb-4">
-          {error || todos.length === 0 ? (
+          {error || displayTodos.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20">
               <div className="animate-blob-float mb-3">
                 <BlobAvatar seed="empty-team-todos" size={72} expressionOverride={3} />
               </div>
-              <p className="text-[15px] font-bold text-gray-900">오늘 할 일이 없어요</p>
-              <p className="text-[13px] text-gray-400 mt-1">팀의 첫 번째 할 일을 추가해보세요</p>
+              <p className="text-[15px] font-bold text-gray-900">
+                {isToday ? '오늘 할 일이 없어요' : '이 날 할 일이 없어요'}
+              </p>
+              <p className="text-[13px] text-gray-400 mt-1">
+                {isToday ? '팀의 첫 번째 할 일을 추가해보세요' : '다른 날짜를 선택해보세요'}
+              </p>
             </div>
           ) : filteredTodos.length === 0 ? (
             <div className="flex items-center justify-center py-20">
@@ -433,16 +581,17 @@ function TodoListContent() {
         </div>
       </div>
 
-      {/* Add Task footer */}
-
-      <div className="shrink-0 px-5 py-4 border-t border-gray-100">
-        <button
-          onClick={() => router.push(`/teams/${teamId}/todos/new`)}
-          className="w-full py-4 bg-gray-900 text-white text-[15px] font-bold rounded-[18px] transition-all duration-200 hover:opacity-85 active:scale-[0.98] shadow-[0_8px_32px_rgba(0,0,0,0.18)]"
-        >
-          + 할 일 추가
-        </button>
-      </div>
+      {/* Add Task footer — 오늘만 노출 */}
+      {isToday && (
+        <div className="shrink-0 px-5 py-4 border-t border-gray-100">
+          <button
+            onClick={() => router.push(`/teams/${teamId}/todos/new`)}
+            className="w-full py-4 bg-gray-900 text-white text-[15px] font-bold rounded-[18px] transition-all duration-200 hover:opacity-85 active:scale-[0.98] shadow-[0_8px_32px_rgba(0,0,0,0.18)]"
+          >
+            + 할 일 추가
+          </button>
+        </div>
+      )}
 
       {showToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-gray-900 text-white text-[13px] font-bold text-center py-3.5 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] animate-fade-up z-50">
