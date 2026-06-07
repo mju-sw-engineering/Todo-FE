@@ -77,21 +77,21 @@ const CARD_PALETTES = [
   },
 ]
 
-const MONTHS_EN = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
+const MONTHS_KO = [
+  '1월',
+  '2월',
+  '3월',
+  '4월',
+  '5월',
+  '6월',
+  '7월',
+  '8월',
+  '9월',
+  '10월',
+  '11월',
+  '12월',
 ]
-const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const DAYS_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 
 function pad(n: number) {
   return String(n).padStart(2, '0')
@@ -196,7 +196,7 @@ function MyTodoCard({
             className="text-[11px] font-semibold"
             style={{ color: palette.text, opacity: 0.65 }}
           >
-            {achieved}/{total} certified
+            {achieved}/{total} 인증
           </span>
           <span className="text-[12px] font-black" style={{ color: palette.accent }}>
             {percentage}%
@@ -353,8 +353,8 @@ export default function HomePage() {
   const selectedDateObj = new Date(selectedDate + 'T00:00:00')
   const dayNum = pad(selectedDateObj.getDate())
   const monthNum = pad(selectedDateObj.getMonth() + 1)
-  const monthEn = MONTHS_EN[selectedDateObj.getMonth()]
-  const dayEn = DAYS_EN[selectedDateObj.getDay()]
+  const monthKo = MONTHS_KO[selectedDateObj.getMonth()]
+  const dayKo = DAYS_KO[selectedDateObj.getDay()]
 
   const completeCount = displayTodos.filter((t) => t.myStatus === '완료').length
   const completionPct =
@@ -373,13 +373,13 @@ export default function HomePage() {
     .sort((a, b) => (STATUS_ORDER[a.status] ?? 0) - (STATUS_ORDER[b.status] ?? 0))
 
   const TAB_ITEMS: { key: TabType; label: string; count: number }[] = [
-    { key: 'all', label: 'All', count: displayTodos.length },
+    { key: 'all', label: '전체', count: displayTodos.length },
     {
       key: 'incomplete',
-      label: 'Pending',
+      label: '미완료',
       count: displayTodos.filter((t) => t.myStatus === '미완료').length,
     },
-    { key: 'complete', label: 'Done', count: completeCount },
+    { key: 'complete', label: '완료', count: completeCount },
   ]
 
   if (isLoading) {
@@ -396,25 +396,25 @@ export default function HomePage() {
         {/* Header + Calendar overlay wrapper */}
         <div className="shrink-0 relative">
           <div className="px-6 pt-6 pb-4 relative">
-            <p className="text-[13px] font-semibold text-gray-400 mb-1 tracking-wide">{dayEn}</p>
+            <p className="text-[13px] font-semibold text-gray-400 mb-1 tracking-wide">{dayKo}</p>
             <div className="flex items-end gap-0 leading-none">
               <span className="text-[80px] font-black text-gray-900 tracking-tighter leading-none">
                 {monthNum}.{dayNum}
               </span>
             </div>
             <div className="flex items-center justify-between mt-1">
-              <p className="text-[28px] font-black text-gray-900">{monthEn}</p>
+              <p className="text-[28px] font-black text-gray-900">{monthKo}</p>
               {displayTodos.length > 0 && (
                 <p className="text-[13px] font-semibold text-gray-400">
                   <span className="font-black text-gray-900">{completeCount}</span>/
-                  {displayTodos.length} done
+                  {displayTodos.length} 완료
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2 mt-2">
               <p className="text-[13px] font-semibold text-gray-400 tracking-wide flex-1">
                 {isToday
-                  ? "Today's tasks"
+                  ? '오늘의 할 일'
                   : `${calendarYear}년 ${calendarMonth}월 ${selectedDateObj.getDate()}일`}
               </p>
               <button

@@ -49,21 +49,21 @@ const CARD_PALETTES = [
   },
 ]
 
-const MONTHS_EN = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
+const MONTHS_KO = [
+  '1월',
+  '2월',
+  '3월',
+  '4월',
+  '5월',
+  '6월',
+  '7월',
+  '8월',
+  '9월',
+  '10월',
+  '11월',
+  '12월',
 ]
-const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const DAYS_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 
 function pad(n: number) {
   return String(n).padStart(2, '0')
@@ -80,8 +80,8 @@ function formatTime(iso: string): string {
 function formatEvalDate(dateStr: string): string {
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
-  const m = MONTHS_EN[d.getMonth()]
-  return `${m} ${d.getDate()} evaluation`
+  const m = MONTHS_KO[d.getMonth()]
+  return `${m} ${d.getDate()}일 평가`
 }
 
 function AiEvaluationCard({
@@ -134,7 +134,7 @@ function AiEvaluationCard({
           <p
             className={`text-[13px] font-black leading-tight ${isDevil ? 'text-white' : 'text-gray-900'}`}
           >
-            {isDevil ? 'Devil AI 👹' : 'Angel AI 🌸'}
+            {isDevil ? '악마 AI 👹' : '천사 AI 🌸'}
           </p>
           <p
             className={`text-[10px] font-semibold mt-0.5 ${isDevil ? 'text-[#FFAAC8]' : 'text-gray-400'}`}
@@ -156,7 +156,7 @@ function AiEvaluationCard({
                 : 'rgba(0,0,0,0.07)',
             color: isDevil ? 'white' : isVoicePlaying ? 'white' : '#111',
           }}
-          aria-label={isVoicePlaying ? 'stop' : 'play'}
+          aria-label={isVoicePlaying ? '정지' : '재생'}
         >
           {voice.isLoading && voice.activePersona === persona ? (
             <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -229,7 +229,7 @@ function TeamTodoCard({
               className="text-[10px] font-black px-2 py-0.5 rounded-full text-white"
               style={{ background: myStatus === '완료' ? palette.accent : 'rgba(0,0,0,0.18)' }}
             >
-              {myStatus === '완료' ? 'Done' : 'Pending'}
+              {myStatus === '완료' ? '완료' : '미완료'}
             </span>
           )}
         </div>
@@ -250,14 +250,14 @@ function TeamTodoCard({
 
       {/* Creator */}
       <p className="text-[11px] font-semibold -mt-1" style={{ color: palette.text, opacity: 0.5 }}>
-        by {todo.creatorNickname}
+        작성: {todo.creatorNickname}
       </p>
 
       {/* Progress */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[11px] font-semibold" style={{ color: palette.text, opacity: 0.6 }}>
-            {achieved}/{total} certified
+            {achieved}/{total} 인증
           </span>
           <span className="text-[12px] font-black" style={{ color: palette.accent }}>
             {percentage}%
@@ -363,8 +363,8 @@ function TodoListContent() {
   const selectedDateObj = new Date(selectedDate + 'T00:00:00')
   const dayNum = pad(selectedDateObj.getDate())
   const monthNum = pad(selectedDateObj.getMonth() + 1)
-  const monthEn = MONTHS_EN[selectedDateObj.getMonth()]
-  const dayEn = DAYS_EN[selectedDateObj.getDay()]
+  const monthKo = MONTHS_KO[selectedDateObj.getMonth()]
+  const dayKo = DAYS_KO[selectedDateObj.getDay()]
 
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
 
@@ -380,9 +380,9 @@ function TodoListContent() {
   const incompleteCount = displayTodos.filter((t) => t.status !== 'SUCCESS').length
 
   const TAB_ITEMS: { key: TabType; label: string; count: number }[] = [
-    { key: 'all', label: 'All', count: displayTodos.length },
-    { key: 'incomplete', label: 'Pending', count: incompleteCount },
-    { key: 'complete', label: 'Done', count: completeCount },
+    { key: 'all', label: '전체', count: displayTodos.length },
+    { key: 'incomplete', label: '미완료', count: incompleteCount },
+    { key: 'complete', label: '완료', count: completeCount },
   ]
 
   if (isLoading && displayTodos.length === 0) {
@@ -414,24 +414,22 @@ function TodoListContent() {
             </svg>
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold text-gray-400 tracking-wide uppercase">
-              {dayEn}
-            </p>
+            <p className="text-[11px] font-semibold text-gray-400 tracking-wide">{dayKo}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-[26px] font-black text-gray-900 tracking-tight leading-tight">
-                {monthNum}.{dayNum} {monthEn}
+                {monthNum}.{dayNum} {monthKo}
               </span>
               {displayTodos.length > 0 && (
                 <span className="text-[12px] font-semibold text-gray-400">
                   <span className="font-black text-gray-900">{completeCount}</span>/
-                  {displayTodos.length} done
+                  {displayTodos.length} 완료
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-[11px] font-semibold text-gray-400 flex-1">
                 {isToday
-                  ? "Today's tasks"
+                  ? '오늘의 할 일'
                   : `${selectedDateObj.getFullYear()}년 ${String(selectedDateObj.getMonth() + 1)}월 ${selectedDateObj.getDate()}일`}
               </p>
               <button
