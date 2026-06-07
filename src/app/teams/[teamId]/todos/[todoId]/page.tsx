@@ -81,11 +81,20 @@ function MemberCertCard({
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
         <div className="flex items-center gap-2.5">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
-          >
-            {getInitials(member.nickname)}
-          </div>
+          {member.profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={member.profileImageUrl}
+              alt={member.nickname}
+              className="w-8 h-8 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
+            >
+              {getInitials(member.nickname)}
+            </div>
+          )}
           <span className="text-[14px] font-semibold text-ink">{member.nickname}</span>
         </div>
         {status && (
