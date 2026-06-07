@@ -1,4 +1,4 @@
-import { getJson } from '@/lib/apiClient'
+import { getJson, patchJson } from '@/lib/apiClient'
 import type { ChatRequest, ChatResponse, TodoChatMessagesResponse } from '@/types/chat.types'
 
 const AI_BASE_URL = 'https://ai.swe.bluerack.org'
@@ -30,4 +30,20 @@ export async function getTodoChatMessages(
   const params = new URLSearchParams({ size: String(size) })
   if (cursorId != null) params.set('cursorId', String(cursorId))
   return getJson<TodoChatMessagesResponse>(`/api/todos/${todoId}/chat/messages?${params}`, token)
+}
+
+export async function markChatRead(
+  todoId: number,
+  lastReadMessageId: number,
+  token: string
+): Promise<void> {
+  return patchJson<void>(`/api/todos/${todoId}/chat/read`, { lastReadMessageId }, token)
+}
+
+export async function getUnreadChatCount(todoId: number, token: string): Promise<number> {
+  const res = await getJson<{ unreadCount: number }>(
+    `/api/todos/${todoId}/chat/unread-count`,
+    token
+  )
+  return res.unreadCount
 }
