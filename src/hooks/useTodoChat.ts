@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
-import { getTodoChatMessages } from '@/services/chatService'
+import { getTodoChatMessages, markChatRead } from '@/services/chatService'
 import { useAuth } from '@/store/authStore'
 import type { TodoChatMessage } from '@/types/chat.types'
 
@@ -20,6 +20,17 @@ function nextTempId() {
 
 const chatKey = (todoId: number) => ['todo-chat', todoId] as const
 
+interface TypingPayload {
+  isTyping?: boolean
+  typing?: boolean
+  senderNickname?: string
+  nickname?: string
+  memberNickname?: string
+  senderId?: number
+  userId?: number
+  memberId?: number
+}
+
 export function useTodoChat(todoId: number, token: string | null) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
@@ -27,6 +38,10 @@ export function useTodoChat(todoId: number, token: string | null) {
   const [isConnected, setIsConnected] = useState(false)
   const [hasNext, setHasNext] = useState(false)
   const [nextCursorId, setNextCursorId] = useState<number | null>(null)
+  const [typingUsers, setTypingUsers] = useState<string[]>([])
+  const typingTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+  const isTypingRef = useRef(false)
+  const stopTypingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Initial history via TanStack Query
   const { isLoading: isLoadingHistory } = useQuery({
@@ -44,6 +59,14 @@ export function useTodoChat(todoId: number, token: string | null) {
   const messages: TodoChatMessage[] =
     queryClient.getQueryData<TodoChatMessage[]>(chatKey(todoId)) ?? []
 
+  // Mark chat as read when messages update
+  useEffect(() => {
+    if (!token || messages.length === 0) return
+    const lastRealMessage = [...messages].reverse().find((m) => m.messageId > 0)
+    if (!lastRealMessage) return
+    markChatRead(todoId, lastRealMessage.messageId, token).catch(() => {})
+  }, [todoId, token, messages])
+
   // WebSocket connection
   useEffect(() => {
     if (!token) return
@@ -54,9 +77,43 @@ export function useTodoChat(todoId: number, token: string | null) {
       reconnectDelay: 3000,
       onConnect: () => {
         setIsConnected(true)
-        // WS는 알림 트리거로만 사용 — 발신자 정보는 REST API로 가져옴
+
         client.subscribe(`/topic/todos/${todoId}`, () => {
           queryClient.invalidateQueries({ queryKey: chatKey(todoId) })
+        })
+
+        client.subscribe(`/topic/todos/${todoId}/typing`, (frame) => {
+          try {
+            const data = JSON.parse(frame.body) as TypingPayload
+            console.log('[typing received]', data)
+
+            const isTyping = data.isTyping ?? data.typing ?? false
+            const nickname = data.senderNickname ?? data.nickname ?? data.memberNickname ?? ''
+            const senderId = data.senderId ?? data.userId ?? data.memberId
+
+            // Skip own typing events
+            if (senderId != null && senderId === user?.userId) return
+            if (nickname && nickname === (user?.nickname ?? user?.loginId)) return
+
+            const key = nickname || String(senderId ?? 'unknown')
+
+            if (isTyping) {
+              if (typingTimersRef.current[key]) {
+                clearTimeout(typingTimersRef.current[key])
+              }
+              setTypingUsers((prev) => (prev.includes(key) ? prev : [...prev, key]))
+              typingTimersRef.current[key] = setTimeout(() => {
+                setTypingUsers((prev) => prev.filter((n) => n !== key))
+                delete typingTimersRef.current[key]
+              }, 4000)
+            } else {
+              clearTimeout(typingTimersRef.current[key])
+              delete typingTimersRef.current[key]
+              setTypingUsers((prev) => prev.filter((n) => n !== key))
+            }
+          } catch {
+            // silently ignore malformed frames
+          }
         })
       },
       onDisconnect: () => setIsConnected(false),
@@ -67,10 +124,19 @@ export function useTodoChat(todoId: number, token: string | null) {
     clientRef.current = client
 
     return () => {
+      // Send stop-typing on unmount
+      if (client.connected && isTypingRef.current) {
+        client.publish({
+          destination: `/app/todos/${todoId}/typing`,
+          body: JSON.stringify({ isTyping: false }),
+        })
+      }
       client.deactivate()
       setIsConnected(false)
+      // Clear all typing timers
+      Object.values(typingTimersRef.current).forEach(clearTimeout)
     }
-  }, [todoId, token, queryClient])
+  }, [todoId, token, queryClient, user])
 
   // Send with optimistic update
   const { mutate: sendMessage } = useMutation({
@@ -83,6 +149,16 @@ export function useTodoChat(todoId: number, token: string | null) {
       })
     },
     onMutate: async (content) => {
+      // Stop typing when message is sent
+      if (stopTypingTimerRef.current) clearTimeout(stopTypingTimerRef.current)
+      if (isTypingRef.current && clientRef.current?.connected) {
+        clientRef.current.publish({
+          destination: `/app/todos/${todoId}/typing`,
+          body: JSON.stringify({ isTyping: false }),
+        })
+        isTypingRef.current = false
+      }
+
       await queryClient.cancelQueries({ queryKey: chatKey(todoId) })
       const previous = queryClient.getQueryData<TodoChatMessage[]>(chatKey(todoId))
 
@@ -125,12 +201,40 @@ export function useTodoChat(todoId: number, token: string | null) {
     }
   }, [todoId, token, hasNext, nextCursorId, queryClient])
 
+  // Notify typing — call on every input change
+  const notifyTyping = useCallback(() => {
+    const client = clientRef.current
+    if (!client?.connected) return
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true
+      client.publish({
+        destination: `/app/todos/${todoId}/typing`,
+        body: JSON.stringify({ isTyping: true }),
+      })
+    }
+
+    // Debounce stop-typing
+    if (stopTypingTimerRef.current) clearTimeout(stopTypingTimerRef.current)
+    stopTypingTimerRef.current = setTimeout(() => {
+      if (client.connected) {
+        client.publish({
+          destination: `/app/todos/${todoId}/typing`,
+          body: JSON.stringify({ isTyping: false }),
+        })
+      }
+      isTypingRef.current = false
+    }, 2000)
+  }, [todoId])
+
   return {
     messages,
     isConnected,
     isLoadingHistory,
     hasNext,
+    typingUsers,
     sendMessage: (content: string) => sendMessage(content),
     loadMore,
+    notifyTyping,
   }
 }

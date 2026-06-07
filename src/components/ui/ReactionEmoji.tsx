@@ -49,9 +49,6 @@ function LikeEmoji({ size }: { size: number }) {
         fill="none"
         strokeLinecap="round"
       />
-      {/* Cute thumb up (top-right, outside body slightly) */}
-      <ellipse cx="32" cy="18" rx="3.8" ry="3" fill="#1A0A14" />
-      <ellipse cx="32" cy="12.5" rx="2.3" ry="3.3" fill="#1A0A14" />
       {/* Sparkle dots */}
       <circle cx="7" cy="9" r="2.2" fill="#FFD84D" />
       <circle cx="34" cy="7" r="1.5" fill="#FFD84D" opacity="0.75" />

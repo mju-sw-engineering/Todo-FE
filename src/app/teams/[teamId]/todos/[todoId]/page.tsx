@@ -7,6 +7,7 @@ import { FiHeart } from 'react-icons/fi'
 import { AVATAR_COLORS, formatDeadline, getInitials, parseAchievementCount } from '@/lib/formatters'
 import { ApiError } from '@/lib/apiClient'
 import { getTodoDetail, postReaction } from '@/services/todoService'
+import { getUnreadChatCount } from '@/services/chatService'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
@@ -80,11 +81,20 @@ function MemberCertCard({
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
         <div className="flex items-center gap-2.5">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
-          >
-            {getInitials(member.nickname)}
-          </div>
+          {member.profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={member.profileImageUrl}
+              alt={member.nickname}
+              className="w-8 h-8 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
+            >
+              {getInitials(member.nickname)}
+            </div>
+          )}
           <span className="text-[14px] font-semibold text-ink">{member.nickname}</span>
         </div>
         {status && (
@@ -216,6 +226,7 @@ function TodoDetailContent() {
   const [todo, setTodo] = useState<TodoDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const myStatusParam = searchParams.get('myStatus') as MyTodoStatus | null
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
   const [showBubble, setShowBubble] = useState(false)
@@ -239,6 +250,9 @@ function TodoDetailContent() {
         setError(err instanceof ApiError ? err.message : '투두를 불러오지 못했습니다.')
       })
       .finally(() => setIsLoading(false))
+    getUnreadChatCount(todoId, token)
+      .then(setChatUnreadCount)
+      .catch(() => {})
   }, [token, todoId])
 
   async function handleReact(participantId: number, type: ReactionType) {
@@ -389,7 +403,7 @@ function TodoDetailContent() {
               `/teams/${teamId}/todos/${todoId}/chat?title=${encodeURIComponent(todo.title)}`
             )
           }
-          className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200 shrink-0"
+          className="relative w-12 h-12 flex items-center justify-center rounded-[14px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200 shrink-0"
           aria-label="채팅"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -400,6 +414,11 @@ function TodoDetailContent() {
               strokeLinejoin="round"
             />
           </svg>
+          {chatUnreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center rounded-full bg-gray-900 text-white text-[10px] font-bold px-1 leading-none">
+              {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+            </span>
+          )}
         </button>
         {canCertify ? (
           <button
