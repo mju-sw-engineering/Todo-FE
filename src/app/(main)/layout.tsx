@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { BottomNav } from '@/components/BottomNav'
 import { LogoBlob } from '@/components/ui/LogoBlob'
+import { NotificationBell } from '@/components/NotificationPanel'
 import { useAuth } from '@/store/authStore'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -26,13 +27,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="h-dvh max-w-97.5 mx-auto overflow-hidden flex flex-col translate-x-0">
-      <header className="h-14 shrink-0 bg-white/80 backdrop-blur-sm border-b border-border flex items-center px-5">
+      <header className="h-14 shrink-0 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-5">
         <div className="flex items-center gap-2">
           <LogoBlob size={32} />
           <span className="text-[17px] font-black text-gray-900 tracking-tight">
             Todo<span className="font-medium text-gray-500">Team</span>
           </span>
         </div>
+        <NotificationBell />
       </header>
 
       <main className="flex-1 flex flex-col min-h-0">{children}</main>
