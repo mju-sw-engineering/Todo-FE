@@ -253,7 +253,7 @@ export function NotificationBell() {
         ) : (
           <>
             {notifications.map((n) => (
-              <NotificationItem key={n.id} notification={n} onRead={markRead} />
+              <NotificationItem key={n.notificationId} notification={n} onRead={markRead} />
             ))}
             {hasNext && (
               <button
