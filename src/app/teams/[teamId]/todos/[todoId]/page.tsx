@@ -2,17 +2,16 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useRef, useState } from 'react'
-import { FiHeart } from 'react-icons/fi'
-import { AVATAR_COLORS, formatDeadline, getInitials, parseAchievementCount } from '@/lib/formatters'
-import { ApiError } from '@/lib/apiClient'
-import { getTodoDetail, postReaction } from '@/services/todoService'
-import { getUnreadChatCount } from '@/services/chatService'
+import { Suspense, useEffect, useState } from 'react'
+import { parseAchievementCount, formatDeadline } from '@/lib/formatters'
+import { useTodoDetail } from '@/hooks/useTodoDetail'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import { ReactionEmoji } from '@/components/ui/ReactionEmoji'
-import type { MyTodoStatus, ReactionType, TodoDetail, TodoParticipant } from '@/types/todo.types'
+import { MemberCertCard } from '@/components/todo/MemberCertCard'
+import { Button } from '@/components/ui/Button'
+import { PageLoader } from '@/components/ui/PageLoader'
+import type { MyTodoStatus } from '@/types/todo.types'
 
 const PROGRESS_MESSAGES = {
   none: ['아직 아무도 안됐어요 ㅠ', '다들 뭐하는 거예요? 😴', '누가 먼저 할까요? 🫠'],
@@ -35,184 +34,6 @@ function getProgressMessage(achieved: number, total: number, seed: number): stri
   return pick(PROGRESS_MESSAGES.few(achieved))
 }
 
-const CERT_BADGE_LABEL: Record<MyTodoStatus, string> = {
-  완료: '완료',
-  미완료: '미완료',
-}
-
-const CERT_BADGE_STYLE: Record<MyTodoStatus, string> = {
-  완료: 'bg-gray-900 text-white',
-  미완료: 'bg-gray-100 text-gray-400',
-}
-
-function MemberCertCard({
-  member,
-  index,
-  isCurrentUser,
-  onCertify,
-  onReact,
-}: {
-  member: TodoParticipant
-  index: number
-  isCurrentUser: boolean
-  onCertify: () => void
-  onReact: (type: ReactionType) => void
-}) {
-  const [showPicker, setShowPicker] = useState(false)
-  const pickerRef = useRef<HTMLDivElement>(null)
-  const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length]
-  const status = member.status
-  const isCompleted = status === '완료'
-  const canCertify = isCurrentUser && status === '미완료'
-  const canReact = !isCurrentUser && isCompleted
-  const proofImageUrl = member.proofThumbnailUrl ?? member.proofImageUrl
-
-  const activeReactions = (member.reactions ?? []).filter((r) => r.count > 0)
-  const totalCount = activeReactions.reduce((s, r) => s + r.count, 0)
-
-  return (
-    <div
-      className={`rounded-[18px] overflow-hidden border border-border ${canCertify ? 'cursor-pointer active:scale-[0.99] transition-transform' : ''}`}
-      onClick={() => {
-        if (canCertify) onCertify()
-        if (showPicker) setShowPicker(false)
-      }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
-        <div className="flex items-center gap-2.5">
-          {member.profileImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={member.profileImageUrl}
-              alt={member.nickname}
-              className="w-8 h-8 rounded-full object-cover shrink-0"
-            />
-          ) : (
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
-            >
-              {getInitials(member.nickname)}
-            </div>
-          )}
-          <span className="text-[14px] font-semibold text-ink">{member.nickname}</span>
-        </div>
-        {status && (
-          <span
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${CERT_BADGE_STYLE[status] ?? 'bg-gray-100 text-gray-400'}`}
-          >
-            {CERT_BADGE_LABEL[status] ?? status}
-          </span>
-        )}
-      </div>
-
-      {/* Photo area */}
-      <div className="relative w-full h-44">
-        {isCompleted && proofImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={proofImageUrl}
-            alt="인증샷"
-            className="absolute inset-0 w-full h-full object-cover"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : isCompleted ? (
-          <div className="absolute inset-0 bg-linear-to-br from-gray-100 to-gray-200" />
-        ) : canCertify ? (
-          <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center">
-              <span className="text-[22px] font-light text-gray-400 leading-none">+</span>
-            </div>
-            <span className="text-[12px] text-gray-400">탭해서 인증하기</span>
-          </div>
-        ) : (
-          <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
-            <div className="animate-blob-float">
-              <BlobAvatar seed={member.nickname} size={64} expressionOverride={3} />
-            </div>
-            <span className="text-[11px] font-semibold text-gray-400">아직 완료 전...</span>
-          </div>
-        )}
-
-        {/* Facebook-style reaction summary (bottom-left) */}
-        {activeReactions.length > 0 && (
-          <div className="absolute bottom-2.5 left-3 flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-2 py-0.5">
-            <div className="flex -space-x-0.5">
-              {activeReactions.slice(0, 3).map((r) => (
-                <span key={r.type} className="leading-none drop-shadow-sm">
-                  <ReactionEmoji type={r.type} size={16} />
-                </span>
-              ))}
-            </div>
-            {totalCount > 0 && (
-              <span className="text-[11px] font-semibold text-white leading-none">
-                {totalCount}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Heart button + emoji picker (bottom-right) */}
-        {canReact && (
-          <div
-            ref={pickerRef}
-            className="absolute bottom-2.5 right-3 flex flex-col items-end gap-1.5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Emoji picker pill */}
-            <AnimatePresence>
-              {showPicker && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.85, y: 6 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.85, y: 6 }}
-                  transition={{ type: 'spring', damping: 20, stiffness: 380, mass: 0.5 }}
-                  className="flex items-center gap-0.5 bg-white/95 backdrop-blur-md rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.18)] px-2 py-1.5"
-                >
-                  {(member.reactions ?? []).map((r) => {
-                    const isSelected = member.myReaction === r.type
-                    return (
-                      <button
-                        key={r.type}
-                        type="button"
-                        onClick={() => {
-                          onReact(r.type)
-                          setShowPicker(false)
-                        }}
-                        className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-150 active:scale-90 ${
-                          isSelected
-                            ? 'scale-125 bg-gray-100 shadow-inner'
-                            : 'hover:scale-125 hover:bg-gray-50'
-                        }`}
-                      >
-                        <ReactionEmoji type={r.type} size={28} />
-                      </button>
-                    )
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Heart button */}
-            <button
-              type="button"
-              onClick={() => setShowPicker((v) => !v)}
-              className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-150 active:scale-90 ${
-                showPicker
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white/85 backdrop-blur-sm text-gray-500 hover:bg-white'
-              }`}
-            >
-              <FiHeart size={15} strokeWidth={2.2} />
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 const CARD_CLASS = 'flex-1 flex flex-col overflow-hidden bg-white animate-fade-up'
 
 function TodoDetailContent() {
@@ -221,13 +42,15 @@ function TodoDetailContent() {
   const searchParams = useSearchParams()
   const teamId = Number(params.teamId)
   const todoId = Number(params.todoId)
-  const { token, user } = useAuth()
-
-  const [todo, setTodo] = useState<TodoDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [chatUnreadCount, setChatUnreadCount] = useState(0)
+  const { user } = useAuth()
   const myStatusParam = searchParams.get('myStatus') as MyTodoStatus | null
+
+  const { todo, isLoading, error, chatUnreadCount, effectiveMyStatus, handleReact } = useTodoDetail(
+    todoId,
+    useAuth().token,
+    myStatusParam
+  )
+
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
   const [showBubble, setShowBubble] = useState(false)
 
@@ -242,38 +65,7 @@ function TodoDetailContent() {
     return () => clearTimeout(t)
   }, [showToast])
 
-  useEffect(() => {
-    if (!token || !todoId) return
-    getTodoDetail(todoId, token)
-      .then((res) => setTodo(res))
-      .catch((err) => {
-        setError(err instanceof ApiError ? err.message : '투두를 불러오지 못했습니다.')
-      })
-      .finally(() => setIsLoading(false))
-    getUnreadChatCount(todoId, token)
-      .then(setChatUnreadCount)
-      .catch(() => {})
-  }, [token, todoId])
-
-  async function handleReact(participantId: number, type: ReactionType) {
-    if (!token) return
-    try {
-      await postReaction(participantId, type, token)
-      getTodoDetail(todoId, token)
-        .then((res) => setTodo(res))
-        .catch(() => null)
-    } catch {
-      // silently fail
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className={`${CARD_CLASS} items-center justify-center`}>
-        <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (isLoading) return <PageLoader />
 
   if (error || !todo) {
     return (
@@ -291,7 +83,6 @@ function TodoDetailContent() {
 
   const { achieved, total } = parseAchievementCount(todo.achievementCount)
   const percentage = total > 0 ? Math.round((achieved / total) * 100) : 0
-  const effectiveMyStatus: MyTodoStatus | null = todo.myStatus ?? myStatusParam
   const canCertify = effectiveMyStatus === '미완료'
 
   function navigateToCertify() {
@@ -300,7 +91,6 @@ function TodoDetailContent() {
 
   return (
     <div className={CARD_CLASS}>
-      {/* 헤더 (스크롤 고정) */}
       <div className="px-6 pt-8 pb-4">
         <button
           onClick={() => router.back()}
@@ -370,7 +160,6 @@ function TodoDetailContent() {
         </div>
       </div>
 
-      {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto px-6 pb-4">
         <p className="text-[13px] font-semibold text-ink/60 mb-3">인증 현황</p>
         <div className="flex flex-col gap-3">
@@ -395,7 +184,6 @@ function TodoDetailContent() {
         </div>
       </div>
 
-      {/* 바텀 버튼 (항상 고정) */}
       <div className="px-6 py-5 border-t border-border flex gap-3">
         <button
           onClick={() =>
@@ -421,19 +209,18 @@ function TodoDetailContent() {
           )}
         </button>
         {canCertify ? (
-          <button
-            onClick={navigateToCertify}
-            className="flex-1 py-3.75 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85"
-          >
+          <Button fullWidth={false} className="flex-1" onClick={navigateToCertify}>
             인증하기
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
+            variant="secondary"
+            fullWidth={false}
+            className="flex-1"
             onClick={() => router.back()}
-            className="flex-1 py-3.75 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-gray-200"
           >
             돌아가기
-          </button>
+          </Button>
         )}
       </div>
 
@@ -466,7 +253,6 @@ function TodoDetailContent() {
                   expressionOverride={1}
                 />
               </motion.div>
-
               <div className="bg-white rounded-3xl px-8 py-5 text-center shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
                 <p className="text-[22px] font-black text-gray-900">인증 완료!</p>
                 <p className="text-[13px] text-gray-500 mt-1.5">인증샷이 업로드됐어요</p>
@@ -477,7 +263,6 @@ function TodoDetailContent() {
                   확인
                 </button>
               </div>
-
               <p className="text-white/50 text-[11px]">탭해서 닫기</p>
             </motion.div>
           </motion.div>
@@ -489,13 +274,7 @@ function TodoDetailContent() {
 
 export default function TodoDetailPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex-1 flex items-center justify-center bg-white">
-          <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={<PageLoader />}>
       <TodoDetailContent />
     </Suspense>
   )

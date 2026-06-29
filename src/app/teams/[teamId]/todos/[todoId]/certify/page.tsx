@@ -7,6 +7,8 @@ import { compressImageFile } from '@/lib/imageCompression'
 import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
 import { submitTodo } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
+import { Button } from '@/components/ui/Button'
+import { PageLoader } from '@/components/ui/PageLoader'
 
 function CertifyContent() {
   const router = useRouter()
@@ -59,7 +61,6 @@ function CertifyContent() {
 
   return (
     <div className="flex-1 flex flex-col bg-white animate-fade-up">
-      {/* label 방식: 브라우저 네이티브 파일 다이얼로그 트리거 (모바일 포함 100% 동작) */}
       <input
         id="certify-camera"
         type="file"
@@ -76,7 +77,6 @@ function CertifyContent() {
         onChange={handleFileChange}
       />
 
-      {/* 헤더 (스크롤 고정) */}
       <div className="px-6 pt-8 pb-4">
         <button
           onClick={() => router.back()}
@@ -88,9 +88,7 @@ function CertifyContent() {
         <p className="text-[13px] text-muted">인증 사진을 업로드해 주세요</p>
       </div>
 
-      {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-3 min-h-0">
-        {/* 미리보기 영역 — 고정 높이, 이미지 크기와 무관하게 레이아웃 유지 */}
         <label
           htmlFor="certify-gallery"
           className="w-full rounded-[18px] bg-gray-50 overflow-hidden flex items-center justify-center cursor-pointer shrink-0"
@@ -152,15 +150,10 @@ function CertifyContent() {
         )}
       </div>
 
-      {/* 바텀 버튼 (항상 고정) */}
       <div className="px-6 py-5 border-t border-border">
-        <button
-          onClick={handleSubmit}
-          disabled={!file || isSubmitting}
-          className="w-full py-3.75 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
+        <Button onClick={handleSubmit} disabled={!file || isSubmitting}>
           {isSubmitting ? '업로드 중...' : '제출하기'}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -168,13 +161,7 @@ function CertifyContent() {
 
 export default function CertifyPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex-1 flex items-center justify-center bg-white">
-          <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={<PageLoader />}>
       <CertifyContent />
     </Suspense>
   )

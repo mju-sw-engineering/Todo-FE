@@ -80,6 +80,12 @@ export interface DailyTodoStat {
   achievementRate: number | null
 }
 
+export interface TodoWithTeam extends Todo {
+  teamId: number
+  teamName: string
+  teamImageUrl: string | null
+}
+
 export interface TodoPeriodReportResponse {
   period: {
     startDate: string

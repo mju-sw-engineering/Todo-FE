@@ -1,214 +1,47 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { AnimatePresence, motion } from 'framer-motion'
-import { createPortal } from 'react-dom'
-import { useAuth } from '@/store/authStore'
-import {
-  deleteAccount,
-  getMyInfo,
-  leaveTeam,
-  logoutApi,
-  updateNickname,
-} from '@/services/userService'
+import { AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import { useMyPage } from '@/hooks/useMyPage'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import type { MyInfoResponse, MyTeam } from '@/types/user.types'
-
-function Toast({ message }: { message: string }) {
-  return (
-    <div className="fixed top-0 left-0 right-0 flex justify-center z-50 pt-4 pointer-events-none">
-      <div className="max-w-97.5 w-full mx-auto px-5">
-        <div className="bg-gray-900/90 text-white text-[13px] font-medium rounded-xl shadow-lg px-4 py-2.5 text-center">
-          {message}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-interface ConfirmModalProps {
-  title: string
-  message: string
-  confirmLabel: string
-  confirmDanger?: boolean
-  onConfirm: () => void
-  onCancel: () => void
-}
-
-function ConfirmModal({
-  title,
-  message,
-  confirmLabel,
-  confirmDanger,
-  onConfirm,
-  onCancel,
-}: ConfirmModalProps) {
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center pb-6 px-4">
-      <div className="fixed inset-0 bg-black/40" onClick={onCancel} />
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 24 }}
-        transition={{ type: 'spring', damping: 26, stiffness: 380, mass: 0.5 }}
-        className="relative w-full max-w-sm bg-white rounded-[22px] shadow-[0_8px_40px_rgba(0,0,0,0.18)] p-6"
-      >
-        <p className="text-[16px] font-bold text-ink mb-1">{title}</p>
-        <p className="text-[13px] text-muted leading-relaxed mb-5">{message}</p>
-        <div className="flex gap-2">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-3 rounded-xl bg-gray-100 text-[14px] font-semibold text-gray-700 transition-colors hover:bg-gray-200"
-          >
-            취소
-          </button>
-          <button
-            onClick={onConfirm}
-            className={`flex-1 py-3 rounded-xl text-[14px] font-semibold text-white transition-opacity hover:opacity-85 ${
-              confirmDanger ? 'bg-red-500' : 'bg-gray-900'
-            }`}
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </motion.div>
-    </div>,
-    document.body
-  )
-}
-
-type ConfirmState =
-  | { type: 'logout' }
-  | { type: 'deleteAccount' }
-  | { type: 'leaveTeam'; team: MyTeam }
-  | null
+import { Toast } from '@/components/ui/Toast'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { Button } from '@/components/ui/Button'
+import { PageLoader } from '@/components/ui/PageLoader'
 
 export default function MyPage() {
-  const { token, user, updateUser, logout } = useAuth()
-  const router = useRouter()
+  const {
+    myInfo,
+    loading,
+    toast,
+    profileImageUrl,
+    avatarSeed,
+    editingNickname,
+    setEditingNickname,
+    nicknameInput,
+    setNicknameInput,
+    savingNickname,
+    leavingTeamId,
+    confirm,
+    setConfirm,
+    handleSaveNickname,
+    handleLeaveTeam,
+    handleLogout,
+    handleDeleteAccount,
+  } = useMyPage()
 
-  const [myInfo, setMyInfo] = useState<MyInfoResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState<string | null>(null)
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const [editingNickname, setEditingNickname] = useState(false)
-  const [nicknameInput, setNicknameInput] = useState('')
-  const [savingNickname, setSavingNickname] = useState(false)
-
-  const [leavingTeamId, setLeavingTeamId] = useState<number | null>(null)
-  const [confirm, setConfirm] = useState<ConfirmState>(null)
-
-  function showToast(message: string) {
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    setToast(message)
-    toastTimer.current = setTimeout(() => setToast(null), 2500)
-  }
-
-  useEffect(() => {
-    return () => {
-      if (toastTimer.current) clearTimeout(toastTimer.current)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!token) return
-    getMyInfo(token)
-      .then(setMyInfo)
-      .catch(() => showToast('정보를 불러오는 데 실패했습니다.'))
-      .finally(() => setLoading(false))
-  }, [token])
-
-  async function handleSaveNickname() {
-    if (!token || !myInfo) return
-    const trimmed = nicknameInput.trim()
-    if (!trimmed) {
-      showToast('닉네임을 입력해 주세요.')
-      return
-    }
-    setSavingNickname(true)
-    try {
-      const updated = await updateNickname(trimmed, token)
-      setMyInfo(updated)
-      updateUser({ nickname: updated.nickname })
-      setEditingNickname(false)
-      showToast('닉네임이 수정되었습니다.')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '닉네임 수정에 실패했습니다.'
-      showToast(message)
-    } finally {
-      setSavingNickname(false)
-    }
-  }
-
-  async function handleLeaveTeam(team: MyTeam) {
-    setLeavingTeamId(team.teamId)
-    setConfirm(null)
-    try {
-      await leaveTeam(team.teamId, token!)
-      setMyInfo((prev) =>
-        prev ? { ...prev, teams: prev.teams.filter((t) => t.teamId !== team.teamId) } : prev
-      )
-      showToast('그룹에서 나왔습니다.')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '그룹 나가기에 실패했습니다.'
-      showToast(message)
-    } finally {
-      setLeavingTeamId(null)
-    }
-  }
-
-  async function handleLogout() {
-    setConfirm(null)
-    try {
-      if (token) await logoutApi(token)
-    } catch {
-      // 클라이언트 측 로그아웃 계속 진행
-    }
-    logout()
-    showToast('로그아웃 되었습니다.')
-    setTimeout(() => router.replace('/login'), 800)
-  }
-
-  async function handleDeleteAccount() {
-    setConfirm(null)
-    if (!token) return
-    try {
-      await deleteAccount(token)
-      logout()
-      showToast('탈퇴가 완료되었습니다.')
-      setTimeout(() => router.replace('/login'), 800)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '회원 탈퇴에 실패했습니다.'
-      showToast(message)
-    }
-  }
-
-  const profileImageUrl = myInfo?.profileImageUrl ?? user?.profileImageUrl ?? null
-  const avatarSeed = myInfo?.nickname ?? user?.nickname ?? user?.loginId ?? ''
-
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <PageLoader />
 
   return (
     <>
       {toast && <Toast message={toast} />}
 
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-8 flex flex-col gap-4 animate-fade-up">
-        {/* 헤더 */}
         <div className="mb-2">
           <h1 className="text-[20px] font-black text-ink leading-tight">마이페이지</h1>
           <p className="text-[12px] text-muted mt-0.5">내 정보 및 그룹 관리</p>
         </div>
 
-        {/* 프로필 카드 */}
         <div className="bg-white rounded-[18px] border border-border p-5">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border border-border">
@@ -257,12 +90,10 @@ export default function MyPage() {
                 </div>
               ) : (
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[16px] font-bold text-ink truncate">
-                    {myInfo?.nickname ?? user?.nickname}
-                  </p>
+                  <p className="text-[16px] font-bold text-ink truncate">{myInfo?.nickname}</p>
                   <button
                     onClick={() => {
-                      setNicknameInput(myInfo?.nickname ?? user?.nickname ?? '')
+                      setNicknameInput(myInfo?.nickname ?? '')
                       setEditingNickname(true)
                     }}
                     className="px-3 py-1.5 text-[12px] font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors shrink-0"
@@ -284,7 +115,6 @@ export default function MyPage() {
           )}
         </div>
 
-        {/* 내 그룹 */}
         <div>
           <p className="text-[12px] font-semibold text-muted uppercase tracking-wider mb-3 px-1">
             내 그룹
@@ -333,24 +163,16 @@ export default function MyPage() {
           )}
         </div>
 
-        {/* 계정 액션 */}
         <div className="flex flex-col gap-2 pt-2">
-          <button
-            onClick={() => setConfirm({ type: 'logout' })}
-            className="w-full py-4 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-colors hover:bg-gray-200"
-          >
+          <Button variant="secondary" size="lg" onClick={() => setConfirm({ type: 'logout' })}>
             로그아웃
-          </button>
-          <button
-            onClick={() => setConfirm({ type: 'deleteAccount' })}
-            className="w-full py-3 text-[14px] font-semibold text-red-500 hover:text-red-600 transition-colors"
-          >
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => setConfirm({ type: 'deleteAccount' })}>
             회원 탈퇴
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Confirm modals */}
       <AnimatePresence>
         {confirm?.type === 'logout' && (
           <ConfirmModal

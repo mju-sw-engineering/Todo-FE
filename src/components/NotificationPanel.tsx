@@ -4,34 +4,28 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useAuth } from '@/store/authStore'
-import { ReactionEmoji } from '@/components/ui/ReactionEmoji'
-import { AngelBlob, DevilBlob } from '@/components/ui/BlobCharacter'
+import { StickerEmoji } from '@/components/chat/StickerEmoji'
+import { STICKER_TYPES, STICKER_PREFIX, parseStandaloneSticker } from '@/lib/sticker'
+import { formatRelativeTime } from '@/lib/dateUtils'
 import type { AppNotification } from '@/types/notification.types'
-import type { ReactionType } from '@/types/todo.types'
+import type { StickerType } from '@/lib/sticker'
 
 // ─── Title / content parsing ──────────────────────────────────────────────────
 
-/** "심심2님이 메시지를 보냈습니다." → "심심2" */
 function extractSender(title: string): string {
   const m = title.match(/^(.+?)님이/)
   return m ? m[1] : ''
 }
 
-/** "ㅋㅋ: __sticker__:ANGRY" → "__sticker__:ANGRY" (strip todo-name prefix) */
 function stripContentPrefix(content: string): string {
   const idx = content.indexOf(': ')
   return idx !== -1 ? content.slice(idx + 2) : content
 }
 
-// ─── Emoji parsing ─────────────────────────────────────────────────────────────
+// ─── Notification-specific inline parsing ─────────────────────────────────────
 
-type StickerType = ReactionType | 'ANGEL' | 'DEVIL'
-const STICKER_TYPES = ['LIKE', 'HEART', 'SURPRISED', 'DISLIKE', 'ANGRY', 'ANGEL', 'DEVIL']
-const STICKER_PREFIX = '__sticker__:'
-
-// Matches [TYPE], __sticker__:TYPE, or bare TYPE (whole word)
 const NOTIF_INLINE_RE = new RegExp(
-  `\\[(${STICKER_TYPES.join('|')})\\]|__sticker__:(${STICKER_TYPES.join('|')})|\\b(${STICKER_TYPES.join('|')})\\b`,
+  `\\[(${STICKER_TYPES.join('|')})\\]|${STICKER_PREFIX.replace(':', '\\:')}(${STICKER_TYPES.join('|')})|\\b(${STICKER_TYPES.join('|')})\\b`,
   'g'
 )
 
@@ -39,7 +33,7 @@ type ContentPart = { t: 'text'; s: string } | { t: 'emoji'; e: StickerType }
 
 function asStickerType(s: string | undefined): StickerType | null {
   if (!s) return null
-  return STICKER_TYPES.includes(s) ? (s as StickerType) : null
+  return STICKER_TYPES.includes(s as StickerType) ? (s as StickerType) : null
 }
 
 function parseContentParts(content: string): ContentPart[] {
@@ -58,23 +52,9 @@ function parseContentParts(content: string): ContentPart[] {
   return parts.length ? parts : [{ t: 'text', s: content }]
 }
 
-/** Whole content is a standalone sticker (e.g. "__sticker__:HEART" or just "HEART") */
-function parseStandaloneSticker(content: string): StickerType | null {
-  const trimmed = content.trim()
-  if (trimmed.startsWith(STICKER_PREFIX)) {
-    return asStickerType(trimmed.slice(STICKER_PREFIX.length).trim())
-  }
-  return asStickerType(trimmed)
-}
-
-function StickerEmoji({ type, size }: { type: StickerType; size: number }) {
-  if (type === 'ANGEL') return <AngelBlob size={size} />
-  if (type === 'DEVIL') return <DevilBlob size={size} />
-  return <ReactionEmoji type={type as ReactionType} size={size} />
-}
+// ─── NotificationContent ──────────────────────────────────────────────────────
 
 function NotificationContent({ content }: { content: string }) {
-  // Whole message is a sticker
   const standalone = parseStandaloneSticker(content)
   if (standalone) {
     return (
@@ -85,7 +65,6 @@ function NotificationContent({ content }: { content: string }) {
     )
   }
 
-  // Text with inline emojis
   const parts = parseContentParts(content)
   if (!parts.some((p) => p.t === 'emoji')) {
     return <span className="wrap-break-word">{content}</span>
@@ -126,18 +105,6 @@ function DefaultAvatar() {
   )
 }
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatRelativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return '방금'
-  if (mins < 60) return `${mins}분 전`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}시간 전`
-  return `${Math.floor(hours / 24)}일 전`
-}
-
 // ─── NotificationItem ──────────────────────────────────────────────────────────
 
 function NotificationItem({
@@ -156,12 +123,9 @@ function NotificationItem({
       onClick={() => {
         if (!notification.isRead) onRead(notification.notificationId)
       }}
-      className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors hover:bg-gray-50 ${
-        notification.isRead ? 'opacity-50' : ''
-      }`}
+      className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors hover:bg-gray-50 ${notification.isRead ? 'opacity-50' : ''}`}
     >
       <DefaultAvatar />
-
       <div className="flex-1 min-w-0">
         {sender && <p className="text-[12px] font-semibold text-ink truncate">{sender}</p>}
         <p className="text-[13px] text-gray-600 leading-snug">
@@ -171,7 +135,6 @@ function NotificationItem({
           {formatRelativeTime(notification.createdAt)}
         </p>
       </div>
-
       {!notification.isRead && <span className="w-2 h-2 rounded-full bg-gray-900 shrink-0" />}
     </button>
   )
@@ -253,7 +216,7 @@ export function NotificationBell() {
         ) : (
           <>
             {notifications.map((n) => (
-              <NotificationItem key={n.id} notification={n} onRead={markRead} />
+              <NotificationItem key={n.notificationId} notification={n} onRead={markRead} />
             ))}
             {hasNext && (
               <button

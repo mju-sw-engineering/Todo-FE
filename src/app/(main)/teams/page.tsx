@@ -1,110 +1,16 @@
 'use client'
 
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createPortal } from 'react-dom'
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
+import { JoinModal } from '@/components/team/JoinModal'
 import { ApiError } from '@/lib/apiClient'
-import { getTeams, joinTeam } from '@/services/teamService'
+import { getTeams } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
+import { Button } from '@/components/ui/Button'
+import { PageLoader } from '@/components/ui/PageLoader'
 import type { TeamListItem } from '@/types/team.types'
-
-interface JoinModalProps {
-  token: string
-  onClose: () => void
-  onSuccess: (teamId: number) => void
-}
-
-function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
-  const [inviteCode, setInviteCode] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
-
-  async function handleSubmit(e: { preventDefault(): void }) {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
-    try {
-      const result = await joinTeam({ inviteCode: inviteCode.trim().toUpperCase() }, token)
-      onSuccess(result.teamId)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 404) setError('존재하지 않는 초대 코드입니다.')
-        else if (err.status === 409) setError('이미 참여한 팀입니다.')
-        else setError(err.message)
-      } else {
-        setError('팀 참여 중 오류가 발생했습니다.')
-      }
-      setIsLoading(false)
-    }
-  }
-
-  return createPortal(
-    <>
-      {/* 딤 배경 */}
-      <motion.div
-        className="fixed inset-0 z-50 bg-black/40 touch-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        onClick={onClose}
-      />
-
-      {/* 바텀 시트 */}
-      <motion.div
-        className="fixed bottom-0 left-0 right-0 z-50 max-w-97.5 mx-auto bg-white rounded-t-[28px] px-5 pt-6 pb-10"
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 32, stiffness: 320, mass: 0.8 }}
-      >
-        <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
-        <h2 className="text-[18px] font-bold text-ink text-center mb-1">팀 참여하기</h2>
-        <p className="text-[13px] text-muted text-center mb-6">
-          초대 코드를 입력해 팀에 참여하세요
-        </p>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-semibold text-gray-700 tracking-wide">
-              초대 코드
-            </label>
-            <input
-              ref={inputRef}
-              type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              placeholder="초대 코드 8자리를 입력하세요"
-              maxLength={8}
-              className="w-full px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-input-bg text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-gray-900 focus:bg-white focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
-            />
-            {error && <p className="text-xs text-red-400">{error}</p>}
-          </div>
-          <button
-            type="submit"
-            disabled={isLoading || inviteCode.trim().length === 0}
-            className="w-full py-4 mt-1 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? '참여 중...' : '참여하기'}
-          </button>
-        </form>
-        <button
-          onClick={onClose}
-          className="block w-full text-center mt-4 text-[14px] font-medium text-muted hover:text-ink transition-colors duration-200"
-        >
-          돌아가기
-        </button>
-      </motion.div>
-    </>,
-    document.body
-  )
-}
 
 function TeamsContent() {
   const router = useRouter()
@@ -133,17 +39,10 @@ function TeamsContent() {
       .finally(() => setIsLoading(false))
   }, [token])
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (isLoading) return <PageLoader />
 
   return (
     <div className="flex-1 flex flex-col animate-fade-up">
-      {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto px-5 pt-5 flex flex-col">
         {error && (
           <p className="text-sm text-red-400 bg-red-50 rounded-[14px] px-4 py-3 mb-4">{error}</p>
@@ -202,20 +101,11 @@ function TeamsContent() {
         )}
       </div>
 
-      {/* 팀 액션 버튼 (in-flow) */}
       <div className="shrink-0 px-5 py-3 border-t border-border bg-white flex flex-col gap-2">
-        <button
-          onClick={() => router.push('/teams/new')}
-          className="w-full py-3.5 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85"
-        >
-          팀 생성하기
-        </button>
-        <button
-          onClick={() => setShowJoinModal(true)}
-          className="w-full py-3.5 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-gray-200"
-        >
+        <Button onClick={() => router.push('/teams/new')}>팀 생성하기</Button>
+        <Button variant="secondary" onClick={() => setShowJoinModal(true)}>
           팀 참여하기
-        </button>
+        </Button>
       </div>
 
       {showToast && (
@@ -239,13 +129,7 @@ function TeamsContent() {
 
 export default function TeamsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={<PageLoader />}>
       <TeamsContent />
     </Suspense>
   )
