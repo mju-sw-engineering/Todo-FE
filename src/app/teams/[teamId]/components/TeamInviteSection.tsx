@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ApiError } from '@/lib/apiClient'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { inviteByEmail } from '@/services/teamService'
 
 interface TeamInviteSectionProps {
@@ -14,33 +14,28 @@ interface TeamInviteSectionProps {
 export function TeamInviteSection({ teamId, token, inviteCode, onToast }: TeamInviteSectionProps) {
   const [inviteOpen, setInviteOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviting, setInviting] = useState(false)
-  const [inviteError, setInviteError] = useState<string | null>(null)
   const [copyDone, setCopyDone] = useState(false)
+  const { isLoading: inviting, error: inviteError, setError: setInviteError, run } = useAsyncTask()
 
   async function handleInvite() {
     if (!inviteEmail.trim()) return
-    setInviting(true)
-    setInviteError(null)
-    try {
-      await inviteByEmail(teamId, [inviteEmail.trim()], token)
-      setInviteEmail('')
-      setInviteOpen(false)
-      onToast('초대 메일이 발송되었습니다.')
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 401) setInviteError('로그인이 만료되었습니다.')
-        else if (err.status === 403) setInviteError('권한이 없습니다.')
-        else if (err.status === 400) setInviteError('올바른 이메일 주소를 입력해 주세요.')
-        else if (err.status === 500)
-          setInviteError('메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.')
-        else setInviteError(err.message || '초대에 실패했습니다.')
-      } else {
-        setInviteError('초대에 실패했습니다.')
+    await run(
+      async () => {
+        await inviteByEmail(teamId, [inviteEmail.trim()], token)
+        setInviteEmail('')
+        setInviteOpen(false)
+        onToast('초대 메일이 발송되었습니다.')
+      },
+      {
+        fallback: '초대에 실패했습니다.',
+        statusMessages: {
+          400: '올바른 이메일 주소를 입력해 주세요.',
+          401: '로그인이 만료되었습니다.',
+          403: '권한이 없습니다.',
+          500: '메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+        },
       }
-    } finally {
-      setInviting(false)
-    }
+    )
   }
 
   async function handleCopyInviteCode() {

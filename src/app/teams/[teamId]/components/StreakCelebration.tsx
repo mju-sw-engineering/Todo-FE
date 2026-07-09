@@ -3,7 +3,7 @@
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
-import { PlantIcon } from '@/components/ui/PlantIcon'
+import { PlantIcon } from './PlantIcon'
 
 const TOTAL = 30
 const DISMISS_MS = 9000

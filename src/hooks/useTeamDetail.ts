@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ApiError } from '@/lib/apiClient'
+import { getErrorMessage } from '@/lib/apiError'
 import { getTeamById, leaveTeam, removeMember } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
-import { isStreakSkippedToday } from '@/components/ui/StreakCelebration'
+import { isStreakSkippedToday } from '@/app/teams/[teamId]/components/StreakCelebration'
 import type { TeamDetailResponse, TeamMember } from '@/types/team.types'
 
 export function useTeamDetail(teamId: number) {
@@ -66,15 +67,14 @@ export function useTeamDetail(teamId: number) {
       setKickTarget(null)
     } catch (err) {
       setKickTarget(null)
-      if (err instanceof ApiError) {
-        if (err.status === 401) {
-          setActionError('로그인이 만료되었습니다')
-          setTimeout(() => router.push('/login'), 1500)
-        } else if (err.status === 403) setActionError('권한이 없습니다')
-        else setActionError('권한 이양 중 문제가 발생했습니다')
-      } else {
-        setActionError('권한 이양 중 문제가 발생했습니다')
-      }
+      setActionError(
+        getErrorMessage(err, '권한 이양 중 문제가 발생했습니다', {
+          401: '로그인이 만료되었습니다',
+          403: '권한이 없습니다',
+        })
+      )
+      if (err instanceof ApiError && err.status === 401)
+        setTimeout(() => router.push('/login'), 1500)
     } finally {
       setIsSubmitting(false)
     }
@@ -90,15 +90,14 @@ export function useTeamDetail(teamId: number) {
       router.replace('/teams')
     } catch (err) {
       setShowLeaveConfirm(false)
-      if (err instanceof ApiError) {
-        if (err.status === 401) {
-          setActionError('로그인이 만료되었습니다')
-          setTimeout(() => router.push('/login'), 1500)
-        } else if (err.status === 403) setActionError('권한이 없습니다')
-        else setActionError('권한 이양 중 문제가 발생했습니다')
-      } else {
-        setActionError('권한 이양 중 문제가 발생했습니다')
-      }
+      setActionError(
+        getErrorMessage(err, '권한 이양 중 문제가 발생했습니다', {
+          401: '로그인이 만료되었습니다',
+          403: '권한이 없습니다',
+        })
+      )
+      if (err instanceof ApiError && err.status === 401)
+        setTimeout(() => router.push('/login'), 1500)
     } finally {
       setIsSubmitting(false)
     }

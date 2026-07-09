@@ -4,8 +4,8 @@ import { AnimatePresence } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
-import { JoinModal } from '@/components/team/JoinModal'
-import { ApiError } from '@/lib/apiClient'
+import { JoinModal } from './components/JoinModal'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { getTeams } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import { Button } from '@/components/ui/Button'
@@ -18,8 +18,7 @@ function TeamsContent() {
   const { token } = useAuth()
 
   const [teams, setTeams] = useState<TeamListItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { isLoading, error, run } = useAsyncTask(true)
   const [showToast, setShowToast] = useState(() => searchParams.get('created') === '1')
   const [showJoinModal, setShowJoinModal] = useState(false)
 
@@ -31,13 +30,14 @@ function TeamsContent() {
 
   useEffect(() => {
     if (!token) return
-    getTeams(token)
-      .then((res) => setTeams(res.teams))
-      .catch((err) => {
-        setError(err instanceof ApiError ? err.message : '팀 목록을 불러오지 못했습니다.')
-      })
-      .finally(() => setIsLoading(false))
-  }, [token])
+    run(
+      async () => {
+        const res = await getTeams(token)
+        setTeams(res.teams)
+      },
+      { fallback: '팀 목록을 불러오지 못했습니다.' }
+    )
+  }, [token, run])
 
   if (isLoading) return <PageLoader />
 

@@ -3,7 +3,7 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ApiError } from '@/lib/apiClient'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { joinTeam } from '@/services/teamService'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -16,8 +16,7 @@ interface JoinModalProps {
 
 export function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
   const [inviteCode, setInviteCode] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const { isLoading, error, run } = useAsyncTask()
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -26,21 +25,16 @@ export function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
-    setError('')
-    setIsLoading(true)
-    try {
-      const result = await joinTeam({ inviteCode: inviteCode.trim().toUpperCase() }, token)
-      onSuccess(result.teamId)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 404) setError('존재하지 않는 초대 코드입니다.')
-        else if (err.status === 409) setError('이미 참여한 팀입니다.')
-        else setError(err.message)
-      } else {
-        setError('팀 참여 중 오류가 발생했습니다.')
+    await run(
+      async () => {
+        const result = await joinTeam({ inviteCode: inviteCode.trim().toUpperCase() }, token)
+        onSuccess(result.teamId)
+      },
+      {
+        fallback: '팀 참여 중 오류가 발생했습니다.',
+        statusMessages: { 404: '존재하지 않는 초대 코드입니다.', 409: '이미 참여한 팀입니다.' },
       }
-      setIsLoading(false)
-    }
+    )
   }
 
   return createPortal(
@@ -66,21 +60,16 @@ export function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
           초대 코드를 입력해 팀에 참여하세요
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-semibold text-gray-700 tracking-wide">
-              초대 코드
-            </label>
-            <Input
-              ref={inputRef}
-              type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              placeholder="초대 코드 8자리를 입력하세요"
-              maxLength={8}
-              className="bg-input-bg focus:bg-white"
-            />
-            {error && <p className="text-xs text-red-400">{error}</p>}
-          </div>
+          <Input
+            ref={inputRef}
+            label="초대 코드"
+            type="text"
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
+            placeholder="초대 코드 8자리를 입력하세요"
+            maxLength={8}
+            hint={error || undefined}
+          />
           <Button
             type="submit"
             size="lg"

@@ -2,8 +2,8 @@
 
 import { useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { PlantIcon, getPlantStageLabel } from '@/components/ui/PlantIcon'
-import { PlantInfoPopover } from '@/components/team/PlantInfoPopover'
+import { PlantIcon, getPlantStageLabel } from './PlantIcon'
+import { PlantInfoPopover } from './PlantInfoPopover'
 
 interface StreakCardProps {
   continuousTodoCount: number

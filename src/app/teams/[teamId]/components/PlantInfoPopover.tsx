@@ -2,7 +2,7 @@
 
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { PlantIcon } from '@/components/ui/PlantIcon'
+import { PlantIcon } from './PlantIcon'
 
 const POPOVER_WIDTH = 252
 

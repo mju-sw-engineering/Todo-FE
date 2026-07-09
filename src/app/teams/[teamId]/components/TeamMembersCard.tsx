@@ -1,25 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { MemberAvatar } from '@/components/ui/MemberAvatar'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import type { TeamDetailResponse, TeamMember } from '@/types/team.types'
-
-function MemberAvatar({ member }: { member: TeamMember }) {
-  if (member.profileImageUrl) {
-    return (
-      <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 border border-border">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={member.profileImageUrl}
-          alt={member.nickname}
-          className="w-full h-full object-cover"
-        />
-      </div>
-    )
-  }
-  return <BlobAvatar seed={member.nickname} size={40} />
-}
 
 interface TeamMembersCardProps {
   team: TeamDetailResponse
@@ -68,7 +52,11 @@ export function TeamMembersCard({
                 const canKick = myRole === 'LEADER' && !isMe && member.role !== 'LEADER'
                 return (
                   <li key={member.userId} className="flex items-center gap-3">
-                    <MemberAvatar member={member} />
+                    <MemberAvatar
+                      profileImageUrl={member.profileImageUrl}
+                      nickname={member.nickname}
+                      size={40}
+                    />
                     <div className="flex-1 min-w-0">
                       <span className="text-[14px] font-medium text-ink">
                         {member.nickname}
