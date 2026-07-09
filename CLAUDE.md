@@ -22,9 +22,12 @@ npm run format     # Prettier 포맷팅
 
 ```
 src/
-├── app/              # Next.js App Router (페이지, 레이아웃, API route)
-├── components/       # 재사용 가능한 UI 컴포넌트
-│   └── ui/           # 기본 UI 컴포넌트 (Button, Input 등 아토믹 단위)
+├── app/                      # Next.js App Router (페이지, 레이아웃, API route)
+│   └── (route)/
+│       ├── components/       # 이 라우트(페이지)에서만 쓰이는 컴포넌트
+│       └── page.tsx
+├── components/                # 2곳 이상에서 재사용되는 공용 컴포넌트
+│   └── ui/                    # 아토믹 단위 (Button, Input 등) — 역할 기반 공용, 호출처가 1곳이어도 여기 유지
 ├── hooks/            # 커스텀 React 훅
 ├── lib/              # 유틸리티 함수, 헬퍼
 ├── services/         # API 호출 함수
@@ -33,14 +36,17 @@ src/
 └── types/            # TypeScript 타입 정의
 ```
 
+**컴포넌트 배치 기준**: 특정 페이지(라우트)에서만 쓰이는 컴포넌트는 해당 라우트 폴더 아래 `components/`에 둔다. 2곳 이상의 페이지에서 재사용되거나 `Button`/`Input`처럼 디자인 시스템 아토믹 단위 컴포넌트라면 `src/components/`(또는 `src/components/ui/`)로 뺀다. 새 컴포넌트를 만들 때 "이게 다른 페이지에서도 쓰일까?"를 먼저 판단하고, 아니라면 페이지 폴더 안에 두는 것이 기본값이다.
+
 ## 경로 alias
 
-`@/*` → `src/*` 로 매핑됩니다.
+`@/*` → `src/*` 로 매핑됩니다. 단, 페이지 전용 `components/` 폴더를 그 페이지(또는 하위 페이지)에서 import할 때는 상대 경로(`./components/X`)를 사용해 페이지-로컬 컴포넌트임을 명확히 드러낸다. `src/hooks`, `src/lib` 등 다른 트리에서 페이지-로컬 컴포넌트를 참조해야 하는 예외적인 경우에만 `@/app/...` alias를 쓴다.
 
 ```ts
 import { Button } from '@/components/ui/Button'
 import { useTodos } from '@/hooks/useTodos'
 import { fetchTodos } from '@/services/todoService'
+import { TeamMembersCard } from './components/TeamMembersCard' // 같은 라우트 폴더의 페이지 전용 컴포넌트
 ```
 
 ## 네이밍 컨벤션
