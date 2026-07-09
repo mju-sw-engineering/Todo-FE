@@ -5,10 +5,9 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useTodoChat } from '@/hooks/useTodoChat'
 import { useChatInput } from '@/hooks/useChatInput'
 import { useAuth } from '@/store/authStore'
-import { AVATAR_COLORS, getInitials } from '@/lib/formatters'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import { MessageBubble } from '@/components/chat/MessageBubble'
-import { StickerPicker } from '@/components/chat/StickerPicker'
+import { MessageBubble } from './components/MessageBubble'
+import { StickerPicker } from './components/StickerPicker'
 import { Spinner } from '@/components/ui/Spinner'
 
 function formatTime(iso: string) {
@@ -129,9 +128,6 @@ export default function TodoChatPage() {
                   : user?.userId != null
                     ? msg.senderId === user.userId
                     : msg.senderNickname === (user?.nickname ?? user?.loginId)
-              const avatarColor =
-                AVATAR_COLORS[Math.abs(msg.senderId || msg.messageId) % AVATAR_COLORS.length]
-
               return (
                 <div
                   key={`${msg.messageId}-${idx}`}
@@ -140,11 +136,7 @@ export default function TodoChatPage() {
                   {!isMine && (
                     <div className="shrink-0 self-start mt-0.5">
                       {msg.isFirst ? (
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold ${avatarColor}`}
-                        >
-                          {getInitials(msg.senderNickname)}
-                        </div>
+                        <BlobAvatar seed={msg.senderNickname} size={32} />
                       ) : (
                         <div className="w-8" />
                       )}

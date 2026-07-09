@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { BottomNav } from '@/components/BottomNav'
 import { LogoBlob } from '@/components/ui/LogoBlob'
-import { NotificationBell } from '@/components/NotificationPanel'
+import { NotificationBell } from './components/NotificationPanel'
 import { useAuth } from '@/store/authStore'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
