@@ -34,6 +34,7 @@ export function MyTodoCard({ todo, colorIndex, onClick }: MyTodoCardProps) {
       bg={palette.bg}
       className={`cursor-pointer active:scale-[0.99] ${dimmed ? 'opacity-50' : ''}`}
       onClick={onClick}
+      shadow={false}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 overflow-hidden">

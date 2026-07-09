@@ -5,11 +5,11 @@ import { useEffect, useState } from 'react'
 import { ChatBot } from '@/components/ChatBot'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { Calendar } from '@/components/ui/Calendar'
-import { MyTodoCard } from '@/components/todo/MyTodoCard'
+import { MyTodoCard } from './components/MyTodoCard'
 import { getTeams } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import { useHomeTodos } from '@/hooks/useHomeTodos'
-import { MONTHS_KO, DAYS_KO, pad } from '@/lib/dateUtils'
+import { MONTHS_EN, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Spinner } from '@/components/ui/Spinner'
 import type { TeamListItem } from '@/types/team.types'
 
@@ -76,7 +76,7 @@ export default function HomePage() {
   const selectedDateObj = new Date(selectedDate + 'T00:00:00')
   const dayNum = pad(selectedDateObj.getDate())
   const monthNum = pad(selectedDateObj.getMonth() + 1)
-  const monthKo = MONTHS_KO[selectedDateObj.getMonth()]
+  const monthEn = MONTHS_EN[selectedDateObj.getMonth()]
   const dayKo = DAYS_KO[selectedDateObj.getDay()]
 
   const completeCount = displayTodos.filter((t) => t.myStatus === '완료').length
@@ -114,12 +114,7 @@ export default function HomePage() {
 
   return (
     <>
-      <div
-        className="flex-1 flex flex-col min-h-0 animate-fade-up"
-        style={{
-          background: 'linear-gradient(160deg, #FFF0F5 0%, #F5EFFF 38%, #EEF8FF 68%, #F0FFF8 100%)',
-        }}
-      >
+      <div className="flex-1 flex flex-col min-h-0 animate-fade-up bg-white">
         <div className="shrink-0 relative">
           <div className="px-6 pt-6 pb-4 relative">
             <p className="text-[13px] font-semibold text-gray-400 mb-1 tracking-wide">{dayKo}</p>
@@ -129,7 +124,7 @@ export default function HomePage() {
               </span>
             </div>
             <div className="flex items-center justify-between mt-1">
-              <p className="text-[28px] font-black text-gray-900">{monthKo}</p>
+              <p className="text-[28px] font-black text-gray-900">{monthEn}</p>
               {displayTodos.length > 0 && (
                 <p className="text-[13px] font-semibold text-gray-400">
                   <span className="font-black text-gray-900">{completeCount}</span>/
@@ -141,7 +136,7 @@ export default function HomePage() {
               <p className="text-[13px] font-semibold text-gray-400 tracking-wide flex-1">
                 {isToday
                   ? '오늘의 할 일'
-                  : `${calendarYear}년 ${calendarMonth}월 ${selectedDateObj.getDate()}일`}
+                  : `${calendarYear}년 ${MONTHS_EN[calendarMonth - 1]} ${selectedDateObj.getDate()}일`}
               </p>
               <button
                 onClick={() => {
@@ -237,7 +232,13 @@ export default function HomePage() {
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-20 flex flex-col gap-3">
+        <div
+          className={`flex-1 px-4 pb-20 flex flex-col gap-3 ${
+            !historyLoading && !historyError && filteredTodos.length > 0
+              ? 'overflow-y-auto'
+              : 'overflow-hidden'
+          }`}
+        >
           {historyLoading ? (
             <div className="flex-1 flex items-center justify-center py-20">
               <Spinner variant="track" />

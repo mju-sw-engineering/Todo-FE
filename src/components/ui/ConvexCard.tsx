@@ -8,6 +8,7 @@ interface ConvexCardProps {
   bg: string
   className?: string
   onClick?: () => void
+  shadow?: boolean
 }
 
 let _uid = 0
@@ -60,7 +61,13 @@ function buildLensMap(w: number, h: number, bevel = 14): string {
   return canvas.toDataURL()
 }
 
-export function ConvexCard({ children, bg, className = '', onClick }: ConvexCardProps) {
+export function ConvexCard({
+  children,
+  bg,
+  className = '',
+  onClick,
+  shadow = true,
+}: ConvexCardProps) {
   const [filterId] = useState(() => `lg-${++_uid}`)
   const [mapUrl, setMapUrl] = useState('')
   const ref = useRef<HTMLDivElement>(null)
@@ -84,11 +91,13 @@ export function ConvexCard({ children, bg, className = '', onClick }: ConvexCard
         background: 'rgba(255,255,255,0.52)',
         backdropFilter: 'blur(20px) saturate(140%)',
         WebkitBackdropFilter: 'blur(20px) saturate(140%)',
-        boxShadow: [
-          '0 16px 48px rgba(0,0,0,0.12)',
-          '0 4px 14px rgba(0,0,0,0.07)',
-          '0 0 0 0.5px rgba(255,255,255,0.55)',
-        ].join(', '),
+        boxShadow: shadow
+          ? [
+              '0 16px 48px rgba(0,0,0,0.12)',
+              '0 4px 14px rgba(0,0,0,0.07)',
+              '0 0 0 0.5px rgba(255,255,255,0.55)',
+            ].join(', ')
+          : '0 0 0 0.5px rgba(255,255,255,0.55)',
       }}
     >
       {/* 캔버스 렌즈 맵 → SVG feDisplacementMap 필터 */}
