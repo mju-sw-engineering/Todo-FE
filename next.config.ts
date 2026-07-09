@@ -5,7 +5,19 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 's3.swe.bluerack.org',
+        hostname: '**.bluerack.org',
+      },
+      {
+        protocol: 'http',
+        hostname: '**.bluerack.org',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.sslip.io',
+      },
+      {
+        protocol: 'http',
+        hostname: '**.sslip.io',
       },
     ],
   },
