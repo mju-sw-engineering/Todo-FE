@@ -7,8 +7,8 @@ import { useAuth } from '@/store/authStore'
 import { MONTHS_KO, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Calendar } from '@/components/ui/Calendar'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import { AiEvaluationCard } from '@/components/todo/AiEvaluationCard'
-import { TeamTodoCard } from '@/components/todo/TeamTodoCard'
+import { AiEvaluationCard } from './components/AiEvaluationCard'
+import { TeamTodoCard } from './components/TeamTodoCard'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -60,12 +60,7 @@ function TodoListContent() {
   if (isLoading && displayTodos.length === 0) return <PageLoader />
 
   return (
-    <div
-      className="flex-1 flex flex-col overflow-hidden animate-fade-up"
-      style={{
-        background: 'linear-gradient(160deg, #FFF0F5 0%, #F5EFFF 38%, #EEF8FF 68%, #F0FFF8 100%)',
-      }}
-    >
+    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-white">
       <div className="relative shrink-0">
         <div className="px-5 pt-4 pb-3 flex items-center gap-3 border-b border-gray-100">
           <BackButton onClick={() => router.back()} />
@@ -162,7 +157,7 @@ function TodoListContent() {
           })}
         </div>
 
-        <div className="flex flex-col gap-3 px-4 pb-4">
+        <div className="flex flex-col gap-3 px-5 pb-4">
           {displayTodos.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20">
               <div className="animate-blob-float mb-3">

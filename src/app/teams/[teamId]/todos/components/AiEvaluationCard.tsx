@@ -20,7 +20,7 @@ export function AiEvaluationCard({ evaluation }: AiEvaluationCardProps) {
 
   if (evaluation === 'loading') {
     return (
-      <div className="mx-5 mb-4 rounded-2xl bg-gray-50 px-4 py-3 flex items-center justify-center h-14">
+      <div className="mx-5 mt-4 mb-4 rounded-2xl bg-gray-50 px-4 py-3 flex items-center justify-center h-14">
         <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
       </div>
     )
@@ -28,7 +28,7 @@ export function AiEvaluationCard({ evaluation }: AiEvaluationCardProps) {
 
   if (evaluation === 'error') {
     return (
-      <div className="mx-5 mb-4 rounded-2xl bg-gray-50 px-4 py-3.5 flex items-center gap-3">
+      <div className="mx-5 mt-4 mb-4 rounded-2xl bg-gray-50 px-4 py-3.5 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
           <span className="text-[18px] leading-none">✨</span>
         </div>
@@ -48,7 +48,7 @@ export function AiEvaluationCard({ evaluation }: AiEvaluationCardProps) {
 
   return (
     <div
-      className="mx-5 mb-4 rounded-2xl overflow-hidden"
+      className="mx-5 mt-4 mb-4 rounded-2xl overflow-hidden"
       style={{
         background: isDevil ? 'linear-gradient(135deg, #1A0610 0%, #3A0A28 100%)' : '#F5F5F5',
       }}

@@ -5,10 +5,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useTeamDetail } from '@/hooks/useTeamDetail'
 import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { TeamMembersCard } from '@/components/team/TeamMembersCard'
-import { StreakCard } from '@/components/team/StreakCard'
-import { TeamInviteSection } from '@/components/team/TeamInviteSection'
-import { StreakCelebration } from '@/components/ui/StreakCelebration'
+import { TeamMembersCard } from './components/TeamMembersCard'
+import { StreakCard } from './components/StreakCard'
+import { TeamInviteSection } from './components/TeamInviteSection'
+import { StreakCelebration } from './components/StreakCelebration'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -96,6 +96,16 @@ export default function TeamDetailPage() {
             onToast={showToast}
           />
         )}
+
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={() => setShowLeaveConfirm(true)}
+          disabled={isSubmitting}
+          className="mt-3 w-full"
+        >
+          팀 탈퇴
+        </Button>
       </div>
 
       <div className="px-5 py-4 border-t border-border flex flex-col gap-2">
@@ -104,14 +114,6 @@ export default function TeamDetailPage() {
         </Button>
         <Button variant="secondary" size="lg" onClick={() => router.push('/teams')}>
           목록으로
-        </Button>
-        <Button
-          variant="danger"
-          size="sm"
-          onClick={() => setShowLeaveConfirm(true)}
-          disabled={isSubmitting}
-        >
-          팀 탈퇴
         </Button>
       </div>
 

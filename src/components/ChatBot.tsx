@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { AiBlob } from '@/components/ui/BlobCharacter'
+import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { sendChatMessage } from '@/services/chatService'
 import type { ChatMessage } from '@/types/chat.types'
 import type { TeamListItem } from '@/types/team.types'
@@ -180,11 +181,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                 onClick={() => handleSelectTeam(team.teamId)}
                 className="flex items-center gap-4 px-4 py-4 rounded-[16px] border border-border bg-white hover:border-gray-300 hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] active:scale-[0.99] transition-all duration-150 text-left"
               >
-                <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <span className="text-[18px] font-bold text-gray-700">
-                    {team.teamName.charAt(0)}
-                  </span>
-                </div>
+                <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} size="md" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
                 </div>
@@ -311,7 +308,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault()
                   handleSend(input)
                 }
