@@ -4,10 +4,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { AuthInput } from '@/components/ui/AuthInput'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { AngelBlob, DevilBlob } from '@/components/ui/BlobCharacter'
-import { ApiError } from '@/lib/apiClient'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { getMyProfile, login } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
 
@@ -54,28 +55,24 @@ export default function LoginPage() {
 
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const { isLoading, error, run } = useAsyncTask()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setError('')
-    setIsLoading(true)
-    try {
-      const { accessToken } = await login({ loginId, password })
-      const profile = await getMyProfile(accessToken)
-      setAuth(accessToken, {
-        loginId,
-        nickname: profile.nickname,
-        profileImageUrl: profile.profileImageUrl,
-        userId: profile.userId,
-      })
-      router.push('/')
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : '로그인 중 오류가 발생했습니다.')
-    } finally {
-      setIsLoading(false)
-    }
+    await run(
+      async () => {
+        const { accessToken } = await login({ loginId, password })
+        const profile = await getMyProfile(accessToken)
+        setAuth(accessToken, {
+          loginId,
+          nickname: profile.nickname,
+          profileImageUrl: profile.profileImageUrl,
+          userId: profile.userId,
+        })
+        router.push('/')
+      },
+      { fallback: '로그인 중 오류가 발생했습니다.' }
+    )
   }
 
   return (
@@ -162,7 +159,7 @@ export default function LoginPage() {
       {/* 폼 바텀 시트 */}
       <div className="bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-10 flex flex-col gap-4">
         <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-          <AuthInput
+          <Input
             id="loginId"
             label="이메일"
             type="email"
@@ -171,7 +168,7 @@ export default function LoginPage() {
             placeholder="이메일을 입력해 주세요"
             required
           />
-          <AuthInput
+          <Input
             id="password"
             label="비밀번호"
             type="password"
@@ -185,14 +182,9 @@ export default function LoginPage() {
             <p className="text-[13px] text-red-400 bg-red-50 rounded-xl px-4 py-2.5">{error}</p>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full mt-1 py-3.75 rounded-[14px] text-[15px] font-semibold text-white transition-all duration-200 hover:opacity-85 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: isLoading ? '#999' : '#111' }}
-          >
+          <Button type="submit" size="lg" disabled={isLoading} className="mt-1">
             {isLoading ? '로그인 중...' : '로그인'}
-          </button>
+          </Button>
         </form>
 
         <p className="text-center text-[13px] text-gray-400">

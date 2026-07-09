@@ -2,10 +2,12 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
-import { AuthInput } from '@/components/ui/AuthInput'
+import { BackButton } from '@/components/ui/BackButton'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
 import { useVoice } from '@/hooks/useVoice'
-import { ApiError } from '@/lib/apiClient'
 import { createTeam } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import type { AiPersona } from '@/types/team.types'
@@ -19,8 +21,7 @@ export default function TeamNewPage() {
   const [teamImage, setTeamImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [aiPersona, setAiPersona] = useState<AiPersona | null>(null)
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const { isLoading, error, setError, run } = useAsyncTask()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const voice = useVoice()
 
@@ -49,38 +50,22 @@ export default function TeamNewPage() {
       return
     }
 
-    setIsLoading(true)
-    try {
-      let teamImageKey: string | null = null
-      if (teamImage) teamImageKey = await upload(teamImage)
-      const team = await createTeam({ teamName: teamName.trim(), teamImageKey, aiPersona }, token)
-      router.push(`/teams?created=1&teamId=${team.teamId}`)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : '팀 생성 중 오류가 발생했습니다.')
-    } finally {
-      setIsLoading(false)
-    }
+    await run(
+      async () => {
+        let teamImageKey: string | null = null
+        if (teamImage) teamImageKey = await upload(teamImage)
+        const team = await createTeam({ teamName: teamName.trim(), teamImageKey, aiPersona }, token)
+        router.push(`/teams?created=1&teamId=${team.teamId}`)
+      },
+      { fallback: '팀 생성 중 오류가 발생했습니다.' }
+    )
   }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.back()}
-            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors shrink-0"
-            aria-label="뒤로가기"
-          >
-            <svg
-              className="w-5 h-5 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+          <BackButton onClick={() => router.back()} />
           <div className="min-w-0">
             <h1 className="text-[20px] font-black text-ink leading-tight">팀 생성하기</h1>
             <p className="text-[12px] text-muted mt-0.5">팀 정보를 입력해 주세요</p>
@@ -90,7 +75,7 @@ export default function TeamNewPage() {
 
       <div className="flex-1 overflow-y-auto px-6 pb-4">
         <form id="team-new-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <AuthInput
+          <Input
             id="teamName"
             label="팀 이름"
             type="text"
@@ -110,7 +95,7 @@ export default function TeamNewPage() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="relative w-20 h-20 rounded-[14px] border-2 border-dashed border-border bg-input-bg flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-gray-400 hover:bg-gray-50"
+              className="relative w-20 h-20 rounded-[14px] border-2 border-dashed border-border bg-gray-50 flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-gray-400 hover:bg-gray-100"
             >
               {previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -297,21 +282,12 @@ export default function TeamNewPage() {
       </div>
 
       <div className="px-6 py-5 border-t border-border flex flex-col gap-3">
-        <button
-          type="submit"
-          form="team-new-form"
-          disabled={isLoading || isUploading}
-          className="w-full py-3.75 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_14px_rgba(0,0,0,0.18)]"
-        >
+        <Button type="submit" form="team-new-form" size="lg" disabled={isLoading || isUploading}>
           {isUploading ? '이미지 업로드 중...' : isLoading ? '생성 중...' : '완료'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="w-full py-3.75 bg-gray-100 text-gray-700 text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:bg-gray-200"
-        >
+        </Button>
+        <Button variant="secondary" size="lg" onClick={() => router.back()}>
           돌아가기
-        </button>
+        </Button>
       </div>
     </div>
   )

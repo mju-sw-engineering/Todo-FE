@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
-import { AuthButton } from '@/components/ui/AuthButton'
-import { AuthInput } from '@/components/ui/AuthInput'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
-import { ApiError } from '@/lib/apiClient'
 import { signup } from '@/services/authService'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png']
@@ -21,8 +21,7 @@ export default function SignupPage() {
   const [nickname, setNickname] = useState('')
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const { isLoading, error, setError, run } = useAsyncTask()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { upload, isUploading } = usePresignedUpload({ type: 'PROFILE' })
 
@@ -45,19 +44,17 @@ export default function SignupPage() {
     if (password.length < 6) return setError('비밀번호는 6자 이상이어야 합니다.')
     if (password !== passwordConfirm) return setError('비밀번호가 일치하지 않습니다.')
 
-    setIsLoading(true)
-    try {
-      let profileImageKey: string | null = null
-      if (profileImage) {
-        profileImageKey = await upload(profileImage)
-      }
-      await signup({ loginId, password, passwordConfirm, nickname, profileImageKey })
-      router.push('/login?registered=1')
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : '회원가입 중 오류가 발생했습니다.')
-    } finally {
-      setIsLoading(false)
-    }
+    await run(
+      async () => {
+        let profileImageKey: string | null = null
+        if (profileImage) {
+          profileImageKey = await upload(profileImage)
+        }
+        await signup({ loginId, password, passwordConfirm, nickname, profileImageKey })
+        router.push('/login?registered=1')
+      },
+      { fallback: '회원가입 중 오류가 발생했습니다.' }
+    )
   }
 
   const passwordMismatch = passwordConfirm.length > 0 && password !== passwordConfirm
@@ -82,7 +79,7 @@ export default function SignupPage() {
 
       <div className="flex-1 overflow-y-auto px-6 pt-7 pb-12">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <AuthInput
+          <Input
             id="loginId"
             label="이메일"
             type="email"
@@ -91,7 +88,7 @@ export default function SignupPage() {
             placeholder="이메일을 입력해 주세요"
             required
           />
-          <AuthInput
+          <Input
             id="password"
             label="비밀번호"
             type="password"
@@ -101,7 +98,7 @@ export default function SignupPage() {
             required
             hint={passwordTooShort ? '비밀번호는 6자 이상이어야 합니다.' : undefined}
           />
-          <AuthInput
+          <Input
             id="passwordConfirm"
             label="비밀번호 확인"
             type="password"
@@ -111,7 +108,7 @@ export default function SignupPage() {
             required
             hint={passwordMismatch ? '비밀번호가 일치하지 않습니다.' : undefined}
           />
-          <AuthInput
+          <Input
             id="nickname"
             label="닉네임"
             type="text"
@@ -172,9 +169,9 @@ export default function SignupPage() {
             <p className="text-sm text-red-400 bg-red-50 rounded-xl px-3.5 py-2.5">{error}</p>
           )}
 
-          <AuthButton disabled={isLoading || isUploading}>
+          <Button type="submit" size="lg" disabled={isLoading || isUploading}>
             {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '완료'}
-          </AuthButton>
+          </Button>
         </form>
 
         <Link
