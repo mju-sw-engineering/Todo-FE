@@ -3,15 +3,15 @@
 import { AnimatePresence } from 'framer-motion'
 import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { AVATAR_COLORS, getInitials } from '@/lib/formatters'
 import { useNewTodo } from '@/hooks/useNewTodo'
 import { useAuth } from '@/store/authStore'
-import { TimePicker } from '@/components/team/TimePicker'
+import { TimePicker } from './components/TimePicker'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Spinner } from '@/components/ui/Spinner'
+import { MemberAvatar } from '@/components/ui/MemberAvatar'
 
 function formatDisplayTime(value: string): string {
   if (!value) return ''
@@ -127,20 +127,19 @@ export default function TodoNewPage() {
             </div>
           ) : (
             <ul className="flex flex-col gap-2">
-              {members.map((member, idx) => {
+              {members.map((member) => {
                 const isExcluded = excludedIds.has(member.userId)
-                const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length]
                 return (
                   <li
                     key={member.userId}
                     className={`flex items-center justify-between bg-white rounded-[14px] border border-border px-4 py-3.5 transition-all duration-200 ${isExcluded ? 'opacity-40' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${avatarColor}`}
-                      >
-                        {getInitials(member.nickname)}
-                      </div>
+                      <MemberAvatar
+                        profileImageUrl={member.profileImageUrl}
+                        nickname={member.nickname}
+                        size={36}
+                      />
                       <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
                     </div>
                     {isExcluded ? (

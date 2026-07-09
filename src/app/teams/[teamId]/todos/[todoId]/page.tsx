@@ -8,7 +8,7 @@ import { useTodoDetail } from '@/hooks/useTodoDetail'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import { MemberCertCard } from '@/components/todo/MemberCertCard'
+import { MemberCertCard } from './components/MemberCertCard'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
 import type { MyTodoStatus } from '@/types/todo.types'
@@ -163,7 +163,7 @@ function TodoDetailContent() {
       <div className="flex-1 overflow-y-auto px-6 pb-4">
         <p className="text-[13px] font-semibold text-ink/60 mb-3">인증 현황</p>
         <div className="flex flex-col gap-3">
-          {todo.participants.map((member, idx) => {
+          {todo.participants.map((member) => {
             const byUserId = user?.userId ? member.userId === user.userId : false
             const byNickname =
               !byUserId && user?.nickname && user.nickname !== user.loginId
@@ -174,7 +174,6 @@ function TodoDetailContent() {
               <MemberCertCard
                 key={member.userId}
                 member={member}
-                index={idx}
                 isCurrentUser={isCurrentUser}
                 onCertify={navigateToCertify}
                 onReact={(type) => handleReact(member.todoParticipantId, type)}

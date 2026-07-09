@@ -3,8 +3,8 @@
 import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FiHeart } from 'react-icons/fi'
-import { AVATAR_COLORS, getInitials } from '@/lib/formatters'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { MemberAvatar } from '@/components/ui/MemberAvatar'
 import { ReactionEmoji } from '@/components/ui/ReactionEmoji'
 import type { MyTodoStatus, ReactionType, TodoParticipant } from '@/types/todo.types'
 
@@ -20,22 +20,14 @@ const CERT_BADGE_STYLE: Record<MyTodoStatus, string> = {
 
 interface MemberCertCardProps {
   member: TodoParticipant
-  index: number
   isCurrentUser: boolean
   onCertify: () => void
   onReact: (type: ReactionType) => void
 }
 
-export function MemberCertCard({
-  member,
-  index,
-  isCurrentUser,
-  onCertify,
-  onReact,
-}: MemberCertCardProps) {
+export function MemberCertCard({ member, isCurrentUser, onCertify, onReact }: MemberCertCardProps) {
   const [showPicker, setShowPicker] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
-  const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length]
   const status = member.status
   const isCompleted = status === '완료'
   const canCertify = isCurrentUser && status === '미완료'
@@ -55,20 +47,11 @@ export function MemberCertCard({
     >
       <div className="flex items-center justify-between px-4 pt-4 pb-3 bg-white">
         <div className="flex items-center gap-2.5">
-          {member.profileImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={member.profileImageUrl}
-              alt={member.nickname}
-              className="w-8 h-8 rounded-full object-cover shrink-0"
-            />
-          ) : (
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor}`}
-            >
-              {getInitials(member.nickname)}
-            </div>
-          )}
+          <MemberAvatar
+            profileImageUrl={member.profileImageUrl}
+            nickname={member.nickname}
+            size={32}
+          />
           <span className="text-[14px] font-semibold text-ink">{member.nickname}</span>
         </div>
         {status && (

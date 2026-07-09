@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ApiError } from '@/lib/apiClient'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { getTeamById } from '@/services/teamService'
 import { createTodo } from '@/services/todoService'
 import type { TeamMember } from '@/types/team.types'
@@ -21,8 +21,7 @@ export function useNewTodo(teamId: number, token: string | null) {
   const [deadline, setDeadline] = useState('')
   const [description, setDescription] = useState('')
   const [excludedIds, setExcludedIds] = useState<Set<number>>(new Set())
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const { isLoading, error, setError, run } = useAsyncTask()
 
   useEffect(() => {
     if (!token || !teamId) return
@@ -30,7 +29,7 @@ export function useNewTodo(teamId: number, token: string | null) {
       .then((team) => setMembers(team.members))
       .catch(() => setError('팀원 목록을 불러오지 못했습니다.'))
       .finally(() => setIsMembersLoading(false))
-  }, [token, teamId])
+  }, [token, teamId, setError])
 
   function toggleExclude(userId: number) {
     setExcludedIds((prev) => {
@@ -42,7 +41,6 @@ export function useNewTodo(teamId: number, token: string | null) {
   }
 
   async function handleSubmit() {
-    setError('')
     if (!title.trim()) {
       setError('제목을 입력해주세요.')
       return
@@ -62,24 +60,22 @@ export function useNewTodo(teamId: number, token: string | null) {
       return
     }
 
-    setIsLoading(true)
-    try {
-      await createTodo(
-        teamId,
-        {
-          title: title.trim(),
-          deadline: toIsoDeadline(deadline),
-          description: description.trim() || undefined,
-          assigneeIds,
-        },
-        token
-      )
-      router.push(`/teams/${teamId}/todos?created=1`)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : '할 일 생성 중 오류가 발생했습니다.')
-    } finally {
-      setIsLoading(false)
-    }
+    await run(
+      async () => {
+        await createTodo(
+          teamId,
+          {
+            title: title.trim(),
+            deadline: toIsoDeadline(deadline),
+            description: description.trim() || undefined,
+            assigneeIds,
+          },
+          token
+        )
+        router.push(`/teams/${teamId}/todos?created=1`)
+      },
+      { fallback: '할 일 생성 중 오류가 발생했습니다.' }
+    )
   }
 
   return {

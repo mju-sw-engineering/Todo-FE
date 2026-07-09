@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ApiError } from '@/lib/apiClient'
+import { getErrorMessage } from '@/lib/apiError'
 import { compressImageFile } from '@/lib/imageCompression'
 import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
 import type { PresignedUploadRequest } from '@/types/file.types'
@@ -36,7 +36,7 @@ export function usePresignedUpload({
       await uploadFileToStorage(uploadUrl, uploadFile)
       return objectKey
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : '파일 업로드에 실패했습니다.'
+      const message = getErrorMessage(err, '파일 업로드에 실패했습니다.')
       setError(message)
       throw new Error(message)
     } finally {

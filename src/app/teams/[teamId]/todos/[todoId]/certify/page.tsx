@@ -2,7 +2,7 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
-import { ApiError } from '@/lib/apiClient'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { compressImageFile } from '@/lib/imageCompression'
 import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
 import { submitTodo } from '@/services/todoService'
@@ -22,41 +22,35 @@ function CertifyContent() {
 
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const { isLoading: isSubmitting, error, setError, run } = useAsyncTask()
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0]
     if (!selected) return
     if (preview) URL.revokeObjectURL(preview)
     setFile(selected)
-    setError('')
+    setError(null)
     setPreview(URL.createObjectURL(selected))
     e.target.value = ''
   }
 
   async function handleSubmit() {
     if (!file || !token) return
-    setError('')
-    setIsSubmitting(true)
-    try {
-      const uploadFile = await compressImageFile(file)
-      const { uploadUrl, objectKey } = await getPresignedUploadUrl(
-        { type: 'PROOF', fileName: uploadFile.name, contentType: uploadFile.type },
-        token
-      )
-      await uploadFileToStorage(uploadUrl, uploadFile)
-      await submitTodo(todoId, { proofImageKey: objectKey }, token)
-      router.replace(
-        `/teams/${teamId}/todos/${todoId}?certified=1&myStatus=${encodeURIComponent('완료')}`
-      )
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : '인증샷 업로드에 실패했습니다. 다시 시도해주세요.'
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
+    await run(
+      async () => {
+        const uploadFile = await compressImageFile(file)
+        const { uploadUrl, objectKey } = await getPresignedUploadUrl(
+          { type: 'PROOF', fileName: uploadFile.name, contentType: uploadFile.type },
+          token
+        )
+        await uploadFileToStorage(uploadUrl, uploadFile)
+        await submitTodo(todoId, { proofImageKey: objectKey }, token)
+        router.replace(
+          `/teams/${teamId}/todos/${todoId}?certified=1&myStatus=${encodeURIComponent('완료')}`
+        )
+      },
+      { fallback: '인증샷 업로드에 실패했습니다. 다시 시도해주세요.' }
+    )
   }
 
   return (
