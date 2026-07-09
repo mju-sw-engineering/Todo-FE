@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full">
-      <body className="min-h-full">
+      <body className="h-full overflow-hidden">
         <Providers>
           <AuthProvider>{children}</AuthProvider>
         </Providers>

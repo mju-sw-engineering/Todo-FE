@@ -10,7 +10,6 @@
   --color-primary-light: #fff0f6;
   --color-surface: #fdfcfd;
   --color-border: #f5e0ec;
-  --color-input-bg: #fff5fb;
   --color-ink: #2a0f1c;
   --color-muted: #c4a0b5;
 
@@ -81,6 +80,13 @@
       background-position: 200% center;
     }
   }
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
