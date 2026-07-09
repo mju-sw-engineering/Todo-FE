@@ -19,14 +19,3 @@ export function parseAchievementCount(value: string): { achieved: number; total:
   }
   return { achieved: 0, total: 0 }
 }
-
-export const AVATAR_COLORS = [
-  'bg-[#C8E8FF] text-[#1A5A90]',
-  'bg-[#C8F0D0] text-[#1A6030]',
-  'bg-[#FFF0B3] text-[#7A5A00]',
-  'bg-[#FFD6E8] text-[#7A1A4A]',
-]
-
-export function getInitials(nickname: string): string {
-  return (nickname ?? '').trim().slice(0, 2)
-}
