@@ -33,7 +33,7 @@ export default function MyPage() {
   if (loading) return <PageLoader />
 
   return (
-    <>
+    <div className="flex-1 flex flex-col overflow-hidden">
       {toast && <Toast message={toast} />}
 
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-8 flex flex-col gap-4 animate-fade-up">
@@ -163,14 +163,17 @@ export default function MyPage() {
           )}
         </div>
 
-        <div className="flex flex-col gap-2 pt-2">
-          <Button variant="secondary" size="lg" onClick={() => setConfirm({ type: 'logout' })}>
-            로그아웃
-          </Button>
+        <div className="pt-2">
           <Button variant="danger" size="sm" onClick={() => setConfirm({ type: 'deleteAccount' })}>
             회원 탈퇴
           </Button>
         </div>
+      </div>
+
+      <div className="px-5 py-4 border-t border-border">
+        <Button variant="secondary" size="lg" onClick={() => setConfirm({ type: 'logout' })}>
+          로그아웃
+        </Button>
       </div>
 
       <AnimatePresence>
@@ -210,6 +213,6 @@ export default function MyPage() {
           />
         )}
       </AnimatePresence>
-    </>
+    </div>
   )
 }
