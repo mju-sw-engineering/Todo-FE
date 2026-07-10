@@ -136,7 +136,7 @@ export default function HomePage() {
               <p className="text-[13px] font-semibold text-gray-400 tracking-wide flex-1">
                 {isToday
                   ? '오늘의 할 일'
-                  : `${calendarYear}년 ${MONTHS_EN[calendarMonth - 1]} ${selectedDateObj.getDate()}일`}
+                  : `${MONTHS_EN[calendarMonth - 1]} ${selectedDateObj.getDate()}, ${calendarYear}`}
               </p>
               <button
                 onClick={() => {
