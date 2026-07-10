@@ -53,6 +53,7 @@ function TodoDetailContent() {
 
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
   const [showBubble, setShowBubble] = useState(false)
+  const [now] = useState(() => Date.now())
 
   useEffect(() => {
     const t = setTimeout(() => setShowBubble(true), 650)
@@ -83,7 +84,8 @@ function TodoDetailContent() {
 
   const { achieved, total } = parseAchievementCount(todo.achievementCount)
   const percentage = total > 0 ? Math.round((achieved / total) * 100) : 0
-  const canCertify = effectiveMyStatus === '미완료'
+  const isExpired = new Date(todo.deadline).getTime() < now
+  const canCertify = effectiveMyStatus === '미완료' && !isExpired
 
   function navigateToCertify() {
     router.push(`/teams/${teamId}/todos/${todoId}/certify?title=${encodeURIComponent(todo!.title)}`)
