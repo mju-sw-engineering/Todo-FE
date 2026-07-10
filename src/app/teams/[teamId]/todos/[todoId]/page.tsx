@@ -192,10 +192,10 @@ function TodoDetailContent() {
               `/teams/${teamId}/todos/${todoId}/chat?title=${encodeURIComponent(todo.title)}`
             )
           }
-          className="relative w-12 h-12 flex items-center justify-center rounded-[14px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200 shrink-0"
-          aria-label="채팅"
+          className="relative w-14 h-12 flex flex-col items-center justify-center gap-0.5 rounded-[14px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200 shrink-0"
+          aria-label="팀원과 채팅"
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
             <path
               d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H7l-4 3V4z"
               stroke="currentColor"
@@ -203,6 +203,7 @@ function TodoDetailContent() {
               strokeLinejoin="round"
             />
           </svg>
+          <span className="text-[9px] font-semibold leading-none">채팅</span>
           {chatUnreadCount > 0 && (
             <span className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center rounded-full bg-gray-900 text-white text-[10px] font-bold px-1 leading-none">
               {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
