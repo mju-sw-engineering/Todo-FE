@@ -1,7 +1,7 @@
 import { getJson, patchJson } from '@/lib/apiClient'
 import type { ChatRequest, ChatResponse, TodoChatMessagesResponse } from '@/types/chat.types'
 
-const AI_BASE_URL = 'https://ai.swe.bluerack.org'
+const AI_BASE_URL = 'https://ai.todo.bluerack.org'
 
 export async function sendChatMessage(request: ChatRequest, token: string): Promise<string> {
   const response = await fetch(`${AI_BASE_URL}/chat`, {
