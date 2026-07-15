@@ -97,6 +97,8 @@ body {
     sans-serif;
   background: #fdfcfd;
   color: #2a0f1c;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Prevent iOS Safari auto-zoom on input focus */
