@@ -64,7 +64,7 @@ export async function getHistoryTodos(
   token: string
 ): Promise<Todo[]> {
   const data = await getJson<Todo[] | null>(
-    `/api/teams/${teamId}/todos/history?date=${date}`,
+    `/api/teams/${teamId}/todos?date=${date}`,
     token
   )
   return data ?? []
