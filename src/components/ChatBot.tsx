@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { AiBlob } from '@/components/ui/BlobCharacter'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { sendChatMessage } from '@/services/chatService'
@@ -142,203 +143,210 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
         </button>
       )}
 
-      {/* 팀 선택 패널 */}
-      {showPicker && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white animate-fade-up">
-          <div className="flex justify-center pt-3 pb-1 shrink-0">
-            <div className="w-10 h-1 rounded-full bg-gray-200" />
-          </div>
-
-          <div className="flex items-center gap-3 px-5 py-3 border-b border-border shrink-0">
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0E1550] shrink-0">
-              <AiBlob size={40} />
-            </div>
-            <div className="flex-1">
-              <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
-              <p className="text-[12px] text-muted mt-0.5">대화할 팀을 선택해주세요</p>
-            </div>
-            <button
-              onClick={handleClose}
-              className="p-2 rounded-full hover:bg-surface transition-colors"
-              aria-label="닫기"
-            >
-              <svg
-                className="w-5 h-5 text-muted"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-2">
-            {teams?.map((team) => (
-              <button
-                key={team.teamId}
-                onClick={() => handleSelectTeam(team.teamId)}
-                className="flex items-center gap-4 px-4 py-4 rounded-[16px] border border-border bg-white hover:border-gray-300 hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] active:scale-[0.99] transition-all duration-150 text-left"
-              >
-                <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} size="md" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
-                </div>
-                <svg
-                  className="w-4 h-4 text-muted shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 챗봇 패널 */}
-      {showChat && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white animate-fade-up">
-          <div className="flex justify-center pt-3 pb-1 shrink-0">
-            <div className="w-10 h-1 rounded-full bg-gray-200" />
-          </div>
-
-          <div className="flex items-center gap-3 px-5 py-3 border-b border-border shrink-0">
-            {/* picker 모드에서 뒤로가기(팀 재선택) */}
-            {isPickerMode && (
-              <button
-                onClick={() => setSelectedTeamId(null)}
-                className="p-1.5 rounded-full hover:bg-surface transition-colors mr-[-4px]"
-                aria-label="팀 다시 선택"
-              >
-                <svg
-                  className="w-5 h-5 text-muted"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            )}
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0E1550] shrink-0">
-              <AiBlob size={40} />
-            </div>
-            <div className="flex-1">
-              <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                <p className="text-[12px] text-muted">
-                  {selectedTeam ? `${selectedTeam.teamName} · ` : ''}온라인 · 즉시 응답
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              className="p-2 rounded-full hover:bg-surface transition-colors"
-              aria-label="챗봇 닫기"
-            >
-              <svg
-                className="w-5 h-5 text-muted"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
-            {messages.map((msg, i) =>
-              msg.role === 'bot' ? (
-                <div key={i} className="flex gap-2.5 items-start">
-                  <BotAvatar />
-                  <div className="flex flex-col gap-1 max-w-[78%]">
-                    <div className="bg-surface rounded-2xl rounded-tl-sm px-4 py-3">
-                      <p className="text-[14px] text-ink leading-relaxed whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
-                    </div>
-                    <p className="text-[11px] text-muted ml-1">{formatTime(msg.time)}</p>
-                  </div>
-                </div>
-              ) : (
-                <div key={i} className="flex justify-end">
-                  <div className="flex flex-col gap-1 items-end max-w-[78%]">
-                    <div className="bg-gray-900 rounded-2xl rounded-tr-sm px-4 py-3">
-                      <p className="text-[14px] text-white leading-relaxed whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
-                    </div>
-                    <p className="text-[11px] text-muted mr-1">{formatTime(msg.time)}</p>
-                  </div>
-                </div>
-              )
-            )}
-            {isSending && <TypingIndicator />}
-            <div ref={bottomRef} />
-          </div>
-
-          <div
-            className="px-4 py-2.5 flex gap-2 overflow-x-auto shrink-0 border-t border-border"
-            style={{ scrollbarWidth: 'none' } as React.CSSProperties}
+      {/* 팀 선택 + 챗봇 패널: 하나의 시트로 유지하고 안쪽 내용만 전환 (깜빡임 방지) */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex flex-col bg-white"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
           >
-            {QUICK_ACTIONS.map((action) => (
-              <button
-                key={action}
-                onClick={() => handleSend(action)}
-                disabled={isSending}
-                className="shrink-0 px-3.5 py-2 bg-gray-100 text-gray-700 text-[13px] font-semibold rounded-full transition-colors hover:bg-gray-200 disabled:opacity-50"
-              >
-                {action}
-              </button>
-            ))}
-          </div>
+            <div className="flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-gray-200" />
+            </div>
 
-          <div className="px-4 py-3 flex gap-2 items-center shrink-0 border-t border-border">
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                  e.preventDefault()
-                  handleSend(input)
-                }
-              }}
-              placeholder="메시지를 입력하세요..."
-              className="flex-1 px-4 py-2.5 bg-surface rounded-full text-[14px] text-ink placeholder:text-muted outline-none border border-border focus:border-gray-900 transition-colors"
-            />
-            <button
-              onClick={() => handleSend(input)}
-              disabled={!input.trim() || isSending}
-              className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white transition-all hover:opacity-85 disabled:opacity-40 disabled:shadow-none shrink-0"
-              aria-label="전송"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.269 20.876L5.999 12zm0 0h7.5"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+            {showPicker ? (
+              <>
+                <div className="flex items-center gap-3 px-5 py-3 border-b border-border shrink-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0E1550] shrink-0">
+                    <AiBlob size={40} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
+                    <p className="text-[12px] text-muted mt-0.5">대화할 팀을 선택해주세요</p>
+                  </div>
+                  <button
+                    onClick={handleClose}
+                    className="p-2 rounded-full hover:bg-surface transition-colors"
+                    aria-label="닫기"
+                  >
+                    <svg
+                      className="w-5 h-5 text-muted"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-2">
+                  {teams?.map((team) => (
+                    <button
+                      key={team.teamId}
+                      onClick={() => handleSelectTeam(team.teamId)}
+                      className="flex items-center gap-4 px-4 py-4 rounded-[16px] border border-border bg-white hover:border-gray-300 hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] active:scale-[0.99] transition-all duration-150 text-left"
+                    >
+                      <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-semibold text-ink truncate">
+                          {team.teamName}
+                        </p>
+                      </div>
+                      <svg
+                        className="w-4 h-4 text-muted shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 px-5 py-3 border-b border-border shrink-0">
+                  {/* picker 모드에서 뒤로가기(팀 재선택) */}
+                  {isPickerMode && (
+                    <button
+                      onClick={() => setSelectedTeamId(null)}
+                      className="p-1.5 rounded-full hover:bg-surface transition-colors mr-[-4px]"
+                      aria-label="팀 다시 선택"
+                    >
+                      <svg
+                        className="w-5 h-5 text-muted"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0E1550] shrink-0">
+                    <AiBlob size={40} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                      <p className="text-[12px] text-muted">
+                        {selectedTeam ? `${selectedTeam.teamName} · ` : ''}온라인 · 즉시 응답
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleClose}
+                    className="p-2 rounded-full hover:bg-surface transition-colors"
+                    aria-label="챗봇 닫기"
+                  >
+                    <svg
+                      className="w-5 h-5 text-muted"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
+                  {messages.map((msg, i) =>
+                    msg.role === 'bot' ? (
+                      <div key={i} className="flex gap-2.5 items-start">
+                        <BotAvatar />
+                        <div className="flex flex-col gap-1 max-w-[78%]">
+                          <div className="bg-surface rounded-2xl rounded-tl-sm px-4 py-3">
+                            <p className="text-[14px] text-ink leading-relaxed whitespace-pre-wrap">
+                              {msg.content}
+                            </p>
+                          </div>
+                          <p className="text-[11px] text-muted ml-1">{formatTime(msg.time)}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div key={i} className="flex justify-end">
+                        <div className="flex flex-col gap-1 items-end max-w-[78%]">
+                          <div className="bg-gray-900 rounded-2xl rounded-tr-sm px-4 py-3">
+                            <p className="text-[14px] text-white leading-relaxed whitespace-pre-wrap">
+                              {msg.content}
+                            </p>
+                          </div>
+                          <p className="text-[11px] text-muted mr-1">{formatTime(msg.time)}</p>
+                        </div>
+                      </div>
+                    )
+                  )}
+                  {isSending && <TypingIndicator />}
+                  <div ref={bottomRef} />
+                </div>
+
+                <div
+                  className="px-4 py-2.5 flex gap-2 overflow-x-auto shrink-0 border-t border-border"
+                  style={{ scrollbarWidth: 'none' } as React.CSSProperties}
+                >
+                  {QUICK_ACTIONS.map((action) => (
+                    <button
+                      key={action}
+                      onClick={() => handleSend(action)}
+                      disabled={isSending}
+                      className="shrink-0 px-3.5 py-2 bg-gray-100 text-gray-700 text-[13px] font-semibold rounded-full transition-colors hover:bg-gray-200 disabled:opacity-50"
+                    >
+                      {action}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="px-4 py-3 flex gap-2 items-center shrink-0 border-t border-border">
+                  <input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                        e.preventDefault()
+                        handleSend(input)
+                      }
+                    }}
+                    placeholder="메시지를 입력하세요..."
+                    className="flex-1 px-4 py-2.5 bg-surface rounded-full text-[14px] text-ink placeholder:text-muted outline-none border border-border focus:border-gray-900 transition-colors"
+                  />
+                  <button
+                    onClick={() => handleSend(input)}
+                    disabled={!input.trim() || isSending}
+                    className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white transition-all hover:opacity-85 disabled:opacity-40 disabled:shadow-none shrink-0"
+                    aria-label="전송"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.269 20.876L5.999 12zm0 0h7.5"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
