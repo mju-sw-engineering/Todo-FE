@@ -2,6 +2,7 @@
 
 import { AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useMyPage } from '@/hooks/useMyPage'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { Toast } from '@/components/ui/Toast'
@@ -163,7 +164,13 @@ export default function MyPage() {
           )}
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 flex flex-col gap-3">
+          <Link
+            href="/privacy"
+            className="text-[13px] text-muted hover:text-ink transition-colors px-1"
+          >
+            개인정보처리방침
+          </Link>
           <Button variant="danger" size="sm" onClick={() => setConfirm({ type: 'deleteAccount' })}>
             회원 탈퇴
           </Button>
