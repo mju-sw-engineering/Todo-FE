@@ -29,8 +29,47 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Container CI/CD
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Pull requests targeting `main` run `npm ci`, lint, and the production Next.js
+build. A push to `main` builds a standalone production image and publishes both
+of these tags:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `ghcr.io/mju-sw-engineering/todo-fe:latest`
+- `ghcr.io/mju-sw-engineering/todo-fe:<commit-sha>`
+
+After the image is published, GitHub Actions calls the Coolify deploy webhook.
+The image listens on port `3000` and runs as the non-root `node` user.
+
+### GitHub configuration
+
+Create this Actions repository variable:
+
+- `NEXT_PUBLIC_API_URL`: public production API origin used by browser code
+
+Create these Actions repository secrets:
+
+- `COOLIFY_FE_WEBHOOK_URL`: deploy webhook of the image-based Coolify resource
+- `COOLIFY_API_TOKEN`: Coolify API token with deploy permission
+
+`NEXT_PUBLIC_API_URL` is compiled into the browser bundle during `next build`.
+Changing it requires publishing a new image. Server-only secrets such as
+`ELEVENLABS_API_KEY` must not be passed as Docker build arguments.
+
+### Coolify migration
+
+1. Create a Docker image resource using
+   `ghcr.io/mju-sw-engineering/todo-fe:latest`.
+2. Configure the container port as `3000` and add `ELEVENLABS_API_KEY` as a
+   runtime environment variable.
+3. If the GHCR package is private, configure registry credentials with package
+   read permission.
+4. Copy the new resource's deploy webhook into `COOLIFY_FE_WEBHOOK_URL`.
+5. Deploy and verify the image resource before moving `todo.bluerack.org` to it.
+6. After the new resource is healthy, disable the previous Git-source Auto
+   Deploy and remove the old GitHub push webhook to prevent duplicate deploys.
+
+For the first rollout, the image publish step completes before the workflow
+checks the Coolify secrets. If the image resource and its webhook do not exist
+yet, the final deploy step can fail while still leaving the initial GHCR image
+available. Configure the resource and secrets, then rerun the workflow.
