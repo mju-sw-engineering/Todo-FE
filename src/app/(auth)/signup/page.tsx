@@ -63,16 +63,7 @@ export default function SignupPage() {
   return (
     <div className="flex-1 flex flex-col bg-white animate-fade-up">
       {/* Top header */}
-      <div className="relative px-6 pt-10 pb-6 text-center border-b border-border overflow-hidden">
-        <div className="absolute top-5 left-5 animate-blob-float opacity-60">
-          <BlobAvatar seed="signup-deco-1" size={26} />
-        </div>
-        <div
-          className="absolute top-3 right-5 animate-blob-float opacity-50"
-          style={{ animationDelay: '1s' }}
-        >
-          <BlobAvatar seed="signup-deco-2" size={22} />
-        </div>
+      <div className="px-6 pt-10 pb-6 text-center border-b border-border">
         <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">회원가입</h1>
         <p className="text-[13px] text-gray-400 mt-1">반가워요! 팀과 함께해요</p>
       </div>
@@ -154,7 +145,7 @@ export default function SignupPage() {
               )}
             </button>
             {!previewUrl && nickname && (
-              <p className="text-[11px] text-gray-400 mt-1.5">기본 캐릭터가 사용됩니다</p>
+              <p className="text-[11px] text-gray-400 mt-1.5">기본 아바타가 사용됩니다</p>
             )}
             <input
               ref={fileInputRef}

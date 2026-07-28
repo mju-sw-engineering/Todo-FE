@@ -6,7 +6,6 @@ import { useTeamTodos } from '@/hooks/useTeamTodos'
 import { useAuth } from '@/store/authStore'
 import { MONTHS_KO, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Calendar } from '@/components/ui/Calendar'
-import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { AiEvaluationCard } from './components/AiEvaluationCard'
 import { TeamTodoCard } from './components/TeamTodoCard'
 import { BackButton } from '@/components/ui/BackButton'
@@ -160,9 +159,16 @@ function TodoListContent() {
         <div className="flex flex-col gap-3 px-5 pb-4">
           {displayTodos.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20">
-              <div className="animate-blob-float mb-3">
-                <BlobAvatar seed="empty-team-todos" size={72} expressionOverride={3} />
-              </div>
+              <svg
+                className="w-10 h-10 text-gray-300 mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path strokeLinecap="round" d="M8 8h8M8 12h8M8 16h5" />
+              </svg>
               <p className="text-[15px] font-bold text-gray-900">
                 {isToday ? '오늘 할 일이 없어요' : '이 날 할 일이 없어요'}
               </p>

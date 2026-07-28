@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ChatBot } from '@/components/ChatBot'
-import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { Calendar } from '@/components/ui/Calendar'
 import { MyTodoCard } from './components/MyTodoCard'
 import { getTeams } from '@/services/teamService'
@@ -12,14 +11,6 @@ import { useHomeTodos } from '@/hooks/useHomeTodos'
 import { MONTHS_EN, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Spinner } from '@/components/ui/Spinner'
 import type { TeamListItem } from '@/types/team.types'
-
-function getCompletionExpression(pct: number): number {
-  if (pct === 100) return 1
-  if (pct >= 75) return 0
-  if (pct >= 50) return 4
-  if (pct >= 25) return 2
-  return 3
-}
 
 function getCompletionMessage(pct: number, total: number): string {
   if (total === 0) return '할 일을 추가해봐요!'
@@ -82,7 +73,6 @@ export default function HomePage() {
   const completeCount = displayTodos.filter((t) => t.myStatus === '완료').length
   const completionPct =
     displayTodos.length > 0 ? Math.round((completeCount / displayTodos.length) * 100) : 0
-  const mascotExpr = getCompletionExpression(completionPct)
   const speechMsg = getCompletionMessage(completionPct, displayTodos.length)
 
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
@@ -168,23 +158,9 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div className="absolute top-4 right-4 flex items-center gap-2">
-              <div className="relative bg-white rounded-xl px-3 py-1.5 shadow-sm border border-gray-100">
+            <div className="absolute top-4 right-4">
+              <div className="bg-white rounded-xl px-3 py-1.5 shadow-sm border border-gray-100">
                 <p className="text-[11px] font-bold text-gray-700 whitespace-nowrap">{speechMsg}</p>
-                <svg
-                  className="absolute top-1/2 -right-2 -translate-y-1/2"
-                  width="8"
-                  height="12"
-                  viewBox="0 0 8 12"
-                  fill="none"
-                >
-                  <path d="M0 0 L0 12 L8 6 Z" fill="white" />
-                  <path d="M0 0.5 L7.5 6" stroke="rgba(0,0,0,0.07)" strokeWidth="0.7" />
-                  <path d="M0 11.5 L7.5 6" stroke="rgba(0,0,0,0.07)" strokeWidth="0.7" />
-                </svg>
-              </div>
-              <div className="animate-blob-float shrink-0">
-                <BlobAvatar seed="home-mascot" size={52} expressionOverride={mascotExpr} />
               </div>
             </div>
           </div>
@@ -255,9 +231,16 @@ export default function HomePage() {
             </div>
           ) : displayTodos.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-2 py-20">
-              <div className="animate-blob-float mb-1">
-                <BlobAvatar seed="empty-home" size={72} expressionOverride={3} />
-              </div>
+              <svg
+                className="w-10 h-10 text-gray-300 mb-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path strokeLinecap="round" d="M8 8h8M8 12h8M8 16h5" />
+              </svg>
               {isToday ? (
                 <>
                   <p className="text-[15px] font-bold text-gray-900">오늘 할 일이 없어요</p>

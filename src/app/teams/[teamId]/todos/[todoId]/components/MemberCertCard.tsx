@@ -2,8 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FiHeart } from 'react-icons/fi'
-import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { FiClock, FiHeart } from 'react-icons/fi'
 import { MemberAvatar } from '@/components/ui/MemberAvatar'
 import { ReactionEmoji } from '@/components/ui/ReactionEmoji'
 import type { MyTodoStatus, ReactionType, TodoParticipant } from '@/types/todo.types'
@@ -84,9 +83,7 @@ export function MemberCertCard({ member, isCurrentUser, onCertify, onReact }: Me
           </div>
         ) : (
           <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
-            <div className="animate-blob-float">
-              <BlobAvatar seed={member.nickname} size={64} expressionOverride={3} />
-            </div>
+            <FiClock size={28} className="text-gray-300" />
             <span className="text-[11px] font-semibold text-gray-400">아직 완료 전...</span>
           </div>
         )}
