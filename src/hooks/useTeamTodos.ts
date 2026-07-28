@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getDailyEvaluation } from '@/services/teamService'
 import { getHistoryTodos, getTeamTodoReport } from '@/services/todoService'
 import { pad } from '@/lib/dateUtils'
-import type { DailyEvaluationResponse } from '@/types/team.types'
 import type { Todo } from '@/types/todo.types'
 
 export type TeamTodoTabType = 'all' | 'incomplete' | 'complete'
@@ -22,9 +20,6 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
   const [isLoading, setIsLoading] = useState(true)
   const [tab, setTab] = useState<TeamTodoTabType>('all')
   const [showToast, setShowToast] = useState(initialShowToast)
-  const [aiEvaluation, setAiEvaluation] = useState<DailyEvaluationResponse | 'error' | 'loading'>(
-    'loading'
-  )
 
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(todayStr)
@@ -56,13 +51,6 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
     }
     load()
   }, [selectedDate, teamId, token])
-
-  useEffect(() => {
-    if (!token || !teamId) return
-    getDailyEvaluation(teamId, token)
-      .then((res) => setAiEvaluation(res))
-      .catch(() => setAiEvaluation('error'))
-  }, [token, teamId])
 
   useEffect(() => {
     if (!calendarOpen || !token || !teamId) return
@@ -118,7 +106,6 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
     tab,
     setTab,
     showToast,
-    aiEvaluation,
     calendarOpen,
     setCalendarOpen,
     selectedDate,
