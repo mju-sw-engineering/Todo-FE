@@ -7,7 +7,6 @@ import { useAuth } from '@/store/authStore'
 import { MONTHS_KO, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Calendar } from '@/components/ui/Calendar'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import { AiEvaluationCard } from './components/AiEvaluationCard'
 import { TeamTodoCard } from './components/TeamTodoCard'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
@@ -33,7 +32,6 @@ function TodoListContent() {
     tab,
     setTab,
     showToast,
-    aiEvaluation,
     calendarOpen,
     setCalendarOpen,
     selectedDate,
@@ -133,8 +131,6 @@ function TodoListContent() {
           </>
         )}
       </div>
-
-      {isToday && <AiEvaluationCard evaluation={aiEvaluation} />}
 
       <div className="flex-1 overflow-y-auto pb-4 flex flex-col">
         <div className="flex gap-1.5 px-5 py-3 shrink-0">
