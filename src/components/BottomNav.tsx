@@ -39,6 +39,23 @@ function TodoIcon({ active }: { active: boolean }) {
   )
 }
 
+function FeedIcon({ active }: { active: boolean }) {
+  const c = active ? '#111111' : '#9CA3AF'
+  const sw = active ? 2.2 : 1.8
+  return (
+    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 3c3 3.2 5 6.4 5 9a5 5 0 0 1-10 0c0-1 .3-2 1-3.2.4 1 1 1.6 1.7 1.6C10.4 9 10 6.6 12 3Z"
+        stroke={c}
+        strokeWidth={sw}
+        strokeLinejoin="round"
+        fill={c}
+        fillOpacity={active ? 0.1 : 0}
+      />
+    </svg>
+  )
+}
+
 function TeamIcon({ active }: { active: boolean }) {
   const c = active ? '#111111' : '#9CA3AF'
   const sw = active ? 2.2 : 1.8
@@ -77,12 +94,14 @@ export function BottomNav() {
 
   const todoActive = pathname === '/'
   const teamsActive = pathname.startsWith('/teams')
+  const feedActive = pathname.startsWith('/feed')
   const myPageActive = pathname.startsWith('/mypage')
 
   function navigate(path: string) {
     const isSamePage =
       (path === '/' && pathname === '/') ||
       (path === '/teams' && pathname.startsWith('/teams')) ||
+      (path === '/feed' && pathname.startsWith('/feed')) ||
       (path === '/mypage' && pathname.startsWith('/mypage'))
 
     if (isSamePage) return
@@ -118,6 +137,21 @@ export function BottomNav() {
           className={`text-[11px] font-semibold ${teamsActive ? 'text-gray-900' : 'text-gray-400'}`}
         >
           팀
+        </span>
+      </button>
+
+      <button
+        onClick={() => navigate('/feed')}
+        className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
+      >
+        {feedActive && (
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
+        )}
+        <FeedIcon active={feedActive} />
+        <span
+          className={`text-[11px] font-semibold ${feedActive ? 'text-gray-900' : 'text-gray-400'}`}
+        >
+          피드
         </span>
       </button>
 
