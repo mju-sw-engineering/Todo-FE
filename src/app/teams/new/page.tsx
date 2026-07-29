@@ -7,11 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
-import { useVoice } from '@/hooks/useVoice'
 import { createTeam } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
-import type { AiPersona } from '@/types/team.types'
-import { AngelBlob, DevilBlob } from '@/components/ui/BlobCharacter'
 
 export default function TeamNewPage() {
   const router = useRouter()
@@ -20,10 +17,8 @@ export default function TeamNewPage() {
   const [teamName, setTeamName] = useState('')
   const [teamImage, setTeamImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [aiPersona, setAiPersona] = useState<AiPersona | null>(null)
   const { isLoading, error, setError, run } = useAsyncTask()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const voice = useVoice()
 
   const { upload, isUploading } = usePresignedUpload({ type: 'TEAM', token: token ?? undefined })
 
@@ -41,10 +36,6 @@ export default function TeamNewPage() {
       setError('팀 이름을 입력해주세요')
       return
     }
-    if (!aiPersona) {
-      setError('AI 페르소나를 선택해주세요')
-      return
-    }
     if (!token) {
       setError('로그인이 필요합니다.')
       return
@@ -54,7 +45,7 @@ export default function TeamNewPage() {
       async () => {
         let teamImageKey: string | null = null
         if (teamImage) teamImageKey = await upload(teamImage)
-        const team = await createTeam({ teamName: teamName.trim(), teamImageKey, aiPersona }, token)
+        const team = await createTeam({ teamName: teamName.trim(), teamImageKey }, token)
         router.push(`/teams?created=1&teamId=${team.teamId}`)
       },
       { fallback: '팀 생성 중 오류가 발생했습니다.' }
@@ -125,159 +116,9 @@ export default function TeamNewPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-[13px] font-semibold text-gray-700 tracking-wide">
-              팀 가이드 AI 선택
-            </span>
-            <div className="flex flex-col gap-3">
-              {(
-                [
-                  {
-                    persona: 'DEVIL' as AiPersona,
-                    name: '악마 AI',
-                    tagline: '엄격한 채찍 멘토',
-                    desc: '게으름은 절대 용납 불가. 목표를 향해 가차 없이 몰아붙여요.',
-                    bg: 'linear-gradient(135deg, #2D0A1A 0%, #4A1030 55%, #3D0A20 100%)',
-                    ring: 'ring-gray-900',
-                    isLight: false,
-                  },
-                  {
-                    persona: 'ANGEL' as AiPersona,
-                    name: '천사 AI',
-                    tagline: '따뜻한 응원 멘토',
-                    desc: '칭찬과 격려로 함께 성장해요. 작은 노력도 놓치지 않아요.',
-                    bg: 'linear-gradient(135deg, #FFF8FC 0%, #FFE8F4 55%, #FFF0F9 100%)',
-                    ring: 'ring-gray-900',
-                    isLight: true,
-                  },
-                ] as const
-              ).map(({ persona, name, tagline, desc, bg, ring, isLight }) => {
-                const selected = aiPersona === persona
-                const isVoicePlaying = voice.isPlaying && voice.activePersona === persona
-                const isVoiceLoading = voice.isLoading && voice.activePersona === persona
-                return (
-                  <div
-                    key={persona}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => {
-                      setAiPersona(persona)
-                      if (error === 'AI 페르소나를 선택해주세요') setError('')
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        setAiPersona(persona)
-                        if (error === 'AI 페르소나를 선택해주세요') setError('')
-                      }
-                    }}
-                    className={`relative w-full rounded-2xl overflow-hidden transition-all duration-200 ring-offset-2 cursor-pointer ${
-                      selected
-                        ? `ring-2 ${ring} scale-[1.015] shadow-[0_8px_28px_rgba(0,0,0,0.12)]`
-                        : 'shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]'
-                    }`}
-                    style={{ background: bg }}
-                  >
-                    <div className="flex items-center gap-3 px-4 py-4">
-                      {/* Blob character */}
-                      <div className="shrink-0 animate-blob-float">
-                        {persona === 'DEVIL' ? <DevilBlob size={72} /> : <AngelBlob size={72} />}
-                      </div>
-
-                      {/* Text */}
-                      <div className="flex-1 text-left min-w-0">
-                        <p
-                          className={`text-[17px] font-black leading-tight ${isLight ? 'text-ink' : 'text-white'}`}
-                        >
-                          {name}
-                        </p>
-                        <p
-                          className={`text-[12px] font-semibold mt-0.5 ${isLight ? 'text-gray-500' : 'text-[#FFAAC8]'}`}
-                        >
-                          {tagline}
-                        </p>
-                        <p
-                          className={`text-[11px] leading-relaxed mt-1.5 ${isLight ? 'text-muted' : 'text-white/60'}`}
-                        >
-                          {desc}
-                        </p>
-                      </div>
-
-                      {/* Right: check + play */}
-                      <div className="flex flex-col items-center gap-2 shrink-0">
-                        <div
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                            selected
-                              ? 'bg-white border-transparent shadow-sm'
-                              : 'border-white/40 bg-transparent'
-                          }`}
-                        >
-                          {selected && (
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                              <path
-                                d="M2 6l3 3 5-5"
-                                stroke="#111"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            voice.toggle({ persona, isSample: true })
-                          }}
-                          disabled={voice.isLoading && !isVoiceLoading}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-150 active:scale-90 disabled:opacity-40"
-                          style={{
-                            background: isVoicePlaying
-                              ? isLight
-                                ? '#111'
-                                : 'rgba(255,255,255,0.25)'
-                              : isLight
-                                ? 'rgba(0,0,0,0.07)'
-                                : 'rgba(255,255,255,0.12)',
-                            color: isVoicePlaying ? 'white' : isLight ? '#333' : 'white',
-                          }}
-                        >
-                          {isVoiceLoading ? (
-                            <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                          ) : isVoicePlaying ? (
-                            <>
-                              <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
-                                <rect x="0.5" y="0.5" width="2.5" height="8" rx="1" />
-                                <rect x="6" y="0.5" width="2.5" height="8" rx="1" />
-                              </svg>
-                              정지
-                            </>
-                          ) : (
-                            <>
-                              <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
-                                <path d="M1.5 1l6.5 3.5-6.5 3.5V1z" />
-                              </svg>
-                              듣기
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            {error === 'AI 페르소나를 선택해주세요' && (
-              <p className="text-xs text-red-400">{error}</p>
-            )}
-          </div>
-
-          {error &&
-            error !== '팀 이름을 입력해주세요' &&
-            error !== 'AI 페르소나를 선택해주세요' && (
-              <p className="text-xs text-red-400 text-center">{error}</p>
-            )}
+          {error && error !== '팀 이름을 입력해주세요' && (
+            <p className="text-xs text-red-400 text-center">{error}</p>
+          )}
         </form>
       </div>
 

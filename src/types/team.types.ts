@@ -3,7 +3,6 @@ export type AiPersona = 'DEVIL' | 'ANGEL'
 export interface CreateTeamRequest {
   teamName: string
   teamImageKey?: string | null
-  aiPersona: AiPersona
 }
 
 export interface CreateTeamResponse {
@@ -11,7 +10,6 @@ export interface CreateTeamResponse {
   teamName: string
   teamImage: string | null
   inviteCode: string
-  aiPersona: AiPersona
   leaderId: number
   consecutiveTodoCount: number
   createdAt: string
