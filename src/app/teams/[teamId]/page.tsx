@@ -7,6 +7,7 @@ import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { TeamMembersCard } from './components/TeamMembersCard'
 import { StreakCard } from './components/StreakCard'
+import { FeedVisibilityCard } from './components/FeedVisibilityCard'
 import { TeamInviteSection } from './components/TeamInviteSection'
 import { StreakCelebration } from './components/StreakCelebration'
 import { BackButton } from '@/components/ui/BackButton'
@@ -87,6 +88,8 @@ export default function TeamDetailPage() {
         />
 
         <StreakCard continuousTodoCount={team.continuousTodoCount} />
+
+        <FeedVisibilityCard isLeader={myRole === 'LEADER'} />
 
         {token && (
           <TeamInviteSection
