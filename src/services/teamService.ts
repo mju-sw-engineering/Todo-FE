@@ -3,7 +3,6 @@ import { cachedRequest, invalidateCache } from '@/lib/requestCache'
 import type {
   CreateTeamRequest,
   CreateTeamResponse,
-  DailyEvaluationResponse,
   JoinTeamRequest,
   JoinTeamResponse,
   TeamDetailResponse,
@@ -19,17 +18,6 @@ export async function getTeamById(teamId: number, token: string): Promise<TeamDe
     `team:${teamId}`,
     () => getJson<TeamDetailResponse>(`/api/teams/${teamId}`, token),
     60_000
-  )
-}
-
-export async function getDailyEvaluation(
-  teamId: number,
-  token: string
-): Promise<DailyEvaluationResponse> {
-  return cachedRequest(
-    `eval:${teamId}`,
-    () => getJson<DailyEvaluationResponse>(`/api/teams/${teamId}/daily-evaluation`, token),
-    300_000
   )
 }
 

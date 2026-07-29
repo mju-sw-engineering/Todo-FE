@@ -1,5 +1,3 @@
-export type AiPersona = 'DEVIL' | 'ANGEL'
-
 export interface CreateTeamRequest {
   teamName: string
   teamImageKey?: string | null
@@ -13,12 +11,6 @@ export interface CreateTeamResponse {
   leaderId: number
   consecutiveTodoCount: number
   createdAt: string
-}
-
-export interface DailyEvaluationResponse {
-  date: string
-  persona: AiPersona
-  message: string
 }
 
 export interface JoinTeamRequest {
