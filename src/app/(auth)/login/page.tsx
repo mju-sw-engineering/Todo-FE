@@ -53,11 +53,11 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
           <Input
             id="loginId"
-            label="이메일"
-            type="email"
+            label="아이디"
+            type="text"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
-            placeholder="이메일을 입력해 주세요"
+            placeholder="아이디를 입력해 주세요"
             required
           />
           <Input
