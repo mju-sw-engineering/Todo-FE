@@ -1,5 +1,8 @@
 import { getJson, postJson } from '@/lib/apiClient'
 import type {
+  EmailVerificationSendRequest,
+  EmailVerificationVerifyRequest,
+  EmailVerificationVerifyResponse,
   LoginRequest,
   LoginResponse,
   MyProfileResponse,
@@ -9,6 +12,16 @@ import type {
 
 export async function login(request: LoginRequest): Promise<LoginResponse> {
   return postJson<LoginResponse>('/api/auth/login', request)
+}
+
+export async function sendEmailVerification(request: EmailVerificationSendRequest): Promise<void> {
+  return postJson<void>('/api/auth/email/send', request)
+}
+
+export async function verifyEmailCode(
+  request: EmailVerificationVerifyRequest
+): Promise<EmailVerificationVerifyResponse> {
+  return postJson<EmailVerificationVerifyResponse>('/api/auth/email/verify', request)
 }
 
 export async function signup(request: SignupRequest): Promise<SignupResponse> {

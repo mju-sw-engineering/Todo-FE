@@ -7,7 +7,6 @@ import { parseAchievementCount, formatDeadline } from '@/lib/formatters'
 import { useTodoDetail } from '@/hooks/useTodoDetail'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
-import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { MemberCertCard } from './components/MemberCertCard'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -246,14 +245,20 @@ function TodoDetailContent() {
               onClick={(e) => e.stopPropagation()}
             >
               <motion.div
-                animate={{ y: [0, -16, 0, -10, 0] }}
-                transition={{ delay: 0.25, duration: 0.85, times: [0, 0.3, 0.55, 0.78, 1] }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.15, type: 'spring', damping: 12, stiffness: 260 }}
+                className="w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center"
               >
-                <BlobAvatar
-                  seed={user?.nickname ?? 'celebrate'}
-                  size={110}
-                  expressionOverride={1}
-                />
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 12.5l5 5L20 6.5"
+                    stroke="white"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </motion.div>
               <div className="bg-white rounded-3xl px-8 py-5 text-center shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
                 <p className="text-[22px] font-black text-gray-900">인증 완료!</p>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AiBlob } from '@/components/ui/BlobCharacter'
+import { AiIcon } from '@/components/ui/BlobCharacter'
 import { TeamAvatar } from '@/components/ui/TeamAvatar'
 import { sendChatMessage } from '@/services/chatService'
 import type { ChatMessage } from '@/types/chat.types'
@@ -17,7 +17,7 @@ interface ChatBotProps {
 function BotAvatar() {
   return (
     <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-[#0E1550]">
-      <AiBlob size={36} />
+      <AiIcon size={20} />
     </div>
   )
 }
@@ -139,7 +139,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
           style={{ background: 'linear-gradient(135deg,#2C3EA8 0%,#1A2778 100%)' }}
           aria-label="AI 챗봇 열기"
         >
-          <AiBlob size={44} />
+          <AiIcon size={22} />
         </button>
       )}
 
@@ -161,7 +161,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
               <>
                 <div className="flex items-center gap-3 px-5 py-3 border-b border-border shrink-0">
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0E1550] shrink-0">
-                    <AiBlob size={40} />
+                    <AiIcon size={20} />
                   </div>
                   <div className="flex-1">
                     <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
@@ -232,7 +232,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                     </button>
                   )}
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0E1550] shrink-0">
-                    <AiBlob size={40} />
+                    <AiIcon size={20} />
                   </div>
                   <div className="flex-1">
                     <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>

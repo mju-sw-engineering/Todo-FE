@@ -98,10 +98,6 @@ export default function TodoChatPage() {
         ref={listRef}
         className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 min-h-0 relative"
       >
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <BlobAvatar seed={title} size={200} className="opacity-[0.045]" />
-        </div>
-
         {isLoadingHistory ? (
           <div className="flex-1 flex items-center justify-center">
             <Spinner />
