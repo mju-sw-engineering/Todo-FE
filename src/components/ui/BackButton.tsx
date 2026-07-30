@@ -13,7 +13,7 @@ export function BackButton({ onClick, className = '' }: BackButtonProps) {
       aria-label="뒤로가기"
     >
       <svg
-        className="w-5 h-5 text-gray-500"
+        className="w-5 h-5 text-muted"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"

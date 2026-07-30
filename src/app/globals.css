@@ -4,14 +4,37 @@
 @theme {
   --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* ── Pastel Rose/Coral system (replaces purple) ── */
-  --color-primary: #d05b8e;
-  --color-primary-hover: #bc4a7a;
-  --color-primary-light: #fff0f6;
-  --color-surface: #fdfcfd;
-  --color-border: #f5e0ec;
-  --color-ink: #2a0f1c;
-  --color-muted: #c4a0b5;
+  /* ── dnd-13th-9-frontend design system palette ── */
+  --color-primary-50: #669aff;
+  --color-primary-55: #4b8bff;
+  --color-secondary-50: #fba907;
+  --color-secondary-10: #fff3d9;
+  --color-static-black: #000000;
+  --color-static-white: #ffffff;
+  --color-status-red: #ff6648;
+  --color-neutral-20: #f7f7f7;
+  --color-neutral-30: #f4f4f4;
+  --color-neutral-40: #e9e9ec;
+  --color-neutral-50: #d3d3d3;
+  --color-neutral-60: #ababab;
+  --color-neutral-70: #818181;
+  --color-neutral-80: #707070;
+  --color-neutral-90: #555555;
+  --color-neutral-100: #333333;
+  --color-neutral-110: #111111;
+  --color-neutral-120: #010101;
+  --color-coolGray-20: #f0f5fb;
+  --color-coolGray-50: #a3abbe;
+  --color-coolGray-80: #3e3f48;
+
+  /* Semantic aliases used throughout the app, now sourced from the palette above */
+  --color-primary: var(--color-primary-50);
+  --color-primary-hover: var(--color-primary-55);
+  --color-primary-light: var(--color-coolGray-20);
+  --color-surface: var(--color-neutral-20);
+  --color-border: var(--color-neutral-40);
+  --color-ink: var(--color-neutral-110);
+  --color-muted: var(--color-neutral-70);
 
   --animate-fade-up: fade-up 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
   --animate-emoji-pop: emoji-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -95,8 +118,8 @@ body {
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
-  background: #fdfcfd;
-  color: #2a0f1c;
+  background: #f7f7f7;
+  color: #111111;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -108,12 +131,21 @@ select {
   font-size: 16px;
 }
 
+/* Hide scrollbar but keep scrolling */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 /* Gradient button utility */
 .btn-gradient {
-  background: linear-gradient(135deg, #d05b8e 0%, #ff8c7a 100%);
+  background: linear-gradient(135deg, #669aff 0%, #4b8bff 100%);
 }
 .btn-gradient:hover {
-  background: linear-gradient(135deg, #bc4a7a 0%, #f07060 100%);
+  background: linear-gradient(135deg, #4b8bff 0%, #3a7bff 100%);
 }
 
 /* Pastel card backgrounds */

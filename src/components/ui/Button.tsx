@@ -12,10 +12,10 @@ const SIZE = {
 
 const VARIANT = {
   primary:
-    'bg-gray-900 text-white hover:opacity-85 hover:-translate-y-px active:scale-[0.99] disabled:translate-y-0',
-  secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-  danger: 'text-red-500 hover:text-red-600',
-  outline: 'border border-border text-ink hover:border-gray-900 hover:text-gray-900',
+    'bg-primary text-white hover:bg-primary-hover hover:-translate-y-px active:scale-[0.99] disabled:translate-y-0',
+  secondary: 'bg-neutral-30 text-neutral-100 hover:bg-neutral-40',
+  danger: 'bg-status-red/10 text-status-red hover:bg-status-red/15',
+  outline: 'border border-border text-ink hover:border-primary hover:text-primary',
 }
 
 export function Button({
