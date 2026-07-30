@@ -257,10 +257,7 @@ function Inner({ count, teamId, onDismiss }: Props) {
           </div>
 
           {/* Stamp grid — scrollable */}
-          <div
-            className="flex-1 overflow-y-auto"
-            style={{ scrollbarWidth: 'none' } as React.CSSProperties}
-          >
+          <div className="scrollbar-hidden flex-1 overflow-y-auto">
             <div className="px-5 pt-4 pb-3">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[12px] font-bold text-gray-800">30일 스탬프 카드</p>
@@ -309,7 +306,7 @@ function Inner({ count, teamId, onDismiss }: Props) {
               type="button"
               onClick={toggleHideToday}
               className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 ${
-                hideToday ? 'bg-gray-900 border-gray-900' : 'border-gray-300 bg-white'
+                hideToday ? 'bg-primary border-primary' : 'border-gray-300 bg-white'
               }`}
             >
               {hideToday && (
@@ -344,7 +341,7 @@ function Inner({ count, teamId, onDismiss }: Props) {
               initial={{ scaleX: 1 }}
               animate={{ scaleX: 0 }}
               transition={{ delay: 0.1, duration: (DISMISS_MS - 100) / 1000, ease: 'linear' }}
-              className="h-full origin-left bg-gray-900"
+              className="h-full origin-left bg-primary"
             />
           </div>
         </motion.div>

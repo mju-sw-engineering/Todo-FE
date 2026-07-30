@@ -16,7 +16,7 @@ export default function MainError({ error, reset }: { error: Error; reset: () =>
       <div className="flex gap-3">
         <button
           onClick={reset}
-          className="px-4 py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-xl"
+          className="px-4 py-2 text-[13px] font-semibold text-white bg-primary rounded-xl"
         >
           다시 시도
         </button>

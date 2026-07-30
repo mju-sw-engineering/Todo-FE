@@ -6,7 +6,7 @@ import { useAuth } from '@/store/authStore'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 
 function TodoIcon({ active }: { active: boolean }) {
-  const c = active ? '#111111' : '#9CA3AF'
+  const c = active ? '#669aff' : '#818181'
   const sw = active ? 2.2 : 1.8
   return (
     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
@@ -40,7 +40,7 @@ function TodoIcon({ active }: { active: boolean }) {
 }
 
 function FeedIcon({ active }: { active: boolean }) {
-  const c = active ? '#111111' : '#9CA3AF'
+  const c = active ? '#669aff' : '#818181'
   const sw = active ? 2.2 : 1.8
   return (
     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
@@ -57,7 +57,7 @@ function FeedIcon({ active }: { active: boolean }) {
 }
 
 function TeamIcon({ active }: { active: boolean }) {
-  const c = active ? '#111111' : '#9CA3AF'
+  const c = active ? '#669aff' : '#818181'
   const sw = active ? 2.2 : 1.8
   return (
     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
@@ -109,18 +109,16 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="h-16 shrink-0 bg-white border-t border-gray-200 flex">
+    <nav className="h-16 shrink-0 bg-white border-t border-border flex">
       <button
         onClick={() => navigate('/')}
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
       >
         {todoActive && (
-          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
         )}
         <TodoIcon active={todoActive} />
-        <span
-          className={`text-[11px] font-semibold ${todoActive ? 'text-gray-900' : 'text-gray-400'}`}
-        >
+        <span className={`text-[11px] font-semibold ${todoActive ? 'text-primary' : 'text-muted'}`}>
           투두
         </span>
       </button>
@@ -130,11 +128,11 @@ export function BottomNav() {
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
       >
         {teamsActive && (
-          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
         )}
         <TeamIcon active={teamsActive} />
         <span
-          className={`text-[11px] font-semibold ${teamsActive ? 'text-gray-900' : 'text-gray-400'}`}
+          className={`text-[11px] font-semibold ${teamsActive ? 'text-primary' : 'text-muted'}`}
         >
           팀
         </span>
@@ -145,12 +143,10 @@ export function BottomNav() {
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
       >
         {feedActive && (
-          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
         )}
         <FeedIcon active={feedActive} />
-        <span
-          className={`text-[11px] font-semibold ${feedActive ? 'text-gray-900' : 'text-gray-400'}`}
-        >
+        <span className={`text-[11px] font-semibold ${feedActive ? 'text-primary' : 'text-muted'}`}>
           피드
         </span>
       </button>
@@ -160,7 +156,7 @@ export function BottomNav() {
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-opacity duration-200 active:opacity-70 relative"
       >
         {myPageActive && (
-          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gray-900" />
+          <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
         )}
         <div className="w-8 h-8 rounded-full overflow-hidden">
           {user?.profileImageUrl ? (
@@ -176,7 +172,7 @@ export function BottomNav() {
           )}
         </div>
         <span
-          className={`text-[11px] font-semibold ${myPageActive ? 'text-gray-900' : 'text-gray-400'}`}
+          className={`text-[11px] font-semibold ${myPageActive ? 'text-primary' : 'text-muted'}`}
         >
           내 정보
         </span>

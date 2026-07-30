@@ -82,7 +82,7 @@ export default function TodoNewPage() {
               setShowTimePicker(true)
               if (error) setError('')
             }}
-            className={`w-full px-4 py-3.25 rounded-[14px] border-[1.5px] text-[14px] text-left transition-all duration-200 ${deadline ? 'border-gray-900 bg-white text-ink font-medium' : 'border-border bg-white text-muted font-light'}`}
+            className={`w-full px-4 py-3.25 rounded-[14px] border-[1.5px] text-[14px] text-left transition-all duration-200 ${deadline ? 'border-primary bg-white text-ink font-medium' : 'border-border bg-white text-muted font-light'}`}
           >
             <div className="flex items-center justify-between">
               <span>{deadline ? formatDisplayTime(deadline) : '시간을 선택해주세요'}</span>
@@ -152,7 +152,7 @@ export default function TodoNewPage() {
                     ) : (
                       <button
                         onClick={() => toggleExclude(member.userId)}
-                        className="px-4 py-1.5 rounded-[10px] border border-border text-[13px] font-semibold text-ink transition-all duration-200 hover:border-gray-900 hover:text-gray-900"
+                        className="px-4 py-1.5 rounded-[10px] border border-border text-[13px] font-semibold text-ink transition-all duration-200 hover:border-primary hover:text-primary"
                       >
                         제외
                       </button>
@@ -165,7 +165,9 @@ export default function TodoNewPage() {
         </div>
 
         {error && (
-          <p className="text-[13px] text-red-400 bg-red-50 rounded-[10px] px-4 py-2.5">{error}</p>
+          <p className="text-[13px] text-status-red bg-status-red/10 rounded-[10px] px-4 py-2.5">
+            {error}
+          </p>
         )}
       </div>
 

@@ -88,7 +88,7 @@ function TodoListContent() {
                     setCalendarMonth(selectedDateObj.getMonth() + 1)
                   }
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all duration-200 ${calendarOpen ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all duration-200 ${calendarOpen ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
               >
                 <svg
                   className="w-3.5 h-3.5"
@@ -144,7 +144,7 @@ function TodoListContent() {
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${tab === key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${tab === key ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
               >
                 {label} {count}
               </button>
@@ -206,7 +206,7 @@ function TodoListContent() {
       )}
 
       {showToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-gray-900 text-white text-[13px] font-bold text-center py-3.5 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] animate-fade-up z-50">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-ink text-white text-[13px] font-bold text-center py-3.5 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] animate-fade-up z-50">
           할 일이 추가되었습니다
         </div>
       )}

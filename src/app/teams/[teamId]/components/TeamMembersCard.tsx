@@ -72,7 +72,7 @@ export function TeamMembersCard({
                       <button
                         onClick={() => onKick(member)}
                         disabled={isSubmitting}
-                        className="shrink-0 text-[12px] font-semibold text-red-500 bg-red-50 px-2.5 py-1 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                        className="shrink-0 text-[12px] font-semibold text-status-red bg-status-red/10 px-2.5 py-1 rounded-lg hover:bg-status-red/15 transition-colors disabled:opacity-50"
                       >
                         탈퇴
                       </button>

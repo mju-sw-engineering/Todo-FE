@@ -42,17 +42,24 @@ function TeamsContent() {
   if (isLoading) return <PageLoader />
 
   return (
-    <div className="flex-1 flex flex-col animate-fade-up">
-      <div className="flex-1 overflow-y-auto px-5 pt-5 flex flex-col">
+    <div className="flex-1 flex flex-col animate-fade-up bg-white">
+      <div className="flex-1 overflow-y-auto px-5 pt-6 flex flex-col">
+        <div className="mb-2 pb-4">
+          <h1 className="text-[20px] font-black text-ink leading-tight">팀</h1>
+          <p className="text-[12px] text-muted mt-0.5">참여 중인 팀을 확인하고 관리하세요</p>
+        </div>
+
         {error && (
-          <p className="text-sm text-red-400 bg-red-50 rounded-[14px] px-4 py-3 mb-4">{error}</p>
+          <p className="text-sm text-status-red bg-status-red/10 rounded-[14px] px-4 py-3 mb-4">
+            {error}
+          </p>
         )}
 
         {teams.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2">
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-2">
               <svg
-                className="w-7 h-7 text-gray-400"
+                className="w-7 h-7 text-gray-300"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

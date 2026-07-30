@@ -136,7 +136,7 @@ export default function HomePage() {
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all duration-200 ${
                 calendarOpen
-                  ? 'bg-gray-900 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
@@ -196,7 +196,7 @@ export default function HomePage() {
             key={key}
             onClick={() => setTab(key)}
             className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${
-              tab === key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              tab === key ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             }`}
           >
             {label} {count}
@@ -243,7 +243,7 @@ export default function HomePage() {
                 <p className="text-[13px] text-gray-400">팀에서 할 일을 추가해보세요</p>
                 <button
                   onClick={() => router.push('/teams')}
-                  className="mt-4 px-6 py-2.5 bg-gray-900 text-white text-[14px] font-semibold rounded-xl transition-all duration-200 active:scale-95 hover:opacity-85"
+                  className="mt-4 px-6 py-2.5 bg-primary text-white text-[14px] font-semibold rounded-xl transition-all duration-200 active:scale-95 hover:opacity-85"
                 >
                   내 팀 보기
                 </button>

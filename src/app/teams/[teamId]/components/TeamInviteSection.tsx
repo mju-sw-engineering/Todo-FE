@@ -91,13 +91,13 @@ export function TeamInviteSection({ teamId, token, inviteCode, onToast }: TeamIn
                 onChange={(e) => setInviteEmail(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
                 placeholder="example@email.com"
-                className="flex-1 border border-border rounded-xl px-3 py-2.5 text-[14px] text-ink focus:outline-none focus:border-gray-900 transition-colors"
+                className="flex-1 border border-border rounded-xl px-3 py-2.5 text-[14px] text-ink focus:outline-none focus:border-primary transition-colors"
                 disabled={inviting}
               />
               <button
                 onClick={handleInvite}
                 disabled={inviting || !inviteEmail.trim()}
-                className="px-4 py-2.5 bg-gray-900 text-white text-[13px] font-semibold rounded-xl disabled:opacity-50 transition-opacity hover:opacity-85 shrink-0"
+                className="px-4 py-2.5 bg-primary text-white text-[13px] font-semibold rounded-xl disabled:opacity-50 transition-opacity hover:opacity-85 shrink-0"
               >
                 {inviting ? '발송 중' : '초대'}
               </button>

@@ -66,7 +66,7 @@ export function Calendar({
           aria-label="이전 달"
         >
           <svg
-            className="w-3.5 h-3.5 text-gray-500"
+            className="w-3.5 h-3.5 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -85,7 +85,7 @@ export function Calendar({
           aria-label="다음 달"
         >
           <svg
-            className="w-3.5 h-3.5 text-gray-500"
+            className="w-3.5 h-3.5 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -130,7 +130,7 @@ export function Calendar({
                 className={`w-6 h-6 flex items-center justify-center rounded-full text-[12px] font-semibold transition-colors
                   ${
                     isSelected
-                      ? 'bg-gray-900 text-white'
+                      ? 'bg-primary text-white'
                       : isToday
                         ? 'ring-1 ring-gray-400 text-gray-900'
                         : isFuture

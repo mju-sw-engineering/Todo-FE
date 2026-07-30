@@ -18,7 +18,7 @@ export default function TeamsLayout({ children }: { children: React.ReactNode })
   if (!isInitialized || !token) {
     return (
       <div className="h-dvh max-w-97.5 mx-auto flex items-center justify-center">
-        <div className="w-8 h-8 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }

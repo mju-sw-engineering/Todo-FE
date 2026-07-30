@@ -20,7 +20,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   if (!isInitialized || !user) {
     return (
       <div className="h-dvh max-w-97.5 mx-auto flex items-center justify-center">
-        <div className="w-8 h-8 border-[3px] border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin" />
       </div>
     )
   }

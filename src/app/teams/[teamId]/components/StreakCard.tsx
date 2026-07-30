@@ -63,7 +63,7 @@ export function StreakCard({ continuousTodoCount }: StreakCardProps) {
               <div
                 key={threshold}
                 className={`w-1.5 rounded-sm transition-all duration-300 ${
-                  continuousTodoCount >= threshold ? 'bg-gray-900' : 'bg-border'
+                  continuousTodoCount >= threshold ? 'bg-primary' : 'bg-border'
                 }`}
                 style={{ height: `${10 + i * 4}px` }}
               />

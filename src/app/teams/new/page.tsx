@@ -132,7 +132,7 @@ export default function TeamNewPage() {
                 aria-label="피드에 공개"
                 onClick={() => setIsFeedPublic((p) => !p)}
                 className={`shrink-0 w-10 h-6 rounded-full relative transition-colors duration-200 ${
-                  isFeedPublic ? 'bg-gray-900' : 'bg-gray-200'
+                  isFeedPublic ? 'bg-primary' : 'bg-gray-200'
                 }`}
               >
                 <span
@@ -145,7 +145,7 @@ export default function TeamNewPage() {
           </div>
 
           {error && error !== '팀 이름을 입력해주세요' && (
-            <p className="text-xs text-red-400 text-center">{error}</p>
+            <p className="text-xs text-status-red text-center">{error}</p>
           )}
         </form>
       </div>

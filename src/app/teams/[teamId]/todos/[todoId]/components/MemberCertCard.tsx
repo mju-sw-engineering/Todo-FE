@@ -13,7 +13,7 @@ const CERT_BADGE_LABEL: Record<MyTodoStatus, string> = {
 }
 
 const CERT_BADGE_STYLE: Record<MyTodoStatus, string> = {
-  완료: 'bg-gray-900 text-white',
+  완료: 'bg-primary text-white',
   미완료: 'bg-gray-100 text-gray-400',
 }
 
@@ -149,7 +149,7 @@ export function MemberCertCard({ member, isCurrentUser, onCertify, onReact }: Me
               onClick={() => setShowPicker((v) => !v)}
               className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-150 active:scale-90 ${
                 showPicker
-                  ? 'bg-gray-900 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-white/85 backdrop-blur-sm text-gray-500 hover:bg-white'
               }`}
             >

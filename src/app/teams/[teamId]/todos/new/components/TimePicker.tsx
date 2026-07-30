@@ -118,7 +118,7 @@ export function TimePicker({ value, onChange, onClose }: TimePickerProps) {
               type="button"
               onClick={() => handleAmpm(p)}
               className={`flex-1 py-2.5 rounded-[11px] text-[14px] font-semibold transition-all duration-200 ${
-                ampm === p ? 'bg-white text-gray-900 shadow-sm' : 'text-muted'
+                ampm === p ? 'bg-white text-ink shadow-sm' : 'text-muted'
               }`}
             >
               {p === 'AM' ? '오전' : '오후'}
@@ -138,7 +138,7 @@ export function TimePicker({ value, onChange, onClose }: TimePickerProps) {
                 disabled={disabled}
                 className={`py-2.5 rounded-[10px] text-[14px] font-semibold transition-all duration-150 ${
                   hour === h && !disabled
-                    ? 'bg-gray-900 text-white'
+                    ? 'bg-primary text-white'
                     : disabled
                       ? 'bg-surface text-muted/40 cursor-not-allowed line-through'
                       : 'bg-surface text-ink hover:bg-gray-100'
@@ -162,7 +162,7 @@ export function TimePicker({ value, onChange, onClose }: TimePickerProps) {
                 disabled={disabled}
                 className={`py-2.5 rounded-[10px] text-[14px] font-semibold transition-all duration-150 ${
                   minute === m && !disabled
-                    ? 'bg-gray-900 text-white'
+                    ? 'bg-primary text-white'
                     : disabled
                       ? 'bg-surface text-muted/40 cursor-not-allowed line-through'
                       : 'bg-surface text-ink hover:bg-gray-100'
@@ -178,7 +178,7 @@ export function TimePicker({ value, onChange, onClose }: TimePickerProps) {
           type="button"
           onClick={confirm}
           disabled={confirmDisabled}
-          className="w-full py-4 bg-gray-900 text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           확인
         </button>

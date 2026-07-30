@@ -71,7 +71,9 @@ export default function LoginPage() {
           />
 
           {error && (
-            <p className="text-[13px] text-red-400 bg-red-50 rounded-xl px-4 py-2.5">{error}</p>
+            <p className="text-[13px] text-status-red bg-status-red/10 rounded-xl px-4 py-2.5">
+              {error}
+            </p>
           )}
 
           <Button type="submit" size="lg" disabled={isLoading} className="mt-1">

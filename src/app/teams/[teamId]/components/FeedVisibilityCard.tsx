@@ -30,7 +30,7 @@ export function FeedVisibilityCard({ isLeader }: FeedVisibilityCardProps) {
           disabled={!isLeader}
           onClick={() => setIsPublic((p) => !p)}
           className={`shrink-0 w-10 h-6 rounded-full relative transition-colors duration-200 ${
-            isPublic ? 'bg-gray-900' : 'bg-gray-200'
+            isPublic ? 'bg-primary' : 'bg-gray-200'
           } ${isLeader ? '' : 'opacity-60'}`}
         >
           <span

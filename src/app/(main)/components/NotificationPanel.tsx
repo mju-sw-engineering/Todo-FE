@@ -135,7 +135,7 @@ function NotificationItem({
           {formatRelativeTime(notification.createdAt)}
         </p>
       </div>
-      {!notification.isRead && <span className="w-2 h-2 rounded-full bg-gray-900 shrink-0" />}
+      {!notification.isRead && <span className="w-2 h-2 rounded-full bg-primary shrink-0" />}
     </button>
   )
 }
@@ -209,7 +209,7 @@ export function NotificationBell() {
       <div className="overflow-y-auto flex-1 divide-y divide-border">
         {isLoading && notifications.length === 0 ? (
           <div className="flex items-center justify-center py-10">
-            <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : notifications.length === 0 ? (
           <p className="text-[13px] text-muted text-center py-10">알림이 없어요</p>
@@ -243,7 +243,7 @@ export function NotificationBell() {
         className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
         aria-label="알림"
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-gray-700">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-muted">
           <path
             d="M10 2a6 6 0 00-6 6v3.5L2.5 14h15L16 11.5V8a6 6 0 00-6-6z"
             stroke="currentColor"
@@ -258,7 +258,7 @@ export function NotificationBell() {
           />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 min-w-4 h-4 flex items-center justify-center rounded-full bg-gray-900 text-white text-[10px] font-bold px-1 leading-none">
+          <span className="absolute top-0.5 right-0.5 min-w-4 h-4 flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold px-1 leading-none">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
