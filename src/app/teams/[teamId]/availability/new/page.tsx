@@ -1,23 +1,27 @@
 'use client'
 
+import { AnimatePresence } from 'framer-motion'
 import { useParams, useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { AvailabilityCalendarSheet } from './components/AvailabilityCalendarSheet'
+import { RangeTimeSheet } from './components/RangeTimeSheet'
 
 const WEEKDAY_SHORT = ['일', '월', '화', '수', '목', '금', '토']
 
-function buildDateOptions() {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() + i)
-    return {
-      key: `${d.getMonth() + 1}/${d.getDate()}`,
-      label: WEEKDAY_SHORT[d.getDay()],
-      date: `${d.getMonth() + 1}/${d.getDate()}`,
-    }
-  })
+function formatDateChip(dateStr: string): string {
+  const [, m, d] = dateStr.split('-').map(Number)
+  const dow = new Date(dateStr).getDay()
+  return `${WEEKDAY_SHORT[dow]} ${m}/${d}`
+}
+
+function formatDisplayTime(value: string): string {
+  if (!value) return ''
+  const [h, m] = value.split(':').map(Number)
+  const label = h < 12 ? '오전' : '오후'
+  return `${label} ${h % 12 || 12}:${m.toString().padStart(2, '0')}`
 }
 
 export default function AvailabilityEventNewPage() {
@@ -25,19 +29,15 @@ export default function AvailabilityEventNewPage() {
   const params = useParams()
   const teamId = Number(params.teamId)
 
-  const dateOptions = useMemo(() => buildDateOptions(), [])
-
   const [title, setTitle] = useState('')
   const [selectedDates, setSelectedDates] = useState<string[]>([])
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('21:00')
   const [error, setError] = useState('')
 
-  function toggleDate(key: string) {
-    setSelectedDates((prev) =>
-      prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key]
-    )
-  }
+  const [showCalendarSheet, setShowCalendarSheet] = useState(false)
+  const [showStartTimeSheet, setShowStartTimeSheet] = useState(false)
+  const [showEndTimeSheet, setShowEndTimeSheet] = useState(false)
 
   function handleSubmit() {
     if (!title.trim()) return setError('이벤트 이름을 입력해주세요')
@@ -77,51 +77,78 @@ export default function AvailabilityEventNewPage() {
           <span className="text-[13px] font-semibold text-gray-700 tracking-wide">
             가능 날짜 선택
           </span>
-          <div className="flex flex-wrap gap-2">
-            {dateOptions.map((opt) => {
-              const selected = selectedDates.includes(opt.key)
-              return (
-                <button
-                  key={opt.key}
-                  type="button"
-                  onClick={() => {
-                    toggleDate(opt.key)
-                    if (error) setError('')
-                  }}
-                  className={`text-[13px] font-semibold px-3.5 py-2 rounded-full border transition-colors duration-150 ${
-                    selected
-                      ? 'bg-gray-900 border-gray-900 text-white'
-                      : 'bg-white border-border text-muted hover:border-gray-400'
-                  }`}
+          <button
+            type="button"
+            onClick={() => {
+              setShowCalendarSheet(true)
+              if (error) setError('')
+            }}
+            className={`w-full px-4 py-3.25 rounded-[14px] border-[1.5px] text-[14px] text-left transition-all duration-200 ${selectedDates.length > 0 ? 'border-primary bg-white text-ink font-medium' : 'border-border bg-white text-muted font-light'}`}
+          >
+            <div className="flex items-center justify-between">
+              <span>
+                {selectedDates.length > 0
+                  ? `${selectedDates.length}일 선택됨`
+                  : '캘린더에서 날짜를 선택해주세요'}
+              </span>
+              <svg
+                className="w-4 h-4 text-muted shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <rect x="3.5" y="4.5" width="17" height="16" rx="3" />
+                <path strokeLinecap="round" d="M8 2.5v4M16 2.5v4M3.5 9.5h17" />
+              </svg>
+            </div>
+          </button>
+
+          {selectedDates.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-0.5">
+              {selectedDates.map((d) => (
+                <span
+                  key={d}
+                  className="text-[12px] font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary"
                 >
-                  {opt.label} {opt.date}
-                </button>
-              )
-            })}
-          </div>
+                  {formatDateChip(d)}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
           <span className="text-[13px] font-semibold text-gray-700 tracking-wide">시간 범위</span>
           <div className="flex items-center gap-2.5">
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="flex-1 min-w-0 text-center px-3 py-3 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink outline-none transition-all duration-200 focus:border-gray-900 focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
-            />
+            <button
+              type="button"
+              onClick={() => {
+                setShowStartTimeSheet(true)
+                if (error) setError('')
+              }}
+              className="flex-1 min-w-0 text-center px-3 py-3 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink transition-all duration-200 hover:border-primary"
+            >
+              {formatDisplayTime(startTime)}
+            </button>
             <span className="text-[13px] text-muted shrink-0">~</span>
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="flex-1 min-w-0 text-center px-3 py-3 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink outline-none transition-all duration-200 focus:border-gray-900 focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
-            />
+            <button
+              type="button"
+              onClick={() => {
+                setShowEndTimeSheet(true)
+                if (error) setError('')
+              }}
+              className="flex-1 min-w-0 text-center px-3 py-3 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink transition-all duration-200 hover:border-primary"
+            >
+              {formatDisplayTime(endTime)}
+            </button>
           </div>
         </div>
 
         {error && (
-          <p className="text-sm text-red-400 bg-red-50 rounded-xl px-3.5 py-2.5">{error}</p>
+          <p className="text-sm text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
+            {error}
+          </p>
         )}
       </div>
 
@@ -130,6 +157,38 @@ export default function AvailabilityEventNewPage() {
           이벤트 만들기
         </Button>
       </div>
+
+      <AnimatePresence>
+        {showCalendarSheet && (
+          <AvailabilityCalendarSheet
+            selectedDates={selectedDates}
+            onConfirm={setSelectedDates}
+            onClose={() => setShowCalendarSheet(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showStartTimeSheet && (
+          <RangeTimeSheet
+            title="시작 시간 선택"
+            value={startTime}
+            onChange={setStartTime}
+            onClose={() => setShowStartTimeSheet(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showEndTimeSheet && (
+          <RangeTimeSheet
+            title="종료 시간 선택"
+            value={endTime}
+            onChange={setEndTime}
+            onClose={() => setShowEndTimeSheet(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

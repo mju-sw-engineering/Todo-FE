@@ -22,7 +22,7 @@ export default function AvailabilityEventListPage() {
           <button
             onClick={() => router.push(`/teams/${teamId}/availability/new`)}
             aria-label="이벤트 만들기"
-            className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center shrink-0 hover:opacity-85 transition-opacity active:scale-95"
+            className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center shrink-0 hover:opacity-85 transition-opacity active:scale-95"
           >
             <svg
               className="w-4 h-4"

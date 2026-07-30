@@ -38,14 +38,14 @@ export function AvailabilityEventCard({ teamId, event }: AvailabilityEventCardPr
           {event.myResponseSubmitted ? (
             <button
               onClick={() => router.push(`/teams/${teamId}/availability/${event.eventId}/result`)}
-              className="text-[11px] font-bold px-3.5 py-1.5 rounded-full border border-border text-ink hover:border-gray-900 transition-colors"
+              className="text-[11px] font-bold px-3.5 py-1.5 rounded-full border border-border text-ink hover:border-primary transition-colors"
             >
               결과보기
             </button>
           ) : (
             <button
               onClick={() => router.push(`/teams/${teamId}/availability/${event.eventId}`)}
-              className="text-[11px] font-bold px-3.5 py-1.5 rounded-full bg-gray-900 text-white hover:opacity-85 transition-opacity"
+              className="text-[11px] font-bold px-3.5 py-1.5 rounded-full bg-primary text-white hover:opacity-85 transition-opacity"
             >
               응답하기
             </button>

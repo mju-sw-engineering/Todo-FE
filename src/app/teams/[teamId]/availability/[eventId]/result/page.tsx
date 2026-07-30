@@ -4,23 +4,24 @@ import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { BackButton } from '@/components/ui/BackButton'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { Button } from '@/components/ui/Button'
 import { AvailabilityGridShell } from '../../components/AvailabilityGridShell'
 import { MOCK_EVENT_SUMMARY } from '../../components/mockAvailabilityData'
 import type { AvailabilitySlotSummary } from '@/types/availability.types'
 
 const HEAT_LEVELS = [
-  { label: '1명', className: 'bg-emerald-100' },
-  { label: '2명', className: 'bg-emerald-200' },
-  { label: '3명', className: 'bg-emerald-400' },
-  { label: '4명(전원)', className: 'bg-emerald-500' },
+  { label: '1명', className: 'bg-primary/15' },
+  { label: '2명', className: 'bg-primary/40' },
+  { label: '3명', className: 'bg-primary/70' },
+  { label: '4명(전원)', className: 'bg-primary' },
 ]
 
 function heatClassName(count: number, total: number) {
   if (count <= 0) return 'bg-gray-50 border-border'
-  if (count === total) return 'bg-emerald-500 border-emerald-500'
-  if (count >= 3) return 'bg-emerald-400 border-emerald-400'
-  if (count === 2) return 'bg-emerald-200 border-emerald-200'
-  return 'bg-emerald-100 border-emerald-100'
+  if (count === total) return 'bg-primary border-primary'
+  if (count >= 3) return 'bg-primary/70 border-primary/70'
+  if (count === 2) return 'bg-primary/40 border-primary/40'
+  return 'bg-primary/15 border-primary/15'
 }
 
 export default function AvailabilityResultPage() {
@@ -80,7 +81,7 @@ export default function AvailabilityResultPage() {
                 className={`w-full h-full rounded-[4px] border transition-all duration-100 relative ${heatClassName(
                   slot?.count ?? 0,
                   slot?.total ?? 4
-                )} ${isActive ? 'ring-2 ring-gray-900 ring-offset-1' : ''}`}
+                )} ${isActive ? 'ring-2 ring-primary ring-offset-1' : ''}`}
               />
             )
           }}
@@ -126,12 +127,9 @@ export default function AvailabilityResultPage() {
       </div>
 
       <div className="px-5 py-4 border-t border-border">
-        <button
-          onClick={() => router.push(`/teams/${teamId}/availability`)}
-          className="w-full py-3.75 text-center text-[15px] font-semibold text-ink bg-gray-100 rounded-[14px] hover:bg-gray-200 transition-colors"
-        >
+        <Button variant="secondary" onClick={() => router.push(`/teams/${teamId}/availability`)}>
           목록으로
-        </button>
+        </Button>
       </div>
     </div>
   )
