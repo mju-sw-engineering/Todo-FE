@@ -277,7 +277,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                     ) : (
                       <div key={i} className="flex justify-end">
                         <div className="flex flex-col gap-1 items-end max-w-[78%]">
-                          <div className="bg-gray-900 rounded-2xl rounded-tr-sm px-4 py-3">
+                          <div className="bg-primary rounded-2xl rounded-tr-sm px-4 py-3">
                             <p className="text-[14px] text-white leading-relaxed whitespace-pre-wrap">
                               {msg.content}
                             </p>
@@ -291,10 +291,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                   <div ref={bottomRef} />
                 </div>
 
-                <div
-                  className="px-4 py-2.5 flex gap-2 overflow-x-auto shrink-0 border-t border-border"
-                  style={{ scrollbarWidth: 'none' } as React.CSSProperties}
-                >
+                <div className="scrollbar-hidden px-4 py-2.5 flex gap-2 overflow-x-auto shrink-0 border-t border-border">
                   {QUICK_ACTIONS.map((action) => (
                     <button
                       key={action}
@@ -319,12 +316,12 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                       }
                     }}
                     placeholder="메시지를 입력하세요..."
-                    className="flex-1 px-4 py-2.5 bg-surface rounded-full text-[14px] text-ink placeholder:text-muted outline-none border border-border focus:border-gray-900 transition-colors"
+                    className="flex-1 px-4 py-2.5 bg-surface rounded-full text-[14px] text-ink placeholder:text-muted outline-none border border-border focus:border-primary transition-colors"
                   />
                   <button
                     onClick={() => handleSend(input)}
                     disabled={!input.trim() || isSending}
-                    className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white transition-all hover:opacity-85 disabled:opacity-40 disabled:shadow-none shrink-0"
+                    className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white transition-all hover:opacity-85 disabled:opacity-40 disabled:shadow-none shrink-0"
                     aria-label="전송"
                   >
                     <svg
