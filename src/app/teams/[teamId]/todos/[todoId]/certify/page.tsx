@@ -1,12 +1,13 @@
 'use client'
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { Suspense, useRef, useState } from 'react'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { compressImageFile } from '@/lib/imageCompression'
 import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
 import { submitTodo } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
+import { AddImgButton } from '@/components/ui/AddImgButton'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
 
@@ -22,6 +23,7 @@ function CertifyContent() {
 
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
   const { isLoading: isSubmitting, error, setError, run } = useAsyncTask()
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -32,6 +34,12 @@ function CertifyContent() {
     setError(null)
     setPreview(URL.createObjectURL(selected))
     e.target.value = ''
+  }
+
+  function handleRemove() {
+    if (preview) URL.revokeObjectURL(preview)
+    setFile(null)
+    setPreview(null)
   }
 
   async function handleSubmit() {
@@ -64,6 +72,7 @@ function CertifyContent() {
         onChange={handleFileChange}
       />
       <input
+        ref={galleryInputRef}
         id="certify-gallery"
         type="file"
         accept="image/*"
@@ -83,62 +92,31 @@ function CertifyContent() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-3 min-h-0">
-        <label
-          htmlFor="certify-gallery"
-          className="w-full rounded-[18px] bg-gray-50 overflow-hidden flex items-center justify-center cursor-pointer shrink-0"
+        <AddImgButton
+          imageUrl={preview}
+          onAddClick={() => galleryInputRef.current?.click()}
+          onRemove={handleRemove}
+          className="shrink-0"
           style={{ height: '52vw', minHeight: '200px', maxHeight: '320px' }}
-        >
-          {preview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={preview}
-              alt="인증샷 미리보기"
-              className="w-full h-full object-contain"
-              decoding="async"
-            />
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="text-gray-300">
-                <rect
-                  x="2"
-                  y="6"
-                  width="24"
-                  height="18"
-                  rx="3"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <circle cx="14" cy="15" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-                <path
-                  d="M10 6l1.5-3h5L18 6"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <p className="text-[13px] text-gray-300 select-none">사진을 선택하거나 촬영하세요</p>
-            </div>
-          )}
-        </label>
+        />
 
         <div className="grid grid-cols-2 gap-3 shrink-0">
           <label
             htmlFor="certify-camera"
-            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-gray-900 hover:text-gray-900"
+            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-primary hover:text-primary"
           >
             카메라
           </label>
           <label
             htmlFor="certify-gallery"
-            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-gray-900 hover:text-gray-900"
+            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-primary hover:text-primary"
           >
             갤러리
           </label>
         </div>
 
         {error && (
-          <p className="text-[13px] text-red-400 bg-red-50 rounded-[10px] px-4 py-2.5 shrink-0">
+          <p className="text-[13px] text-status-red bg-status-red/10 rounded-[10px] px-4 py-2.5 shrink-0">
             {error}
           </p>
         )}
