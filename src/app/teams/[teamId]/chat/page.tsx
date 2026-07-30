@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { useTodoChat } from '@/hooks/useTodoChat'
+import { useTeamChat } from '@/hooks/useTeamChat'
 import { useChatInput } from '@/hooks/useChatInput'
 import { useAuth } from '@/store/authStore'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import { MessageBubble } from './components/MessageBubble'
-import { StickerPicker } from './components/StickerPicker'
+import { MessageBubble } from '@/components/chat/MessageBubble'
+import { StickerPicker } from '@/components/chat/StickerPicker'
 import { Spinner } from '@/components/ui/Spinner'
 
 function formatTime(iso: string) {
@@ -18,13 +18,13 @@ function formatTime(iso: string) {
   })
 }
 
-export default function TodoChatPage() {
+export default function TeamChatPage() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
-  const todoId = Number(params.todoId)
-  const { user } = useAuth()
-  const title = searchParams.get('title') ?? '채팅'
+  const teamId = Number(params.teamId)
+  const { user, token } = useAuth()
+  const title = searchParams.get('title') ?? '팀 채팅'
 
   const {
     messages,
@@ -35,7 +35,7 @@ export default function TodoChatPage() {
     sendMessage,
     loadMore,
     notifyTyping,
-  } = useTodoChat(todoId, useAuth().token)
+  } = useTeamChat(teamId, token)
 
   const [showPicker, setShowPicker] = useState(false)
 
@@ -77,12 +77,12 @@ export default function TodoChatPage() {
       <div className="px-6 pt-8 pb-4 border-b border-border shrink-0">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-gray-700 transition-colors"
+          className="text-[13px] font-semibold text-muted mb-3 flex items-center gap-1 hover:text-ink transition-colors"
         >
           ← {title}
         </button>
         <div className="flex items-center justify-between">
-          <h1 className="text-[17px] font-bold text-ink">채팅</h1>
+          <h1 className="text-[17px] font-bold text-ink">팀 채팅</h1>
           <span
             className={`flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-full ${isConnected ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400 bg-gray-100'}`}
           >
@@ -107,7 +107,7 @@ export default function TodoChatPage() {
             {hasNext && (
               <button
                 onClick={loadMore}
-                className="self-center text-[12px] text-gray-700 font-semibold py-1.5 px-4 rounded-full bg-gray-100 mb-2 hover:bg-gray-200 transition-colors"
+                className="self-center text-[12px] text-neutral-100 font-semibold py-1.5 px-4 rounded-full bg-neutral-30 mb-2 hover:bg-neutral-40 transition-colors"
               >
                 이전 메시지 더 보기
               </button>
@@ -194,7 +194,7 @@ export default function TodoChatPage() {
           <button
             type="button"
             onClick={() => setShowPicker((v) => !v)}
-            className={`w-12 h-12 flex items-center justify-center rounded-[14px] transition-all duration-150 active:scale-90 shrink-0 ${showPicker ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`w-12 h-12 flex items-center justify-center rounded-[14px] transition-all duration-150 active:scale-90 shrink-0 ${showPicker ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             aria-label="스티커/미니티콘"
           >
             <span className="text-[24px] font-light leading-none select-none">
@@ -222,7 +222,7 @@ export default function TodoChatPage() {
           <button
             onClick={handleSend}
             disabled={!hasContent}
-            className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-gray-900 text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] disabled:opacity-35 disabled:shadow-none transition-all duration-150 active:scale-90 shrink-0"
+            className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-primary text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] disabled:opacity-35 disabled:shadow-none transition-all duration-150 active:scale-90 shrink-0"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M17 10L3 4l3 6-3 6 14-6z" fill="currentColor" />

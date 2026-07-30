@@ -1,5 +1,5 @@
 import { getJson, patchJson } from '@/lib/apiClient'
-import type { ChatRequest, ChatResponse, TodoChatMessagesResponse } from '@/types/chat.types'
+import type { ChatRequest, ChatResponse, TeamChatMessagesResponse } from '@/types/chat.types'
 
 const AI_BASE_URL = 'https://ai.todo.bluerack.org'
 
@@ -21,28 +21,31 @@ export async function sendChatMessage(request: ChatRequest, token: string): Prom
   return data.reply
 }
 
-export async function getTodoChatMessages(
-  todoId: number,
+// NOTE: mirrors the todo-chat REST contract (/api/todos/{todoId}/chat/*), which is confirmed
+// to exist on the backend. The equivalent /api/teams/{teamId}/chat/* endpoints do NOT exist
+// yet (checked via the live Swagger spec) — this is frontend groundwork ahead of the backend.
+export async function getTeamChatMessages(
+  teamId: number,
   token: string,
   cursorId?: number,
   size = 20
-): Promise<TodoChatMessagesResponse> {
+): Promise<TeamChatMessagesResponse> {
   const params = new URLSearchParams({ size: String(size) })
   if (cursorId != null) params.set('cursorId', String(cursorId))
-  return getJson<TodoChatMessagesResponse>(`/api/todos/${todoId}/chat/messages?${params}`, token)
+  return getJson<TeamChatMessagesResponse>(`/api/teams/${teamId}/chat/messages?${params}`, token)
 }
 
-export async function markChatRead(
-  todoId: number,
+export async function markTeamChatRead(
+  teamId: number,
   lastReadMessageId: number,
   token: string
 ): Promise<void> {
-  return patchJson<void>(`/api/todos/${todoId}/chat/read`, { lastReadMessageId }, token)
+  return patchJson<void>(`/api/teams/${teamId}/chat/read`, { lastReadMessageId }, token)
 }
 
-export async function getUnreadChatCount(todoId: number, token: string): Promise<number> {
+export async function getTeamUnreadChatCount(teamId: number, token: string): Promise<number> {
   const res = await getJson<{ unreadCount: number }>(
-    `/api/todos/${todoId}/chat/unread-count`,
+    `/api/teams/${teamId}/chat/unread-count`,
     token
   )
   return res.unreadCount

@@ -44,7 +44,7 @@ function TodoDetailContent() {
   const { user } = useAuth()
   const myStatusParam = searchParams.get('myStatus') as MyTodoStatus | null
 
-  const { todo, isLoading, error, chatUnreadCount, effectiveMyStatus, handleReact } = useTodoDetail(
+  const { todo, isLoading, error, effectiveMyStatus, handleReact } = useTodoDetail(
     todoId,
     useAuth().token,
     myStatusParam
@@ -121,7 +121,7 @@ function TodoDetailContent() {
           <div className="relative pb-9">
             <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <motion.div
-                className="h-full rounded-full bg-gray-900"
+                className="h-full rounded-full bg-primary"
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}
                 transition={{ duration: 0.75, ease: 'easeOut', delay: 0.2 }}
@@ -184,42 +184,11 @@ function TodoDetailContent() {
         </div>
       </div>
 
-      <div className="px-6 py-5 border-t border-border flex gap-3">
-        <button
-          onClick={() =>
-            router.push(
-              `/teams/${teamId}/todos/${todoId}/chat?title=${encodeURIComponent(todo.title)}`
-            )
-          }
-          className="relative w-14 h-12 flex flex-col items-center justify-center gap-0.5 rounded-[14px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200 shrink-0"
-          aria-label="팀원과 채팅"
-        >
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H7l-4 3V4z"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="text-[9px] font-semibold leading-none">채팅</span>
-          {chatUnreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center rounded-full bg-gray-900 text-white text-[10px] font-bold px-1 leading-none">
-              {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-            </span>
-          )}
-        </button>
+      <div className="px-6 py-5 border-t border-border">
         {canCertify ? (
-          <Button fullWidth={false} className="flex-1" onClick={navigateToCertify}>
-            인증하기
-          </Button>
+          <Button onClick={navigateToCertify}>인증하기</Button>
         ) : (
-          <Button
-            variant="secondary"
-            fullWidth={false}
-            className="flex-1"
-            onClick={() => router.back()}
-          >
+          <Button variant="secondary" onClick={() => router.back()}>
             돌아가기
           </Button>
         )}
@@ -248,7 +217,7 @@ function TodoDetailContent() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.15, type: 'spring', damping: 12, stiffness: 260 }}
-                className="w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center"
+                className="w-20 h-20 rounded-full bg-primary flex items-center justify-center"
               >
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
                   <path
@@ -265,7 +234,7 @@ function TodoDetailContent() {
                 <p className="text-[13px] text-gray-500 mt-1.5">인증샷이 업로드됐어요</p>
                 <button
                   onClick={() => setShowToast(false)}
-                  className="mt-4 w-full py-2.5 bg-gray-900 text-white text-[14px] font-bold rounded-2xl"
+                  className="mt-4 w-full py-2.5 bg-primary text-white text-[14px] font-bold rounded-2xl"
                 >
                   확인
                 </button>

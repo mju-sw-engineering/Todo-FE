@@ -13,7 +13,7 @@ export interface ChatMessage {
   time: Date
 }
 
-export interface TodoChatMessage {
+export interface TeamChatMessage {
   messageId: number
   senderId: number
   senderNickname: string
@@ -22,12 +22,8 @@ export interface TodoChatMessage {
   createdAt: string
 }
 
-export interface TodoChatMessagesResponse {
-  messages: TodoChatMessage[]
+export interface TeamChatMessagesResponse {
+  messages: TeamChatMessage[]
   nextCursorId: number | null
   hasNext: boolean
-}
-
-export interface TodoChatSendRequest {
-  content: string
 }

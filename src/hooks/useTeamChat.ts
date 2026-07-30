@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
-import { getTodoChatMessages, markChatRead } from '@/services/chatService'
+import { getTeamChatMessages, markTeamChatRead } from '@/services/chatService'
 import { useAuth } from '@/store/authStore'
-import type { TodoChatMessage } from '@/types/chat.types'
+import type { TeamChatMessage } from '@/types/chat.types'
 
 function getSockJsUrl(): string {
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
@@ -18,7 +18,7 @@ function nextTempId() {
   return tempId--
 }
 
-const chatKey = (todoId: number) => ['todo-chat', todoId] as const
+const chatKey = (teamId: number) => ['team-chat', teamId] as const
 
 interface TypingPayload {
   isTyping?: boolean
@@ -31,7 +31,11 @@ interface TypingPayload {
   memberId?: number
 }
 
-export function useTodoChat(todoId: number, token: string | null) {
+// NOTE: mirrors useTodoChat.ts but scoped to a team instead of a single todo. The STOMP
+// destinations here (/topic/teams/{teamId}, /app/teams/{teamId}/chat) are not yet implemented
+// on the backend (only /topic/todos/{todoId} exists today) — this is frontend groundwork
+// ahead of the backend, so it will not actually connect/send until the backend adds it.
+export function useTeamChat(teamId: number, token: string | null) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const clientRef = useRef<Client | null>(null)
@@ -45,27 +49,27 @@ export function useTodoChat(todoId: number, token: string | null) {
 
   // Initial history via TanStack Query
   const { isLoading: isLoadingHistory } = useQuery({
-    queryKey: chatKey(todoId),
+    queryKey: chatKey(teamId),
     queryFn: async () => {
-      const res = await getTodoChatMessages(todoId, token!)
+      const res = await getTeamChatMessages(teamId, token!)
       setHasNext(res.hasNext)
       setNextCursorId(res.nextCursorId ?? null)
-      return res.messages.slice().reverse() as TodoChatMessage[]
+      return res.messages.slice().reverse() as TeamChatMessage[]
     },
     enabled: !!token,
     initialData: undefined,
   })
 
-  const messages: TodoChatMessage[] =
-    queryClient.getQueryData<TodoChatMessage[]>(chatKey(todoId)) ?? []
+  const messages: TeamChatMessage[] =
+    queryClient.getQueryData<TeamChatMessage[]>(chatKey(teamId)) ?? []
 
   // Mark chat as read when messages update
   useEffect(() => {
     if (!token || messages.length === 0) return
     const lastRealMessage = [...messages].reverse().find((m) => m.messageId > 0)
     if (!lastRealMessage) return
-    markChatRead(todoId, lastRealMessage.messageId, token).catch(() => {})
-  }, [todoId, token, messages])
+    markTeamChatRead(teamId, lastRealMessage.messageId, token).catch(() => {})
+  }, [teamId, token, messages])
 
   // WebSocket connection
   useEffect(() => {
@@ -78,14 +82,13 @@ export function useTodoChat(todoId: number, token: string | null) {
       onConnect: () => {
         setIsConnected(true)
 
-        client.subscribe(`/topic/todos/${todoId}`, () => {
-          queryClient.invalidateQueries({ queryKey: chatKey(todoId) })
+        client.subscribe(`/topic/teams/${teamId}`, () => {
+          queryClient.invalidateQueries({ queryKey: chatKey(teamId) })
         })
 
-        client.subscribe(`/topic/todos/${todoId}/typing`, (frame) => {
+        client.subscribe(`/topic/teams/${teamId}/typing`, (frame) => {
           try {
             const data = JSON.parse(frame.body) as TypingPayload
-            console.log('[typing received]', data)
 
             const isTyping = data.isTyping ?? data.typing ?? false
             const nickname = data.senderNickname ?? data.nickname ?? data.memberNickname ?? ''
@@ -127,7 +130,7 @@ export function useTodoChat(todoId: number, token: string | null) {
       // Send stop-typing on unmount
       if (client.connected && isTypingRef.current) {
         client.publish({
-          destination: `/app/todos/${todoId}/typing`,
+          destination: `/app/teams/${teamId}/typing`,
           body: JSON.stringify({ isTyping: false }),
         })
       }
@@ -136,7 +139,7 @@ export function useTodoChat(todoId: number, token: string | null) {
       // Clear all typing timers
       Object.values(typingTimersRef.current).forEach(clearTimeout)
     }
-  }, [todoId, token, queryClient, user])
+  }, [teamId, token, queryClient, user])
 
   // Send with optimistic update
   const { mutate: sendMessage } = useMutation({
@@ -144,7 +147,7 @@ export function useTodoChat(todoId: number, token: string | null) {
       const client = clientRef.current
       if (!client?.connected) throw new Error('not connected')
       client.publish({
-        destination: `/app/todos/${todoId}/chat`,
+        destination: `/app/teams/${teamId}/chat`,
         body: JSON.stringify({ content }),
       })
     },
@@ -153,16 +156,16 @@ export function useTodoChat(todoId: number, token: string | null) {
       if (stopTypingTimerRef.current) clearTimeout(stopTypingTimerRef.current)
       if (isTypingRef.current && clientRef.current?.connected) {
         clientRef.current.publish({
-          destination: `/app/todos/${todoId}/typing`,
+          destination: `/app/teams/${teamId}/typing`,
           body: JSON.stringify({ isTyping: false }),
         })
         isTypingRef.current = false
       }
 
-      await queryClient.cancelQueries({ queryKey: chatKey(todoId) })
-      const previous = queryClient.getQueryData<TodoChatMessage[]>(chatKey(todoId))
+      await queryClient.cancelQueries({ queryKey: chatKey(teamId) })
+      const previous = queryClient.getQueryData<TeamChatMessage[]>(chatKey(teamId))
 
-      const optimistic: TodoChatMessage = {
+      const optimistic: TeamChatMessage = {
         messageId: nextTempId(),
         senderId: user?.userId ?? 0,
         senderNickname: user?.nickname ?? user?.loginId ?? '',
@@ -171,7 +174,7 @@ export function useTodoChat(todoId: number, token: string | null) {
         createdAt: new Date().toISOString(),
       }
 
-      queryClient.setQueryData<TodoChatMessage[]>(chatKey(todoId), (old) => [
+      queryClient.setQueryData<TeamChatMessage[]>(chatKey(teamId), (old) => [
         ...(old ?? []),
         optimistic,
       ])
@@ -180,7 +183,7 @@ export function useTodoChat(todoId: number, token: string | null) {
     },
     onError: (_err, _content, context) => {
       if (context?.previous !== undefined) {
-        queryClient.setQueryData(chatKey(todoId), context.previous)
+        queryClient.setQueryData(chatKey(teamId), context.previous)
       }
     },
   })
@@ -188,9 +191,9 @@ export function useTodoChat(todoId: number, token: string | null) {
   const loadMore = useCallback(async () => {
     if (!token || !hasNext || nextCursorId == null) return
     try {
-      const res = await getTodoChatMessages(todoId, token, nextCursorId)
+      const res = await getTeamChatMessages(teamId, token, nextCursorId)
       const older = res.messages.slice().reverse()
-      queryClient.setQueryData<TodoChatMessage[]>(chatKey(todoId), (old) => [
+      queryClient.setQueryData<TeamChatMessage[]>(chatKey(teamId), (old) => [
         ...older,
         ...(old ?? []),
       ])
@@ -199,7 +202,7 @@ export function useTodoChat(todoId: number, token: string | null) {
     } catch {
       // silently fail
     }
-  }, [todoId, token, hasNext, nextCursorId, queryClient])
+  }, [teamId, token, hasNext, nextCursorId, queryClient])
 
   // Notify typing — call on every input change
   const notifyTyping = useCallback(() => {
@@ -209,7 +212,7 @@ export function useTodoChat(todoId: number, token: string | null) {
     if (!isTypingRef.current) {
       isTypingRef.current = true
       client.publish({
-        destination: `/app/todos/${todoId}/typing`,
+        destination: `/app/teams/${teamId}/typing`,
         body: JSON.stringify({ isTyping: true }),
       })
     }
@@ -219,13 +222,13 @@ export function useTodoChat(todoId: number, token: string | null) {
     stopTypingTimerRef.current = setTimeout(() => {
       if (client.connected) {
         client.publish({
-          destination: `/app/todos/${todoId}/typing`,
+          destination: `/app/teams/${teamId}/typing`,
           body: JSON.stringify({ isTyping: false }),
         })
       }
       isTypingRef.current = false
     }, 2000)
-  }, [todoId])
+  }, [teamId])
 
   return {
     messages,

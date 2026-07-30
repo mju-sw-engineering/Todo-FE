@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { getTodoDetail, postReaction } from '@/services/todoService'
-import { getUnreadChatCount } from '@/services/chatService'
 import type { MyTodoStatus, ReactionType, TodoDetail } from '@/types/todo.types'
 
 export function useTodoDetail(
@@ -11,7 +10,6 @@ export function useTodoDetail(
 ) {
   const [todo, setTodo] = useState<TodoDetail | null>(null)
   const { isLoading, error, run } = useAsyncTask(true)
-  const [chatUnreadCount, setChatUnreadCount] = useState(0)
 
   useEffect(() => {
     if (!token || !todoId) return
@@ -22,9 +20,6 @@ export function useTodoDetail(
       },
       { fallback: '투두를 불러오지 못했습니다.' }
     )
-    getUnreadChatCount(todoId, token)
-      .then(setChatUnreadCount)
-      .catch(() => {})
   }, [token, todoId, run])
 
   async function handleReact(participantId: number, type: ReactionType) {
@@ -41,5 +36,5 @@ export function useTodoDetail(
 
   const effectiveMyStatus: MyTodoStatus | null = todo?.myStatus ?? myStatusParam
 
-  return { todo, isLoading, error, chatUnreadCount, effectiveMyStatus, handleReact }
+  return { todo, isLoading, error, effectiveMyStatus, handleReact }
 }

@@ -16,7 +16,7 @@ export function MessageBubble({ content, isMine }: { content: string; isMine: bo
   const parts = parseParts(content)
   const hasEmoji = parts.some((p) => p.t === 'emoji')
   const bubbleBase = `px-3.5 py-2.5 rounded-2xl text-[14px] leading-relaxed ${
-    isMine ? 'bg-gray-900 text-white rounded-br-sm' : 'bg-gray-100 text-ink rounded-bl-sm'
+    isMine ? 'bg-primary text-white rounded-br-sm' : 'bg-gray-100 text-ink rounded-bl-sm'
   }`
 
   if (!hasEmoji) {
