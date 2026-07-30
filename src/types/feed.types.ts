@@ -14,7 +14,6 @@ export interface FeedVerification {
   userNickname: string
   userProfileImageUrl: string | null
   todoTitle: string
-  emoji: string
   verifiedAt: string
   likeCount: number
   streakDays: number

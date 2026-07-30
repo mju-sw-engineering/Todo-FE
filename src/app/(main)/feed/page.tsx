@@ -13,12 +13,12 @@ export default function FeedPage() {
           <p className="text-[12px] text-muted mt-0.5">우리 팀과 다른 팀의 기록을 확인해보세요</p>
         </div>
 
-        <p className="text-[11px] font-black text-muted tracking-wide uppercase px-5 mb-2.5">
+        <p className="text-[12px] font-semibold text-muted uppercase tracking-wider px-5 mb-2.5">
           우리 팀 랭킹 · 연속 달성일
         </p>
         <TeamRankingScroll rankings={MOCK_RANKINGS} />
 
-        <p className="text-[11px] font-black text-muted tracking-wide uppercase px-5 mt-6 mb-2.5">
+        <p className="text-[12px] font-semibold text-muted uppercase tracking-wider px-5 mt-6 mb-2.5">
           인증 피드
         </p>
         <div className="flex flex-col gap-3 px-5">
