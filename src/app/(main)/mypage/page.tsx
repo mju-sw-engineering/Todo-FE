@@ -34,7 +34,7 @@ export default function MyPage() {
   if (loading) return <PageLoader />
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white">
       {toast && <Toast message={toast} />}
 
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-8 flex flex-col gap-4 animate-fade-up">
@@ -69,7 +69,7 @@ export default function MyPage() {
                     value={nicknameInput}
                     onChange={(e) => setNicknameInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveNickname()}
-                    className="flex-1 min-w-0 border border-border rounded-lg px-3 py-1.5 text-[14px] text-ink focus:outline-none focus:border-gray-900 transition-colors"
+                    className="flex-1 min-w-0 border-[1.5px] border-border rounded-lg px-3 py-1.5 text-[14px] text-ink bg-white outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
                     autoFocus
                     maxLength={20}
                     disabled={savingNickname}
@@ -77,14 +77,14 @@ export default function MyPage() {
                   <button
                     onClick={handleSaveNickname}
                     disabled={savingNickname}
-                    className="px-3 py-1.5 text-[13px] font-semibold text-white bg-gray-900 hover:opacity-85 rounded-lg transition-opacity disabled:opacity-50 shrink-0"
+                    className="px-3 py-1.5 text-[13px] font-semibold text-white bg-primary hover:opacity-85 rounded-lg transition-opacity disabled:opacity-50 shrink-0"
                   >
                     저장
                   </button>
                   <button
                     onClick={() => setEditingNickname(false)}
                     disabled={savingNickname}
-                    className="px-3 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 rounded-lg transition-colors shrink-0"
+                    className="px-3 py-1.5 text-[13px] font-medium text-muted hover:text-ink transition-colors shrink-0"
                   >
                     취소
                   </button>
@@ -97,7 +97,7 @@ export default function MyPage() {
                       setNicknameInput(myInfo?.nickname ?? '')
                       setEditingNickname(true)
                     }}
-                    className="px-3 py-1.5 text-[12px] font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors shrink-0"
+                    className="px-3 py-1.5 text-[12px] font-semibold text-neutral-100 bg-neutral-30 hover:bg-neutral-40 rounded-lg transition-colors shrink-0"
                   >
                     수정
                   </button>
@@ -154,7 +154,7 @@ export default function MyPage() {
                   <button
                     onClick={() => setConfirm({ type: 'leaveTeam', team })}
                     disabled={leavingTeamId === team.teamId}
-                    className="px-3 py-1.5 text-[12px] font-semibold text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors shrink-0 disabled:opacity-50"
+                    className="px-3 py-1.5 text-[12px] font-semibold text-status-red bg-status-red/10 hover:bg-status-red/15 rounded-lg transition-colors shrink-0 disabled:opacity-50"
                   >
                     {leavingTeamId === team.teamId ? '나가는 중…' : '나가기'}
                   </button>
