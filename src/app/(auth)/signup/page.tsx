@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
 import { sendEmailVerification, signup, verifyEmailCode } from '@/services/authService'
@@ -170,7 +169,7 @@ export default function SignupPage() {
                 placeholder="이메일을 입력해 주세요"
                 required
                 disabled={emailStatus === 'verified'}
-                className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-gray-900 focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)] disabled:bg-gray-50 disabled:text-muted"
+                className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)] disabled:bg-gray-50 disabled:text-muted"
               />
               <Button
                 type="button"
@@ -206,7 +205,7 @@ export default function SignupPage() {
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="6자리 인증번호"
                   maxLength={6}
-                  className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-gray-900 focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
+                  className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
                 />
                 <Button
                   type="button"
@@ -220,7 +219,7 @@ export default function SignupPage() {
                   확인
                 </Button>
               </div>
-              <p className={`text-xs ${secondsLeft <= 0 ? 'text-rose-400' : 'text-muted'}`}>
+              <p className={`text-xs ${secondsLeft <= 0 ? 'text-status-red' : 'text-muted'}`}>
                 {secondsLeft > 0
                   ? `남은 시간 ${mm}:${ss}`
                   : '인증 시간이 만료되었습니다. 재발송해 주세요.'}
@@ -284,8 +283,6 @@ export default function SignupPage() {
                   alt="프로필 미리보기"
                   className="w-full h-full object-cover"
                 />
-              ) : nickname ? (
-                <BlobAvatar seed={nickname} size={72} />
               ) : (
                 <svg
                   className="w-6 h-6 text-muted"
@@ -318,7 +315,7 @@ export default function SignupPage() {
             <label className="flex items-center gap-2.5 text-[14px] font-semibold text-gray-900">
               <input
                 type="checkbox"
-                className="w-4 h-4 accent-gray-900"
+                className="w-4 h-4 accent-primary"
                 checked={allAgreed}
                 onChange={(e) => handleAllAgreeChange(e.target.checked)}
               />
@@ -328,7 +325,7 @@ export default function SignupPage() {
             <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
               <input
                 type="checkbox"
-                className="w-4 h-4 accent-gray-900"
+                className="w-4 h-4 accent-primary"
                 checked={termsAgreed}
                 onChange={(e) => setTermsAgreed(e.target.checked)}
               />
@@ -337,7 +334,7 @@ export default function SignupPage() {
             <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
               <input
                 type="checkbox"
-                className="w-4 h-4 accent-gray-900"
+                className="w-4 h-4 accent-primary"
                 checked={privacyAgreed}
                 onChange={(e) => setPrivacyAgreed(e.target.checked)}
               />
@@ -346,7 +343,7 @@ export default function SignupPage() {
             <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
               <input
                 type="checkbox"
-                className="w-4 h-4 accent-gray-900"
+                className="w-4 h-4 accent-primary"
                 checked={marketingAgreed}
                 onChange={(e) => setMarketingAgreed(e.target.checked)}
               />
@@ -355,7 +352,9 @@ export default function SignupPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-400 bg-red-50 rounded-xl px-3.5 py-2.5">{error}</p>
+            <p className="text-sm text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
+              {error}
+            </p>
           )}
 
           <Button type="submit" size="lg" disabled={isLoading || isUploading}>
