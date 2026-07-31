@@ -2,9 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
 import { useTeamDetail } from '@/hooks/useTeamDetail'
-import { getTeamUnreadChatCount } from '@/services/chatService'
 import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { TeamMembersCard } from './components/TeamMembersCard'
@@ -42,15 +40,6 @@ export default function TeamDetailPage() {
     handleKickMember,
     handleLeaveTeam,
   } = useTeamDetail(teamId)
-
-  const [chatUnreadCount, setChatUnreadCount] = useState(0)
-
-  useEffect(() => {
-    if (!token || !teamId) return
-    getTeamUnreadChatCount(teamId, token)
-      .then(setChatUnreadCount)
-      .catch(() => {})
-  }, [token, teamId])
 
   if (isLoading) return <PageLoader />
   if (!team) return null
@@ -126,38 +115,9 @@ export default function TeamDetailPage() {
       </div>
 
       <div className="px-5 py-4 border-t border-border flex flex-col gap-2">
-        <div className="flex gap-2">
-          <button
-            onClick={() =>
-              router.push(`/teams/${teamId}/chat?title=${encodeURIComponent(team.teamName)}`)
-            }
-            className="relative w-14 h-12 flex flex-col items-center justify-center gap-0.5 rounded-[14px] bg-neutral-30 text-neutral-100 hover:bg-neutral-40 transition-all duration-200 shrink-0"
-            aria-label="팀 채팅"
-          >
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-              <path
-                d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H7l-4 3V4z"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span className="text-[9px] font-semibold leading-none">채팅</span>
-            {chatUnreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-4 h-4 flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold px-1 leading-none">
-                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-              </span>
-            )}
-          </button>
-          <Button
-            fullWidth={false}
-            className="flex-1"
-            size="lg"
-            onClick={() => router.push(`/teams/${teamId}/todos`)}
-          >
-            오늘의 할 일
-          </Button>
-        </div>
+        <Button size="lg" onClick={() => router.push(`/teams/${teamId}/todos`)}>
+          오늘의 할 일
+        </Button>
         <Button variant="secondary" size="lg" onClick={() => router.push('/teams')}>
           목록으로
         </Button>
