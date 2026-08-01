@@ -40,7 +40,7 @@ export interface Reaction {
 }
 
 export interface TodoParticipant {
-  userId: number
+  userId: number | null
   todoParticipantId: number
   nickname: string
   profileImageUrl: string | null
