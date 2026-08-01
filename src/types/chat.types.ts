@@ -15,7 +15,7 @@ export interface ChatMessage {
 
 export interface TeamChatMessage {
   messageId: number
-  senderId: number
+  senderId: number | null
   senderNickname: string
   senderProfileImageUrl: string | null
   content: string

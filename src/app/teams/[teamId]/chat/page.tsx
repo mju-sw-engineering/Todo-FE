@@ -69,7 +69,10 @@ export default function TeamChatPage() {
 
   const grouped = messages.map((msg, idx) => {
     const prev = messages[idx - 1]
-    return { ...msg, isFirst: !prev || prev.senderId !== msg.senderId }
+    return {
+      ...msg,
+      isFirst: msg.senderId === null || !prev || prev.senderId !== msg.senderId,
+    }
   })
 
   return (

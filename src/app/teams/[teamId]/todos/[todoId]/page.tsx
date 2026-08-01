@@ -173,7 +173,7 @@ function TodoDetailContent() {
             const isCurrentUser = byUserId || byNickname
             return (
               <MemberCertCard
-                key={member.userId}
+                key={member.todoParticipantId}
                 member={member}
                 isCurrentUser={isCurrentUser}
                 onCertify={navigateToCertify}
