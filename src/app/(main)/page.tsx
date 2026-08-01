@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Calendar } from '@/components/ui/Calendar'
+import { BeeMascot } from './components/BeeMascot'
 import { MyTodoCard } from './components/MyTodoCard'
 import { getTeams } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
@@ -11,6 +12,8 @@ import { MONTHS_EN, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Spinner } from '@/components/ui/Spinner'
 import type { TeamListItem } from '@/types/team.types'
 
+type BeeExpression = 'cheer' | 'proud' | 'sad' | 'tired'
+
 function getCompletionMessage(pct: number, total: number): string {
   if (total === 0) return '할 일을 추가해봐요!'
   if (pct === 100) return '모두 완료! 완벽해요!'
@@ -18,6 +21,14 @@ function getCompletionMessage(pct: number, total: number): string {
   if (pct >= 50) return '반 이상 했어요!'
   if (pct >= 25) return '조금씩 해봐요!'
   return '시작이 반이에요!'
+}
+
+function getBeeExpression(pct: number, total: number): BeeExpression {
+  if (total === 0) return 'proud'
+  if (pct === 100) return 'cheer'
+  if (pct >= 50) return 'proud'
+  if (pct > 0) return 'tired'
+  return 'sad'
 }
 
 type TabType = 'all' | 'incomplete' | 'complete'
@@ -66,13 +77,14 @@ export default function HomePage() {
   const selectedDateObj = new Date(selectedDate + 'T00:00:00')
   const dayNum = pad(selectedDateObj.getDate())
   const monthNum = pad(selectedDateObj.getMonth() + 1)
-  const monthEn = MONTHS_EN[selectedDateObj.getMonth()]
   const dayKo = DAYS_KO[selectedDateObj.getDay()]
 
   const completeCount = displayTodos.filter((t) => t.myStatus === '완료').length
+  const remainingCount = displayTodos.length - completeCount
   const completionPct =
     displayTodos.length > 0 ? Math.round((completeCount / displayTodos.length) * 100) : 0
   const speechMsg = getCompletionMessage(completionPct, displayTodos.length)
+  const beeExpression = getBeeExpression(completionPct, displayTodos.length)
 
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
   const filteredTodos = displayTodos
@@ -111,15 +123,11 @@ export default function HomePage() {
               {monthNum}.{dayNum}
             </span>
           </div>
-          <div className="flex items-center justify-between mt-1">
-            <p className="text-[28px] font-black text-gray-900">{monthEn}</p>
-            {displayTodos.length > 0 && (
-              <p className="text-[13px] font-semibold text-gray-400">
-                <span className="font-black text-gray-900">{completeCount}</span>/
-                {displayTodos.length} 완료
-              </p>
-            )}
-          </div>
+          {displayTodos.length > 0 && (
+            <p className="text-[13px] font-semibold text-gray-400 mt-1">
+              <span className="font-black text-gray-900">{remainingCount}</span>개 남음
+            </p>
+          )}
           <div className="flex items-center gap-2 mt-2">
             <p className="text-[13px] font-semibold text-gray-400 tracking-wide flex-1">
               {isToday
@@ -156,11 +164,16 @@ export default function HomePage() {
             </button>
           </div>
 
-          <div className="absolute top-4 right-4">
-            <div className="bg-white rounded-xl px-3 py-1.5 shadow-sm border border-gray-100">
-              <p className="text-[11px] font-bold text-gray-700 whitespace-nowrap">{speechMsg}</p>
+          {displayTodos.length > 0 && (
+            <div className="absolute top-1 right-3 flex flex-col items-center">
+              <BeeMascot expression={beeExpression} size={112} />
+              <div className="bg-white rounded-xl px-2.5 py-1 shadow-sm border border-gray-100 -mt-2">
+                <p className="text-[10.5px] font-bold text-gray-700 whitespace-nowrap">
+                  {speechMsg}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {calendarOpen && (

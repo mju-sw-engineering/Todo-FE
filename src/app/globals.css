@@ -148,6 +148,36 @@ select {
   background: linear-gradient(135deg, #4b8bff 0%, #3a7bff 100%);
 }
 
+/* Bee mascot wing flap */
+.bee-wing-left {
+  transform-box: fill-box;
+  transform-origin: 82% 76%;
+  animation: bee-flap-left 1.6s ease-in-out infinite;
+}
+.bee-wing-right {
+  transform-box: fill-box;
+  transform-origin: 18% 76%;
+  animation: bee-flap-right 1.6s ease-in-out infinite;
+}
+@keyframes bee-flap-left {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(-9deg);
+  }
+}
+@keyframes bee-flap-right {
+  0%,
+  100% {
+    transform: rotate(3deg);
+  }
+  50% {
+    transform: rotate(9deg);
+  }
+}
+
 /* Pastel card backgrounds */
 .card-peach {
   background: linear-gradient(135deg, #fff0e8 0%, #ffe0d0 100%);
