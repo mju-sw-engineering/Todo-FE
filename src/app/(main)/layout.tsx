@@ -31,7 +31,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <div className="flex items-center gap-2">
           <LogoMark size={32} />
           <span className="text-[17px] font-black text-gray-900 tracking-tight">
-            Todo<span className="font-medium text-gray-500">Team</span>
+            두비<span className="font-medium text-gray-500">두비</span>
           </span>
         </div>
         <NotificationBell />

@@ -10,7 +10,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'TodoTeam',
+  title: '두비두비',
   description: '팀과 함께 완성하는 하루',
   icons: {
     icon: '/icon.svg',

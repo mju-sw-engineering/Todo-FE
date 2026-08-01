@@ -43,7 +43,7 @@ export default function LoginPage() {
       {/* 타이틀 */}
       <div className="flex-1 flex flex-col justify-end px-6 pb-10">
         <h1 className="text-[40px] font-black text-gray-900 tracking-tight leading-none">
-          TodoTeam
+          두비두비
         </h1>
         <p className="text-[13px] text-gray-500 font-medium mt-2">팀과 함께 완성하는 하루</p>
       </div>

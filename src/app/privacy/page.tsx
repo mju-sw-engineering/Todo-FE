@@ -1,5 +1,5 @@
 export const metadata = {
-  title: '개인정보처리방침 | TodoTeam',
+  title: '개인정보처리방침 | 두비두비',
 }
 
 export default function PrivacyPolicyPage() {
@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
       <div className="space-y-8 text-[14px] leading-relaxed">
         <section>
           <p>
-            TodoTeam(이하 &lsquo;서비스&rsquo;)은 이용자의 개인정보를 소중히 다루며, 관련 법령을
+            두비두비(이하 &lsquo;서비스&rsquo;)은 이용자의 개인정보를 소중히 다루며, 관련 법령을
             준수합니다. 본 방침은 서비스가 어떤 개인정보를 수집하고, 어떻게 이용·보관·파기하는지
             안내합니다.
           </p>
