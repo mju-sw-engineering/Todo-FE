@@ -47,12 +47,12 @@ export function StreakCard({ continuousTodoCount }: StreakCardProps) {
             </button>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-[28px] font-bold text-ink leading-none">
+            <span className="text-[28px] font-bold text-secondary-50 leading-none">
               {continuousTodoCount}
             </span>
             <span className="text-[14px] font-semibold text-muted">일</span>
           </div>
-          <span className="mt-1.5 inline-block text-[11px] font-semibold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-full">
+          <span className="mt-1.5 inline-block text-[11px] font-semibold text-secondary-50 bg-secondary-10 px-2.5 py-0.5 rounded-full">
             {getPlantStageLabel(continuousTodoCount)}
           </span>
         </div>

@@ -49,8 +49,8 @@ function StampCell({ day, count }: StampCellProps) {
   const charCount = getCharacterCount(day)
 
   const goldStyle = {
-    background: 'linear-gradient(160deg, #FEFCE8 0%, #FEF3C7 100%)',
-    boxShadow: '0 0 0 2px #F5CC5A',
+    background: 'linear-gradient(160deg, #fdf9f4 0%, var(--color-secondary-10) 100%)',
+    boxShadow: '0 0 0 2px var(--color-secondary-50)',
   }
 
   if (isNew) {
@@ -69,8 +69,8 @@ function StampCell({ day, count }: StampCellProps) {
             }}
             className="relative w-full h-15 rounded-xl flex items-center justify-center overflow-visible"
             style={{
-              background: 'linear-gradient(160deg, #FEFCE8 0%, #FEF3C7 100%)',
-              boxShadow: '0 0 0 2.5px #F5CC5A, 0 4px 18px rgba(245,204,90,0.5)',
+              background: 'linear-gradient(160deg, #fdf9f4 0%, var(--color-secondary-10) 100%)',
+              boxShadow: '0 0 0 2.5px var(--color-secondary-50), 0 4px 18px rgba(156,107,62,0.35)',
             }}
           >
             {/* Ripple 1 */}
@@ -79,14 +79,14 @@ function StampCell({ day, count }: StampCellProps) {
               animate={{ scale: 2.8, opacity: 0 }}
               transition={{ delay: 0.7, duration: 0.5, ease: 'easeOut' }}
               className="absolute inset-0 rounded-xl pointer-events-none"
-              style={{ background: 'rgba(245,204,90,0.22)' }}
+              style={{ background: 'rgba(156,107,62,0.16)' }}
             />
             {/* Ripple 2 */}
             <motion.div
               initial={{ scale: 0.8, opacity: 0.4 }}
               animate={{ scale: 3.4, opacity: 0 }}
               transition={{ delay: 0.76, duration: 0.65, ease: 'easeOut' }}
-              className="absolute inset-0 rounded-xl pointer-events-none border-2 border-amber-300/60"
+              className="absolute inset-0 rounded-xl pointer-events-none border-2 border-secondary-50/60"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.3 }}
@@ -102,7 +102,7 @@ function StampCell({ day, count }: StampCellProps) {
           initial={{ opacity: 0, y: 3 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.88 }}
-          className="text-[9px] font-black text-amber-500 tracking-wider"
+          className="text-[9px] font-black text-secondary-50 tracking-wider"
         >
           TODAY
         </motion.span>
@@ -118,7 +118,7 @@ function StampCell({ day, count }: StampCellProps) {
             <PlantIcon count={charCount} className="w-full h-full" />
           </div>
         </div>
-        <span className="text-[9px] font-medium text-amber-400/60">{day}</span>
+        <span className="text-[9px] font-medium text-secondary-50/60">{day}</span>
       </div>
     )
   }
@@ -201,7 +201,10 @@ function Inner({ count, teamId, onDismiss }: Props) {
           {/* Header */}
           <div
             className="px-6 pt-6 pb-5 relative overflow-hidden shrink-0"
-            style={{ background: 'linear-gradient(135deg, #FEFCE8 0%, #F0FFF4 55%, #F0F8FF 100%)' }}
+            style={{
+              background:
+                'linear-gradient(135deg, var(--color-secondary-10) 0%, #fdf9f4 55%, #e8f1ff 100%)',
+            }}
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -209,7 +212,7 @@ function Inner({ count, teamId, onDismiss }: Props) {
               transition={{ delay: 0.18 }}
               className="absolute top-4 right-5 flex gap-2"
             >
-              {['#F5CC5A', '#90D898', '#A0C8FF'].map((c, i) => (
+              {['var(--color-secondary-50)', '#90D898', 'var(--color-primary-50)'].map((c, i) => (
                 <div
                   key={i}
                   className="w-2 h-2 rounded-full"

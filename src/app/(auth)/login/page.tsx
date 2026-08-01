@@ -38,7 +38,10 @@ export default function LoginPage() {
   return (
     <div
       className="flex-1 flex flex-col animate-fade-up overflow-hidden"
-      style={{ background: 'linear-gradient(155deg, #FFE4F2 0%, #FFF8E6 40%, #E8F3FF 100%)' }}
+      style={{
+        background:
+          'linear-gradient(155deg, var(--color-secondary-10) 0%, #fdf9f4 40%, #e8f1ff 100%)',
+      }}
     >
       {/* 타이틀 */}
       <div className="flex-1 flex flex-col justify-end px-6 pb-10">
