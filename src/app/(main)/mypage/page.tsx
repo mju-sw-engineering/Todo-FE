@@ -25,9 +25,15 @@ export default function MyPage() {
     leavingTeamId,
     confirm,
     setConfirm,
+    deletePassword,
+    setDeletePassword,
+    deleteAccountError,
+    deletingAccount,
     handleSaveNickname,
     handleLeaveTeam,
     handleLogout,
+    openDeleteAccountConfirm,
+    closeDeleteAccountConfirm,
     handleDeleteAccount,
   } = useMyPage()
 
@@ -171,7 +177,7 @@ export default function MyPage() {
           >
             개인정보처리방침
           </Link>
-          <Button variant="danger" size="sm" onClick={() => setConfirm({ type: 'deleteAccount' })}>
+          <Button variant="danger" size="sm" onClick={openDeleteAccountConfirm}>
             회원 탈퇴
           </Button>
         </div>
@@ -215,9 +221,41 @@ export default function MyPage() {
             message="계정과 모든 데이터가 삭제되며 복구할 수 없습니다. 정말 탈퇴하시겠습니까?"
             confirmLabel="탈퇴하기"
             confirmDanger
+            confirmDisabled={!deletePassword}
+            confirmPending={deletingAccount}
             onConfirm={handleDeleteAccount}
-            onCancel={() => setConfirm(null)}
-          />
+            onCancel={closeDeleteAccountConfirm}
+          >
+            <label
+              htmlFor="delete-account-password"
+              className="block text-left text-[12px] font-semibold text-ink mb-2"
+            >
+              현재 비밀번호
+            </label>
+            <input
+              id="delete-account-password"
+              type="password"
+              value={deletePassword}
+              onChange={(event) => {
+                setDeletePassword(event.target.value)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && deletePassword && !deletingAccount) {
+                  handleDeleteAccount()
+                }
+              }}
+              autoComplete="current-password"
+              autoFocus
+              disabled={deletingAccount}
+              placeholder="비밀번호를 입력해 주세요"
+              className="w-full rounded-xl border border-border px-3 py-2.5 text-[14px] text-ink outline-none transition-colors focus:border-status-red disabled:bg-neutral-30"
+            />
+            {deleteAccountError && (
+              <p role="alert" className="mt-2 text-left text-[12px] text-status-red">
+                {deleteAccountError}
+              </p>
+            )}
+          </ConfirmModal>
         )}
       </AnimatePresence>
     </div>

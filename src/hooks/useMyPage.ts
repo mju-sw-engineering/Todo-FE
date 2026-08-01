@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { reauthenticate } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
+import { ApiError } from '@/lib/apiClient'
 import {
   deleteAccount,
   getMyInfo,
@@ -15,6 +17,27 @@ export type MyPageConfirmState =
   | { type: 'deleteAccount' }
   | { type: 'leaveTeam'; team: MyTeam }
   | null
+
+type DeleteAccountPhase = 'reauth' | 'withdrawal'
+
+function deleteAccountErrorMessage(error: unknown, phase: DeleteAccountPhase): string {
+  if (!(error instanceof ApiError)) {
+    return '회원 탈퇴에 실패했습니다.'
+  }
+
+  if (phase === 'reauth') {
+    if (error.status === 429)
+      return '비밀번호 확인 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'
+    if (error.status === 401) return error.message
+  }
+
+  if (phase === 'withdrawal') {
+    if (error.status === 400) return error.message
+    if (error.status === 401) return '재인증이 만료되었거나 유효하지 않습니다. 다시 시도해 주세요.'
+  }
+
+  return error.message
+}
 
 export function useMyPage() {
   const router = useRouter()
@@ -31,6 +54,9 @@ export function useMyPage() {
 
   const [leavingTeamId, setLeavingTeamId] = useState<number | null>(null)
   const [confirm, setConfirm] = useState<MyPageConfirmState>(null)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null)
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
   const profileImageUrl = myInfo?.profileImageUrl ?? user?.profileImageUrl ?? null
   const avatarSeed = myInfo?.nickname ?? user?.nickname ?? user?.loginId ?? ''
@@ -104,16 +130,42 @@ export function useMyPage() {
     setTimeout(() => router.replace('/login'), 800)
   }
 
-  async function handleDeleteAccount() {
+  function openDeleteAccountConfirm() {
+    setDeletePassword('')
+    setDeleteAccountError(null)
+    setConfirm({ type: 'deleteAccount' })
+  }
+
+  function closeDeleteAccountConfirm() {
+    if (deletingAccount) return
+    setDeletePassword('')
+    setDeleteAccountError(null)
     setConfirm(null)
-    if (!token) return
+  }
+
+  async function handleDeleteAccount() {
+    if (!token || !deletePassword || deletingAccount) return
+
+    setDeletingAccount(true)
+    setDeleteAccountError(null)
+    let phase: DeleteAccountPhase = 'reauth'
+
     try {
-      await deleteAccount(token)
+      const { reauthToken } = await reauthenticate(
+        { password: deletePassword, purpose: 'WITHDRAWAL' },
+        token
+      )
+      phase = 'withdrawal'
+      await deleteAccount(reauthToken, token)
+      setConfirm(null)
+      setDeletePassword('')
       logout()
       showToast('탈퇴가 완료되었습니다.')
       setTimeout(() => router.replace('/login'), 800)
     } catch (err) {
-      showToast(err instanceof Error ? err.message : '회원 탈퇴에 실패했습니다.')
+      setDeleteAccountError(deleteAccountErrorMessage(err, phase))
+    } finally {
+      setDeletingAccount(false)
     }
   }
 
@@ -131,9 +183,15 @@ export function useMyPage() {
     leavingTeamId,
     confirm,
     setConfirm,
+    deletePassword,
+    setDeletePassword,
+    deleteAccountError,
+    deletingAccount,
     handleSaveNickname,
     handleLeaveTeam,
     handleLogout,
+    openDeleteAccountConfirm,
+    closeDeleteAccountConfirm,
     handleDeleteAccount,
   }
 }

@@ -69,13 +69,15 @@ export async function patchJson<T>(path: string, body: unknown, token?: string):
   return handleResponse<T>(response)
 }
 
-export async function deleteJson<T>(path: string, token?: string): Promise<T> {
+export async function deleteJson<T>(path: string, token?: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {}
   if (token) headers['Authorization'] = `Bearer ${token}`
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'DELETE',
     headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
   })
   return handleResponse<T>(response)
 }
