@@ -39,6 +39,16 @@ export interface LoginResponse {
   accessToken: string
 }
 
+export interface ReauthRequest {
+  password: string
+  purpose: 'WITHDRAWAL'
+}
+
+export interface ReauthResponse {
+  reauthToken: string
+  expiresAt: string
+}
+
 export interface SignupResponse {
   id: number
   loginId: string

@@ -6,6 +6,8 @@ import type {
   LoginRequest,
   LoginResponse,
   MyProfileResponse,
+  ReauthRequest,
+  ReauthResponse,
   SignupRequest,
   SignupResponse,
 } from '@/types/auth.types'
@@ -30,4 +32,11 @@ export async function signup(request: SignupRequest): Promise<SignupResponse> {
 
 export async function getMyProfile(token: string): Promise<MyProfileResponse> {
   return getJson<MyProfileResponse>('/api/users/me', token)
+}
+
+export async function reauthenticate(
+  request: ReauthRequest,
+  token: string
+): Promise<ReauthResponse> {
+  return postJson<ReauthResponse>('/api/auth/reauth', request, token)
 }

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { createPortal } from 'react-dom'
+import type { ReactNode } from 'react'
 import { FiAlertTriangle } from 'react-icons/fi'
 
 export interface ConfirmModalProps {
@@ -9,6 +10,9 @@ export interface ConfirmModalProps {
   message: string
   confirmLabel: string
   confirmDanger?: boolean
+  confirmDisabled?: boolean
+  confirmPending?: boolean
+  children?: ReactNode
   onConfirm: () => void
   onCancel: () => void
 }
@@ -18,6 +22,9 @@ export function ConfirmModal({
   message,
   confirmLabel,
   confirmDanger,
+  confirmDisabled,
+  confirmPending,
+  children,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -27,8 +34,11 @@ export function ConfirmModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
-      <div className="fixed inset-0 bg-black/50" onClick={onCancel} />
+      <div className="fixed inset-0 bg-black/50" onClick={confirmPending ? undefined : onCancel} />
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-modal-title"
         initial={{ opacity: 0, scale: 0.92, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.92, y: 12 }}
@@ -38,20 +48,29 @@ export function ConfirmModal({
         <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${accentBg}`}>
           <FiAlertTriangle size={26} className={accentText} />
         </div>
-        <p className={`text-[17px] font-bold mb-1 ${accentText}`}>{title}</p>
-        <p className="text-[13px] text-muted leading-relaxed mb-5">{message}</p>
+        <p id="confirm-modal-title" className={`text-[17px] font-bold mb-1 ${accentText}`}>
+          {title}
+        </p>
+        <p className={`text-[13px] text-muted leading-relaxed ${children ? 'mb-4' : 'mb-5'}`}>
+          {message}
+        </p>
+        {children && <div className="w-full mb-5">{children}</div>}
         <div className="flex gap-2 w-full">
           <button
+            type="button"
             onClick={onCancel}
-            className="flex-1 py-3 rounded-xl bg-neutral-30 text-[14px] font-semibold text-gray-700 transition-colors hover:bg-neutral-40"
+            disabled={confirmPending}
+            className="flex-1 py-3 rounded-xl bg-neutral-30 text-[14px] font-semibold text-gray-700 transition-colors hover:bg-neutral-40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             취소
           </button>
           <button
+            type="button"
             onClick={onConfirm}
-            className={`flex-1 py-3 rounded-xl text-[14px] font-semibold text-white transition-opacity hover:opacity-85 ${confirmBg}`}
+            disabled={confirmDisabled || confirmPending}
+            className={`flex-1 py-3 rounded-xl text-[14px] font-semibold text-white transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40 ${confirmBg}`}
           >
-            {confirmLabel}
+            {confirmPending ? '처리 중…' : confirmLabel}
           </button>
         </div>
       </motion.div>

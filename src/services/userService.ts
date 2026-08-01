@@ -14,8 +14,8 @@ export async function logoutApi(token: string): Promise<void> {
   return postJson<void>('/api/auth/logout', {}, token)
 }
 
-export async function deleteAccount(token: string): Promise<void> {
-  return deleteJson<void>('/api/users/me', token)
+export async function deleteAccount(reauthToken: string, token: string): Promise<void> {
+  return deleteJson<void>('/api/users/me', token, { reauthToken })
 }
 
 export async function leaveTeam(teamId: number, token: string): Promise<void> {
