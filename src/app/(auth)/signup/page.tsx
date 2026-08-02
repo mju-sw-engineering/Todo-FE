@@ -164,6 +164,7 @@ export default function SignupPage() {
               <input
                 id="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={handleEmailChange}
                 placeholder="이메일을 입력해 주세요"
@@ -200,6 +201,7 @@ export default function SignupPage() {
                 <input
                   id="code"
                   type="text"
+                  autoComplete="one-time-code"
                   inputMode="numeric"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
@@ -231,6 +233,7 @@ export default function SignupPage() {
             id="loginId"
             label="아이디"
             type="text"
+            autoComplete="username"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
             placeholder="아이디를 입력해 주세요"
@@ -240,6 +243,7 @@ export default function SignupPage() {
             id="password"
             label="비밀번호"
             type="password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="6자 이상 입력해 주세요"
@@ -250,6 +254,7 @@ export default function SignupPage() {
             id="passwordConfirm"
             label="비밀번호 확인"
             type="password"
+            autoComplete="new-password"
             value={passwordConfirm}
             onChange={(e) => setPasswordConfirm(e.target.value)}
             placeholder="비밀번호를 다시 입력해 주세요"
