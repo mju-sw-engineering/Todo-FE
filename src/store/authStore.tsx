@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { resetAuthFailureState } from '@/lib/apiClient'
 import { registerAuthBridge } from '@/lib/authBridge'
 import { clearAllCache } from '@/lib/requestCache'
 import type { AuthUser } from '@/types/auth.types'
@@ -44,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setAuth = useCallback((token: string, user: AuthUser) => {
     localStorage.setItem('accessToken', token)
     localStorage.setItem('user', JSON.stringify(user))
+    // 새 세션이 생겼으므로 이전 갱신 실패 기록을 지운다.
+    resetAuthFailureState()
     setAuthSlice({ token, user, isInitialized: true })
   }, [])
 

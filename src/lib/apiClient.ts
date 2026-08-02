@@ -51,6 +51,20 @@ async function handleResponse<T>(response: Response): Promise<T> {
  */
 let refreshInFlight: Promise<string | null> | null = null
 
+/**
+ * 갱신이 이미 실패해 재로그인이 필요한 상태.
+ *
+ * 단일 비행은 동시에 도착한 401만 묶는다. 첫 갱신이 끝난 뒤 뒤늦게 401을 받은 요청은
+ * 새 갱신을 시작하므로, 세션이 끊긴 화면에서 요청 수만큼 refresh가 나간다.
+ * 한 번 실패했으면 새로 로그인하기 전까지 다시 시도하지 않는다.
+ */
+let authExpired = false
+
+/** 로그인으로 새 세션이 생기면 갱신을 다시 허용한다. */
+export function resetAuthFailureState(): void {
+  authExpired = false
+}
+
 async function requestRefresh(): Promise<string | null> {
   try {
     const response = await fetch(`${BASE_URL}${REFRESH_PATH}`, {
@@ -73,12 +87,18 @@ async function requestRefresh(): Promise<string | null> {
 }
 
 function refreshAccessToken(): Promise<string | null> {
+  if (authExpired) return Promise.resolve(null)
+
   if (!refreshInFlight) {
     refreshInFlight = requestRefresh()
       .then((token) => {
         const bridge = getAuthBridge()
-        if (token) bridge?.onTokenRefreshed(token)
-        else bridge?.onAuthExpired()
+        if (token) {
+          bridge?.onTokenRefreshed(token)
+        } else {
+          authExpired = true
+          bridge?.onAuthExpired()
+        }
         return token
       })
       .finally(() => {
