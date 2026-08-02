@@ -2,7 +2,32 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### 환경 변수 (`.env`)
+
+배포된 API를 그대로 쓰면서 로컬 개발하려면 **프록시를 켜야 합니다.**
+
+```bash
+NEXT_PUBLIC_API_URL=
+API_PROXY_TARGET=https://api.todo.bluerack.org
+```
+
+`NEXT_PUBLIC_API_URL`을 **빈 값**으로 두면 브라우저가 같은 오리진(`localhost:3000`)으로 요청하고,
+Next 서버가 `API_PROXY_TARGET`으로 전달합니다.
+
+**직접 호출하면 로그인은 되지만 토큰 갱신이 실패합니다.** 리프레시 토큰 쿠키가 `SameSite=Strict`라
+`localhost`에서 `bluerack.org`로 가는 크로스 사이트 요청에는 브라우저가 쿠키를 싣지 않기 때문입니다.
+액세스 토큰 수명이 1시간이라 그 뒤로 계속 로그아웃됩니다.
+
+운영은 `todo.bluerack.org`와 `api.todo.bluerack.org`가 같은 사이트라 프록시 없이 동작하며,
+`API_PROXY_TARGET`이 없으면 rewrite가 등록되지 않으므로 운영 빌드는 영향받지 않습니다.
+
+백엔드를 직접 띄우는 경우에는 프록시 없이 아래만 있으면 됩니다.
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+### 실행
 
 ```bash
 npm run dev
