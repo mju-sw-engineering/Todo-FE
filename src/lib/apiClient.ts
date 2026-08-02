@@ -2,10 +2,16 @@ import { getAuthBridge } from '@/lib/authBridge'
 import type { ApiResponse } from '@/types/auth.types'
 
 /**
- * 빈 문자열이면 같은 오리진으로 요청한다. 개발 중 `next.config.ts`의 프록시를 태우기 위한
- * 설정이며, 그래야 `SameSite=Strict`인 리프레시 쿠키가 전송된다. 자세한 배경은 그 파일 참조.
+ * 프록시 모드에서는 같은 오리진으로 요청한다. `SameSite=Strict`인 리프레시 쿠키를
+ * 로컬에서 쓰기 위한 개발용 설정이며, 배경은 `next.config.ts` 참조.
+ *
+ * WebSocket(SockJS)은 이 값을 쓰지 않는다. 쿠키가 필요 없고 Next rewrite가 업그레이드를
+ * 프록시하지도 못하므로 `NEXT_PUBLIC_API_URL`로 계속 직접 연결한다.
  */
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+const BASE_URL =
+  process.env.NEXT_PUBLIC_USE_API_PROXY === 'true'
+    ? ''
+    : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080')
 
 const REFRESH_PATH = '/api/auth/refresh'
 
