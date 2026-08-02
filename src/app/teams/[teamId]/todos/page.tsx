@@ -182,11 +182,7 @@ function TodoListContent() {
                 key={todo.todoId}
                 todo={todo}
                 colorIndex={idx}
-                onClick={() =>
-                  router.push(
-                    `/teams/${teamId}/todos/${todo.todoId}?myStatus=${encodeURIComponent(todo.myStatus ?? '')}`
-                  )
-                }
+                onClick={() => router.push(`/teams/${teamId}/todos/${todo.todoId}`)}
               />
             ))
           )}

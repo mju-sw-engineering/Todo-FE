@@ -2,11 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useAuth } from '@/store/authStore'
 import { StickerEmoji } from '@/components/chat/StickerEmoji'
 import { STICKER_TYPES, STICKER_PREFIX, parseStandaloneSticker } from '@/lib/sticker'
 import { formatRelativeTime } from '@/lib/dateUtils'
+import { getTeams } from '@/services/teamService'
+import { getHistoryTodos } from '@/services/todoService'
 import type { AppNotification } from '@/types/notification.types'
 import type { StickerType } from '@/lib/sticker'
 
@@ -110,9 +113,11 @@ function DefaultAvatar() {
 function NotificationItem({
   notification,
   onRead,
+  onOpen,
 }: {
   notification: AppNotification
   onRead: (id: number) => void
+  onOpen: (notification: AppNotification) => void
 }) {
   const sender = extractSender(notification.title)
   const message = stripContentPrefix(notification.content)
@@ -122,6 +127,7 @@ function NotificationItem({
       type="button"
       onClick={() => {
         if (!notification.isRead) onRead(notification.notificationId)
+        onOpen(notification)
       }}
       className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors hover:bg-gray-50 ${notification.isRead ? 'opacity-50' : ''}`}
     >
@@ -143,6 +149,7 @@ function NotificationItem({
 // ─── NotificationBell ──────────────────────────────────────────────────────────
 
 export function NotificationBell() {
+  const router = useRouter()
   const { token } = useAuth()
   const {
     unreadCount,
@@ -166,6 +173,36 @@ export function NotificationBell() {
     const rect = buttonRef.current.getBoundingClientRect()
     setPanelStyle({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
   }, [isOpen])
+
+  async function openNotification(notification: AppNotification) {
+    setIsOpen(false)
+    if (
+      !token ||
+      !['TODO_CREATED', 'TODO_ASSIGNED', 'TODO_UNASSIGNED'].includes(notification.type)
+    ) {
+      return
+    }
+
+    try {
+      const { teams } = await getTeams(token)
+      const now = new Date()
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+        now.getDate()
+      ).padStart(2, '0')}`
+      const todoLists = await Promise.all(
+        teams.map(async (team) => ({
+          teamId: team.teamId,
+          todos: await getHistoryTodos(team.teamId, today, token),
+        }))
+      )
+      const owner = todoLists.find(({ todos }) =>
+        todos.some((todo) => todo.todoId === notification.referenceId)
+      )
+      router.push(owner ? `/teams/${owner.teamId}/todos/${notification.referenceId}` : '/teams')
+    } catch {
+      router.push('/teams')
+    }
+  }
 
   useEffect(() => {
     if (isOpen) loadNotifications(true)
@@ -216,7 +253,12 @@ export function NotificationBell() {
         ) : (
           <>
             {notifications.map((n) => (
-              <NotificationItem key={n.notificationId} notification={n} onRead={markRead} />
+              <NotificationItem
+                key={n.notificationId}
+                notification={n}
+                onRead={markRead}
+                onOpen={openNotification}
+              />
             ))}
             {hasNext && (
               <button

@@ -5,7 +5,7 @@ import { Suspense, useRef, useState } from 'react'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { compressImageFile } from '@/lib/imageCompression'
 import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
-import { submitTodo } from '@/services/todoService'
+import { submitTodo, submitTodoWorkItem } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import { AddImgButton } from '@/components/ui/AddImgButton'
 import { Button } from '@/components/ui/Button'
@@ -20,6 +20,8 @@ function CertifyContent() {
   const { token } = useAuth()
 
   const title = searchParams.get('title') ?? '할 일'
+  const mode = searchParams.get('mode')
+  const workItemId = Number(searchParams.get('workItemId'))
 
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -52,10 +54,13 @@ function CertifyContent() {
           token
         )
         await uploadFileToStorage(uploadUrl, uploadFile)
-        await submitTodo(todoId, { proofImageKey: objectKey }, token)
-        router.replace(
-          `/teams/${teamId}/todos/${todoId}?certified=1&myStatus=${encodeURIComponent('완료')}`
-        )
+        if (mode === 'TASK') {
+          if (!workItemId) throw new Error('Task 정보를 확인할 수 없습니다.')
+          await submitTodoWorkItem(workItemId, { proofImageKey: objectKey }, token)
+        } else {
+          await submitTodo(todoId, { proofImageKey: objectKey }, token)
+        }
+        router.replace(`/teams/${teamId}/todos/${todoId}?certified=1`)
       },
       { fallback: '인증샷 업로드에 실패했습니다. 다시 시도해주세요.' }
     )

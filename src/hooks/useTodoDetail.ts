@@ -1,40 +1,38 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
-import { getTodoDetail, postReaction } from '@/services/todoService'
-import type { MyTodoStatus, ReactionType, TodoDetail } from '@/types/todo.types'
+import { getTodoDetail, postReaction, reassignTodoWorkItem } from '@/services/todoService'
+import type { ReactionType, TodoDetail } from '@/types/todo.types'
 
-export function useTodoDetail(
-  todoId: number,
-  token: string | null,
-  myStatusParam: MyTodoStatus | null
-) {
+export function useTodoDetail(todoId: number, token: string | null) {
   const [todo, setTodo] = useState<TodoDetail | null>(null)
   const { isLoading, error, run } = useAsyncTask(true)
 
+  const refreshTodo = useCallback(async () => {
+    if (!token || !todoId) return
+    const response = await getTodoDetail(todoId, token)
+    setTodo(response)
+  }, [token, todoId])
+
   useEffect(() => {
     if (!token || !todoId) return
-    run(
-      async () => {
-        const res = await getTodoDetail(todoId, token)
-        setTodo(res)
-      },
-      { fallback: '투두를 불러오지 못했습니다.' }
-    )
-  }, [token, todoId, run])
+    run(refreshTodo, { fallback: '투두를 불러오지 못했습니다.' })
+  }, [token, todoId, refreshTodo, run])
 
-  async function handleReact(participantId: number, type: ReactionType) {
+  async function handleReact(workItemId: number, type: ReactionType) {
     if (!token) return
     try {
-      await postReaction(participantId, type, token)
-      getTodoDetail(todoId, token)
-        .then((res) => setTodo(res))
-        .catch(() => null)
+      await postReaction(workItemId, type, token)
+      await refreshTodo()
     } catch {
-      // silently fail
+      // 반응 실패는 상세 화면 전체를 막지 않는다.
     }
   }
 
-  const effectiveMyStatus: MyTodoStatus | null = todo?.myStatus ?? myStatusParam
+  async function handleReassign(workItemId: number, assigneeId: number) {
+    if (!token) return
+    await reassignTodoWorkItem(workItemId, assigneeId, token)
+    await refreshTodo()
+  }
 
-  return { todo, isLoading, error, effectiveMyStatus, handleReact }
+  return { todo, isLoading, error, refreshTodo, handleReact, handleReassign }
 }

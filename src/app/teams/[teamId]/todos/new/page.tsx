@@ -31,6 +31,8 @@ export default function TodoNewPage() {
   const {
     members,
     isMembersLoading,
+    mode,
+    changeMode,
     title,
     setTitle,
     deadline,
@@ -39,6 +41,10 @@ export default function TodoNewPage() {
     setDescription,
     excludedIds,
     toggleExclude,
+    tasks,
+    updateTask,
+    addTask,
+    removeTask,
     error,
     setError,
     isLoading,
@@ -119,48 +125,147 @@ export default function TodoNewPage() {
           />
         </div>
 
+        <div className="flex flex-col gap-2">
+          <p className="text-[13px] font-semibold text-gray-700 tracking-wide">진행 방식</p>
+          <div className="grid grid-cols-2 gap-2 rounded-[14px] bg-gray-100 p-1">
+            {(['DIRECT', 'TASK'] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => changeMode(option)}
+                className={`rounded-[11px] px-3 py-2.5 text-[13px] font-bold transition-all ${
+                  mode === option ? 'bg-white text-ink shadow-sm' : 'text-muted'
+                }`}
+              >
+                {option === 'DIRECT' ? '같이 인증하기' : 'Task로 나누기'}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-muted">
+            {mode === 'DIRECT'
+              ? '선택한 팀원이 같은 할 일을 각자 인증합니다.'
+              : 'Task마다 담당자와 개별 마감을 지정합니다.'}
+          </p>
+        </div>
+
         <div className="flex flex-col gap-3">
-          <p className="text-[13px] font-semibold text-gray-700 tracking-wide">팀원</p>
           {isMembersLoading ? (
             <div className="flex justify-center py-6">
               <Spinner size="sm" />
             </div>
+          ) : mode === 'DIRECT' ? (
+            <>
+              <p className="text-[13px] font-semibold text-gray-700 tracking-wide">팀원</p>
+              <ul className="flex flex-col gap-2">
+                {members.map((member) => {
+                  const isExcluded = excludedIds.has(member.userId)
+                  return (
+                    <li
+                      key={member.userId}
+                      className={`flex items-center justify-between bg-white rounded-[14px] border border-border px-4 py-3.5 transition-all duration-200 ${isExcluded ? 'opacity-40' : ''}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <MemberAvatar
+                          profileImageUrl={member.profileImageUrl}
+                          nickname={member.nickname}
+                          size={36}
+                        />
+                        <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleExclude(member.userId)}
+                        className={
+                          isExcluded
+                            ? 'text-[13px] font-semibold text-muted'
+                            : 'px-4 py-1.5 rounded-[10px] border border-border text-[13px] font-semibold text-ink transition-all duration-200 hover:border-primary hover:text-primary'
+                        }
+                      >
+                        {isExcluded ? '제외됨' : '제외'}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
           ) : (
-            <ul className="flex flex-col gap-2">
-              {members.map((member) => {
-                const isExcluded = excludedIds.has(member.userId)
-                return (
-                  <li
-                    key={member.userId}
-                    className={`flex items-center justify-between bg-white rounded-[14px] border border-border px-4 py-3.5 transition-all duration-200 ${isExcluded ? 'opacity-40' : ''}`}
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-[13px] font-semibold text-gray-700 tracking-wide">Task</p>
+                <button
+                  type="button"
+                  onClick={addTask}
+                  className="text-[12px] font-bold text-primary"
+                >
+                  + Task 추가
+                </button>
+              </div>
+              <div className="flex flex-col gap-3">
+                {tasks.map((task, index) => (
+                  <section
+                    key={task.draftId}
+                    className="rounded-[16px] border border-border bg-gray-50/50 p-4 flex flex-col gap-3"
                   >
-                    <div className="flex items-center gap-3">
-                      <MemberAvatar
-                        profileImageUrl={member.profileImageUrl}
-                        nickname={member.nickname}
-                        size={36}
-                      />
-                      <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[12px] font-bold text-ink">Task {index + 1}</p>
+                      {tasks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeTask(task.draftId)}
+                          className="text-[11px] font-semibold text-status-red"
+                        >
+                          삭제
+                        </button>
+                      )}
                     </div>
-                    {isExcluded ? (
-                      <button
-                        onClick={() => toggleExclude(member.userId)}
-                        className="text-[13px] font-semibold text-muted"
+                    <Input
+                      type="text"
+                      value={task.title}
+                      onChange={(event) => updateTask(task.draftId, { title: event.target.value })}
+                      placeholder="Task 제목"
+                    />
+                    <Textarea
+                      value={task.description}
+                      onChange={(event) =>
+                        updateTask(task.draftId, { description: event.target.value })
+                      }
+                      placeholder="Task 설명 (선택)"
+                      rows={2}
+                    />
+                    <label className="flex flex-col gap-1.5 text-[12px] font-semibold text-gray-600">
+                      담당자
+                      <select
+                        value={task.assigneeId ?? ''}
+                        onChange={(event) =>
+                          updateTask(task.draftId, {
+                            assigneeId: event.target.value ? Number(event.target.value) : null,
+                          })
+                        }
+                        className="w-full rounded-[12px] border-[1.5px] border-border bg-white px-4 py-3 text-[14px] text-ink outline-none focus:border-primary"
                       >
-                        제외됨
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => toggleExclude(member.userId)}
-                        className="px-4 py-1.5 rounded-[10px] border border-border text-[13px] font-semibold text-ink transition-all duration-200 hover:border-primary hover:text-primary"
-                      >
-                        제외
-                      </button>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
+                        <option value="">팀원을 선택해주세요</option>
+                        {members.map((member) => (
+                          <option key={member.userId} value={member.userId}>
+                            {member.nickname}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-1.5 text-[12px] font-semibold text-gray-600">
+                      개별 마감
+                      <Input
+                        type="time"
+                        value={task.deadline}
+                        max={deadline || undefined}
+                        onChange={(event) =>
+                          updateTask(task.draftId, { deadline: event.target.value })
+                        }
+                      />
+                    </label>
+                  </section>
+                ))}
+              </div>
+            </>
           )}
         </div>
 

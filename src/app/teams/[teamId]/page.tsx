@@ -6,11 +6,9 @@ import { useTeamDetail } from '@/hooks/useTeamDetail'
 import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { TeamMembersCard } from './components/TeamMembersCard'
-import { StreakCard } from './components/StreakCard'
 import { AvailabilityEntryCard } from './components/AvailabilityEntryCard'
 import { FeedVisibilityCard } from './components/FeedVisibilityCard'
 import { TeamInviteSection } from './components/TeamInviteSection'
-import { StreakCelebration } from './components/StreakCelebration'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -25,8 +23,6 @@ export default function TeamDetailPage() {
   const {
     team,
     isLoading,
-    showStreak,
-    setShowStreak,
     actionError,
     kickTarget,
     setKickTarget,
@@ -88,8 +84,6 @@ export default function TeamDetailPage() {
           onKick={setKickTarget}
         />
 
-        <StreakCard continuousTodoCount={team.continuousTodoCount} />
-
         <AvailabilityEntryCard teamId={teamId} />
 
         <FeedVisibilityCard isLeader={myRole === 'LEADER'} />
@@ -148,14 +142,6 @@ export default function TeamDetailPage() {
           />
         )}
       </AnimatePresence>
-
-      {showStreak && (
-        <StreakCelebration
-          count={team.continuousTodoCount}
-          teamId={teamId}
-          onDismiss={() => setShowStreak(false)}
-        />
-      )}
     </div>
   )
 }

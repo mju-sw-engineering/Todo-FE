@@ -1,66 +1,92 @@
 export type TodoStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAIL'
-export type MyTodoStatus = '미완료' | '완료'
+export type TodoMode = 'DIRECT' | 'TASK'
+export type WorkItemStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAIL'
 export type ReactionType = 'LIKE' | 'HEART' | 'SURPRISED' | 'DISLIKE' | 'ANGRY'
+
+export interface MyWorkSummary {
+  totalCount: number
+  successCount: number
+  failCount: number
+  inProgressCount: number
+}
 
 export interface Todo {
   todoId: number
+  mode: TodoMode
   title: string
   deadline: string
-  creatorNickname: string
   status: TodoStatus
   achievementCount: string
-  myStatus: MyTodoStatus | null
+  myWorkSummary: MyWorkSummary
 }
 
 export type TodayTodoListResponse = Todo[] | null
 
-export interface CreateTodoRequest {
+export interface CreateTodoTaskRequest {
+  title: string
+  description?: string
+  assigneeId: number
+  deadline: string
+}
+
+interface CreateTodoBaseRequest {
   title: string
   description?: string
   deadline: string
-  assigneeIds: number[]
 }
+
+export type CreateTodoRequest = CreateTodoBaseRequest &
+  (
+    | { assigneeIds: number[]; tasks?: never }
+    | { assigneeIds?: never; tasks: CreateTodoTaskRequest[] }
+  )
 
 export interface CreateTodoResponse {
   todoId: number
-  teamId: number
-  creatorId: number
+  mode: TodoMode
+  title: string
+  deadline: string
+  status: TodoStatus
+  directAssignees: TodoDirectAssignee[] | null
+  tasks: TodoTask[] | null
+}
+
+export type ReactionCounts = Partial<Record<ReactionType, number>>
+
+export interface TodoWorkItemBase {
+  workItemId: number
+  assigneeId: number | null
+  assigneeNickname: string | null
+  status: WorkItemStatus
+  submittedAt: string | null
+  thumbnailUrl: string | null
+  reactions: ReactionCounts
+  myReaction: ReactionType | null
+  unassigned: boolean
+}
+
+export type TodoDirectAssignee = TodoWorkItemBase
+
+export interface TodoTask extends TodoWorkItemBase {
   title: string
   description: string | null
   deadline: string
-  status: TodoStatus
-  assigneeIds: number[]
-  createdAt: string
+  position: number
 }
 
-export interface Reaction {
-  type: ReactionType
-  emoji: string
-  count: number
-}
-
-export interface TodoParticipant {
-  userId: number | null
-  todoParticipantId: number
-  nickname: string
-  profileImageUrl: string | null
-  proofImageUrl: string | null
-  proofThumbnailUrl?: string | null
-  status: MyTodoStatus | null
-  reactions: Reaction[]
-  myReaction: ReactionType | null
-}
+export type TodoWorkItem = TodoDirectAssignee | TodoTask
 
 export interface TodoDetail {
   todoId: number
+  mode: TodoMode
   title: string
   deadline: string
   creatorNickname: string
   status: TodoStatus
   achievementCount: string
-  myStatus?: MyTodoStatus | null
   description: string | null
-  participants: TodoParticipant[]
+  directAssignees: TodoDirectAssignee[] | null
+  tasks: TodoTask[] | null
 }
 
 export interface SubmitTodoRequest {
@@ -69,6 +95,22 @@ export interface SubmitTodoRequest {
 
 export interface ReactRequest {
   type: ReactionType
+}
+
+export interface TodoWorkItemSubmission {
+  workItemId: number
+  assigneeId: number | null
+  submittedAt: string
+  originalUrl: string
+  thumbnailUrl: string
+  expiresAt: string
+}
+
+export interface TodoWorkItemAssignee {
+  workItemId: number
+  assigneeId: number
+  assigneeNickname: string
+  status: WorkItemStatus
 }
 
 export interface DailyTodoStat {
@@ -102,4 +144,8 @@ export interface TodoPeriodReportResponse {
   weakestDay: string | null
   dailyStats: DailyTodoStat[]
   actionCandidates: unknown[]
+}
+
+export function isMyWorkComplete(summary: MyWorkSummary): boolean {
+  return summary.totalCount > 0 && summary.successCount === summary.totalCount
 }
