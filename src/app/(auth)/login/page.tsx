@@ -58,6 +58,7 @@ export default function LoginPage() {
             id="loginId"
             label="아이디"
             type="text"
+            autoComplete="username"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
             placeholder="아이디를 입력해 주세요"
@@ -67,6 +68,7 @@ export default function LoginPage() {
             id="password"
             label="비밀번호"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="비밀번호를 입력해 주세요"

@@ -1,6 +1,8 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { resetAuthFailureState } from '@/lib/apiClient'
+import { registerAuthBridge } from '@/lib/authBridge'
 import { clearAllCache } from '@/lib/requestCache'
 import type { AuthUser } from '@/types/auth.types'
 
@@ -43,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setAuth = useCallback((token: string, user: AuthUser) => {
     localStorage.setItem('accessToken', token)
     localStorage.setItem('user', JSON.stringify(user))
+    // 새 세션이 생겼으므로 이전 갱신 실패 기록을 지운다.
+    resetAuthFailureState()
     setAuthSlice({ token, user, isInitialized: true })
   }, [])
 
@@ -60,6 +64,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearAllCache()
     setAuthSlice({ token: null, user: null, isInitialized: true })
   }, [])
+
+  // apiClient가 토큰 갱신 결과를 반영할 수 있도록 접근자를 등록한다.
+  // ref로 읽는 이유는 등록 시점의 클로저가 옛 토큰을 붙잡지 않게 하기 위해서다.
+  const tokenRef = useRef(auth.token)
+
+  useEffect(() => {
+    tokenRef.current = auth.token
+  }, [auth.token])
+
+  useEffect(() => {
+    return registerAuthBridge({
+      getToken: () => tokenRef.current,
+      onTokenRefreshed: (token) => {
+        localStorage.setItem('accessToken', token)
+        setAuthSlice((prev) => ({ ...prev, token }))
+      },
+      // 갱신까지 실패하면 재로그인이 필요하다. 여기서 화면을 옮기지 않고 토큰만 비우면
+      // 레이아웃의 인증 가드가 로그인으로 보낸다.
+      onAuthExpired: logout,
+    })
+  }, [logout])
 
   return (
     <AuthContext.Provider value={{ ...auth, setAuth, updateUser, logout }}>
