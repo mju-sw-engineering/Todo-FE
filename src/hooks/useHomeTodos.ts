@@ -55,7 +55,7 @@ export function useHomeTodos(token: string | null, teamList: TeamListItem[]) {
           teamList.map((team) =>
             getHistoryTodos(team.teamId, selectedDate, token!).then((todos) =>
               todos
-                .filter((t) => t.myStatus !== null)
+                .filter((t) => t.myWorkSummary.totalCount > 0)
                 .map(
                   (t): TodoWithTeam => ({
                     ...t,

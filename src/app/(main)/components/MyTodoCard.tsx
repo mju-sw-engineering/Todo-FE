@@ -7,7 +7,7 @@ import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
 import { CARD_PALETTES } from '@/lib/cardPalettes'
 import { parseAchievementCount } from '@/lib/formatters'
 import { formatISOTime } from '@/lib/dateUtils'
-import type { Todo } from '@/types/todo.types'
+import { isMyWorkComplete, type Todo } from '@/types/todo.types'
 
 export interface TodoWithTeam extends Todo {
   teamId: number
@@ -24,10 +24,10 @@ interface MyTodoCardProps {
 export function MyTodoCard({ todo, colorIndex, onClick }: MyTodoCardProps) {
   const { achieved, total } = parseAchievementCount(todo.achievementCount)
   const percentage = total > 0 ? Math.round((achieved / total) * 100) : 0
-  const myStatus = todo.myStatus
+  const myWorkComplete = isMyWorkComplete(todo.myWorkSummary)
   const palette = CARD_PALETTES[colorIndex % CARD_PALETTES.length]
   const time = formatISOTime(todo.deadline)
-  const dimmed = myStatus === '완료' || todo.status === 'FAIL'
+  const dimmed = todo.myWorkSummary.inProgressCount === 0
 
   return (
     <ConvexCard
@@ -60,14 +60,21 @@ export function MyTodoCard({ todo, colorIndex, onClick }: MyTodoCardProps) {
             {todo.teamName}
           </span>
           <TodoStatusBadge status={todo.status} />
+          {todo.mode === 'TASK' && (
+            <span className="rounded-full bg-white/55 px-2 py-0.5 text-[9px] font-black text-gray-600">
+              TASK
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {myStatus === '완료' && (
+          {todo.myWorkSummary.totalCount > 0 && (
             <span
               className="text-[10px] font-black px-2 py-0.5 rounded-full text-white"
-              style={{ background: palette.accent }}
+              style={{ background: myWorkComplete ? palette.accent : 'rgba(0,0,0,0.18)' }}
             >
-              완료
+              {myWorkComplete
+                ? '완료'
+                : `${todo.myWorkSummary.successCount}/${todo.myWorkSummary.totalCount} 완료`}
             </span>
           )}
           {time && (
@@ -91,7 +98,7 @@ export function MyTodoCard({ todo, colorIndex, onClick }: MyTodoCardProps) {
             className="text-[11px] font-semibold"
             style={{ color: palette.text, opacity: 0.65 }}
           >
-            {achieved}/{total} 인증
+            {achieved}/{total} {todo.mode === 'TASK' ? 'Task' : '인증'}
           </span>
           <span className="text-[12px] font-black" style={{ color: palette.accent }}>
             {percentage}%
