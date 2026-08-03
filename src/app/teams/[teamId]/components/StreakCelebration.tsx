@@ -70,7 +70,7 @@ function StampCell({ day, count }: StampCellProps) {
             className="relative w-full h-15 rounded-xl flex items-center justify-center overflow-visible"
             style={{
               background: 'linear-gradient(160deg, #fdf9f4 0%, var(--color-secondary-10) 100%)',
-              boxShadow: '0 0 0 2.5px var(--color-secondary-50), 0 4px 18px rgba(156,107,62,0.35)',
+              boxShadow: '0 0 0 2.5px var(--color-secondary-50), 0 4px 18px rgba(255,138,61,0.35)',
             }}
           >
             {/* Ripple 1 */}
@@ -79,7 +79,7 @@ function StampCell({ day, count }: StampCellProps) {
               animate={{ scale: 2.8, opacity: 0 }}
               transition={{ delay: 0.7, duration: 0.5, ease: 'easeOut' }}
               className="absolute inset-0 rounded-xl pointer-events-none"
-              style={{ background: 'rgba(156,107,62,0.16)' }}
+              style={{ background: 'rgba(255,138,61,0.16)' }}
             />
             {/* Ripple 2 */}
             <motion.div
