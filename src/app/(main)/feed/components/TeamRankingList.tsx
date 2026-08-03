@@ -21,9 +21,7 @@ export function TeamRankingList({ rankings }: TeamRankingListProps) {
           <p className="flex-1 min-w-0 text-[14px] font-semibold text-ink truncate">
             {team.teamName}
           </p>
-          <span className="text-[14px] font-black text-secondary-50 shrink-0">
-            {team.streakDays}일
-          </span>
+          <span className="text-[14px] font-black text-primary shrink-0">{team.streakDays}일</span>
         </div>
       ))}
     </div>

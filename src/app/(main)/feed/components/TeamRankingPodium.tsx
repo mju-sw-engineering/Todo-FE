@@ -1,29 +1,25 @@
-import Image from 'next/image'
 import type { FeedTeamRanking } from '@/types/feed.types'
+import { ChampionBee } from './ChampionBee'
+import { SilverBee } from './SilverBee'
+import { BronzeBee } from './BronzeBee'
 
 type Medal = 'gold' | 'silver' | 'bronze'
 
-// 우리 서비스 색상 토큰(secondary=갈색 / neutral)에서 그대로 참조한 금·은·동 배색
+// 금은동은 브랜드 secondary(주황)와 무관하게 각 벌 캐릭터의 메달 색을 그대로 참조
 const MEDAL_GRADIENT: Record<Medal, [string, string]> = {
-  gold: ['var(--color-secondary-10)', 'var(--color-secondary-50)'],
+  gold: ['#fff6d8', '#e8b93f'],
   silver: ['var(--color-neutral-20)', 'var(--color-neutral-60)'],
-  bronze: ['#ece3da', '#8a7360'], // secondary보다 차분하고 회색을 섞은 브라운
+  bronze: ['#ece3da', '#8a7360'],
 }
 
-const MEDAL_BEE: Record<Medal, string> = {
-  gold: '/bees/cheer.svg',
-  silver: '/bees/proud.svg',
-  bronze: '/bees/proud.svg',
-}
-
-const CARD_BG: Record<Medal, string> = {
-  gold: 'linear-gradient(150deg, #fffdf9, var(--color-secondary-10))',
-  silver: 'linear-gradient(150deg, #fbfbfb, #f4f4f4)',
-  bronze: 'linear-gradient(150deg, #fdfbf9, #ece3da)',
+const ACCENT: Record<Medal, string> = {
+  gold: '#d89a1c',
+  silver: '#9aa0a6',
+  bronze: '#9c5a22',
 }
 
 const RANK_TEXT: Record<Medal, string> = {
-  gold: '#6b4423',
+  gold: '#8a6d1f',
   silver: '#5b6472',
   bronze: '#5c4a3d',
 }
@@ -51,32 +47,35 @@ interface PodiumSlotProps {
   isFirst: boolean
 }
 
-function PodiumSlot({ team, medal, isFirst }: PodiumSlotProps) {
+function PodiumSlot({ team, medal }: PodiumSlotProps) {
   return (
-    <div className={`relative text-center ${isFirst ? 'w-[34%]' : 'w-[29%]'}`}>
+    <div className="relative text-center w-full">
       <div className="absolute left-1/2 -translate-x-1/2 -top-6 flex flex-col items-center">
         <Crown medal={medal} />
-        <span className="text-[11px] font-black -mt-3.5" style={{ color: RANK_TEXT[medal] }}>
+        <span className="text-[7px] font-black -mt-3.5" style={{ color: RANK_TEXT[medal] }}>
           {team.rank}
         </span>
       </div>
       <div
-        className="rounded-[18px] px-2.5 pt-3.5 pb-3 shadow-[0_10px_22px_-14px_rgba(60,50,20,0.4)]"
-        style={{ background: CARD_BG[medal] }}
+        className="rounded-[10px] bg-white overflow-hidden"
+        style={{ borderTopColor: ACCENT[medal] }}
       >
-        <div className="flex justify-center mb-1.5">
-          <div className={isFirst ? 'w-21 h-21' : 'w-17 h-17'}>
-            <Image
-              src={MEDAL_BEE[medal]}
-              alt={`${team.teamName} 벌`}
-              width={128}
-              height={128}
-              className="w-full h-full object-contain"
-            />
+        <div className="aspect-square w-full">
+          {medal === 'gold' ? (
+            <ChampionBee className="w-full h-full" />
+          ) : medal === 'silver' ? (
+            <SilverBee className="w-full h-full" />
+          ) : (
+            <BronzeBee className="w-full h-full" />
+          )}
+        </div>
+        <div className="flex flex-row align-middle justify-center gap-2 items-center px-1.5 py-2">
+          <p className="text-[12px] font-bold text-ink truncate">{team.teamName}</p>
+
+          <div className="px-1.5 py-0.5 bg-primary-50 rounded-[14px] whitespace-nowrap">
+            <p className="text-[7px] font-light text-white">{team.streakDays}일</p>
           </div>
         </div>
-        <p className="text-[12px] font-bold text-ink truncate">{team.teamName}</p>
-        <p className="text-[13px] font-black text-secondary-50 mt-0.5">{team.streakDays}일</p>
       </div>
     </div>
   )
@@ -94,7 +93,7 @@ export function TeamRankingPodium({ rankings }: TeamRankingPodiumProps) {
   if (!first) return null
 
   return (
-    <div className="flex items-end justify-center gap-2.5 pt-8 pb-1">
+    <div className="grid grid-cols-[1.3fr_1.3fr_1fr] items-end gap-1.5 pt-8 pb-1">
       {second && <PodiumSlot team={second} medal="silver" isFirst={false} />}
       <PodiumSlot team={first} medal="gold" isFirst />
       {third && <PodiumSlot team={third} medal="bronze" isFirst={false} />}
