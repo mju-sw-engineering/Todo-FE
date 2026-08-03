@@ -1,4 +1,4 @@
-import { getJson, postJson } from '@/lib/apiClient'
+import { getJson, patchJson, postJson } from '@/lib/apiClient'
 import { cachedRequest, invalidateCache } from '@/lib/requestCache'
 import type {
   CreateTodoRequest,
@@ -9,6 +9,8 @@ import type {
   Todo,
   TodoDetail,
   TodoPeriodReportResponse,
+  TodoWorkItemAssignee,
+  TodoWorkItemSubmission,
   TodayTodoListResponse,
 } from '@/types/todo.types'
 
@@ -48,14 +50,46 @@ export async function submitTodo(
   invalidateCache('todos:')
 }
 
+export async function submitTodoWorkItem(
+  workItemId: number,
+  request: SubmitTodoRequest,
+  token: string
+): Promise<void> {
+  await postJson<void>(`/api/todo-work-items/${workItemId}/submission`, request, token)
+  invalidateCache('todo:')
+  invalidateCache('todos:')
+}
+
+export async function getTodoWorkItemSubmission(
+  workItemId: number,
+  token: string
+): Promise<TodoWorkItemSubmission> {
+  return getJson<TodoWorkItemSubmission>(`/api/todo-work-items/${workItemId}/submission`, token)
+}
+
 export async function postReaction(
-  participantId: number,
+  workItemId: number,
   type: ReactionType,
   token: string
 ): Promise<void> {
   const request: ReactRequest = { type }
-  await postJson<void>(`/api/todo-participants/${participantId}/reactions`, request, token)
+  await postJson<void>(`/api/todo-work-items/${workItemId}/reactions`, request, token)
   invalidateCache('todo:')
+}
+
+export async function reassignTodoWorkItem(
+  workItemId: number,
+  assigneeId: number,
+  token: string
+): Promise<TodoWorkItemAssignee> {
+  const result = await patchJson<TodoWorkItemAssignee>(
+    `/api/todo-work-items/${workItemId}/assignee`,
+    { assigneeId },
+    token
+  )
+  invalidateCache('todo:')
+  invalidateCache('todos:')
+  return result
 }
 
 export async function getHistoryTodos(
@@ -63,10 +97,7 @@ export async function getHistoryTodos(
   date: string,
   token: string
 ): Promise<Todo[]> {
-  const data = await getJson<Todo[] | null>(
-    `/api/teams/${teamId}/todos?date=${date}`,
-    token
-  )
+  const data = await getJson<Todo[] | null>(`/api/teams/${teamId}/todos?date=${date}`, token)
   return data ?? []
 }
 

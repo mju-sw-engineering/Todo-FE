@@ -1,6 +1,8 @@
+export type NotificationType = 'CHAT_MESSAGE' | 'TODO_CREATED' | 'TODO_ASSIGNED' | 'TODO_UNASSIGNED'
+
 export interface AppNotification {
   notificationId: number
-  type: string
+  type: NotificationType
   title: string
   content: string
   isRead: boolean

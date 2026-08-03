@@ -9,7 +9,6 @@ export interface CreateTeamResponse {
   teamImage: string | null
   inviteCode: string
   leaderId: number
-  consecutiveTodoCount: number
   createdAt: string
 }
 
@@ -27,7 +26,6 @@ export interface TeamListItem {
   teamImageUrl: string | null
   memberCount?: number
   successCount?: number
-  continuousTodoCount?: number
 }
 
 export interface TeamListResponse {
@@ -48,6 +46,5 @@ export interface TeamDetailResponse {
   inviteCode?: string
   memberCount: number
   successCount: number
-  continuousTodoCount: number
   members: TeamMember[]
 }

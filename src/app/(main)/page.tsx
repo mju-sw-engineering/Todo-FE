@@ -11,6 +11,7 @@ import { useHomeTodos } from '@/hooks/useHomeTodos'
 import { MONTHS_EN, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Spinner } from '@/components/ui/Spinner'
 import type { TeamListItem } from '@/types/team.types'
+import { isMyWorkComplete } from '@/types/todo.types'
 
 function getCompletionMessage(pct: number, total: number): string {
   if (total === 0) return '할 일을 추가해봐요!'
@@ -69,7 +70,7 @@ export default function HomePage() {
   const monthNum = pad(selectedDateObj.getMonth() + 1)
   const dayKo = DAYS_KO[selectedDateObj.getDay()]
 
-  const completeCount = displayTodos.filter((t) => t.myStatus === '완료').length
+  const completeCount = displayTodos.filter((todo) => isMyWorkComplete(todo.myWorkSummary)).length
   const remainingCount = displayTodos.length - completeCount
   const completionPct =
     displayTodos.length > 0 ? Math.round((completeCount / displayTodos.length) * 100) : 0
@@ -78,8 +79,8 @@ export default function HomePage() {
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
   const filteredTodos = displayTodos
     .filter((t) => {
-      if (tab === 'complete') return t.myStatus === '완료'
-      if (tab === 'incomplete') return t.myStatus === '미완료'
+      if (tab === 'complete') return isMyWorkComplete(t.myWorkSummary)
+      if (tab === 'incomplete') return !isMyWorkComplete(t.myWorkSummary)
       return true
     })
     .sort((a, b) => (STATUS_ORDER[a.status] ?? 0) - (STATUS_ORDER[b.status] ?? 0))
@@ -89,7 +90,7 @@ export default function HomePage() {
     {
       key: 'incomplete',
       label: '미완료',
-      count: displayTodos.filter((t) => t.myStatus === '미완료').length,
+      count: displayTodos.filter((t) => !isMyWorkComplete(t.myWorkSummary)).length,
     },
     { key: 'complete', label: '완료', count: completeCount },
   ]
@@ -269,11 +270,7 @@ export default function HomePage() {
               key={`${todo.teamId}-${todo.todoId}`}
               todo={todo}
               colorIndex={idx}
-              onClick={() =>
-                router.push(
-                  `/teams/${todo.teamId}/todos/${todo.todoId}?myStatus=${encodeURIComponent(todo.myStatus ?? '')}`
-                )
-              }
+              onClick={() => router.push(`/teams/${todo.teamId}/todos/${todo.todoId}`)}
             />
           ))
         )}

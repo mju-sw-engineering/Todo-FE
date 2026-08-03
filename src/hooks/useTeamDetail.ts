@@ -4,7 +4,6 @@ import { ApiError } from '@/lib/apiClient'
 import { getErrorMessage } from '@/lib/apiError'
 import { getTeamById, leaveTeam, removeMember } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
-import { isStreakSkippedToday } from '@/app/teams/[teamId]/components/StreakCelebration'
 import type { TeamDetailResponse, TeamMember } from '@/types/team.types'
 
 export function useTeamDetail(teamId: number) {
@@ -13,7 +12,6 @@ export function useTeamDetail(teamId: number) {
 
   const [team, setTeam] = useState<TeamDetailResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [showStreak, setShowStreak] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [kickTarget, setKickTarget] = useState<TeamMember | null>(null)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
@@ -41,7 +39,6 @@ export function useTeamDetail(teamId: number) {
     getTeamById(teamId, token)
       .then((data) => {
         setTeam(data)
-        if (data.continuousTodoCount > 0 && !isStreakSkippedToday(teamId)) setShowStreak(true)
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 403) router.replace('/teams')
@@ -106,8 +103,6 @@ export function useTeamDetail(teamId: number) {
   return {
     team,
     isLoading,
-    showStreak,
-    setShowStreak,
     actionError,
     kickTarget,
     setKickTarget,
