@@ -14,7 +14,12 @@ export default function FeedPage() {
           <p className="text-[12px] text-muted mt-0.5">우리 팀과 나의 기록을 확인해보세요</p>
         </div>
 
-        <div className="mx-5 bg-white rounded-[18px] border border-border p-4">
+        <div
+          className="mx-5 rounded-[18px] border border-border p-4"
+          style={{
+            background: 'linear-gradient(180deg, var(--color-primary-50) 0%, #ffffff 70%)',
+          }}
+        >
           <TeamRankingPodium rankings={MOCK_RANKINGS} />
           <div className="mt-4">
             <TeamRankingList rankings={MOCK_RANKINGS} />
