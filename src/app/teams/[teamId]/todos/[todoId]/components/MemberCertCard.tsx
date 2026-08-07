@@ -31,6 +31,8 @@ interface MemberCertCardProps {
   onReact: (type: ReactionType) => void
   onViewSubmission: () => void
   onReassign: () => void
+  /** 카드 하단에 붙는 부가 영역 (체크인 등) */
+  children?: React.ReactNode
 }
 
 export function MemberCertCard({
@@ -42,6 +44,7 @@ export function MemberCertCard({
   onReact,
   onViewSubmission,
   onReassign,
+  children,
 }: MemberCertCardProps) {
   const [showPicker, setShowPicker] = useState(false)
   const [now, setCurrentTime] = useState(() => Date.now())
@@ -217,6 +220,8 @@ export function MemberCertCard({
           </div>
         )}
       </div>
+
+      {children}
     </article>
   )
 }

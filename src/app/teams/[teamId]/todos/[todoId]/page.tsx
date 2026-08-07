@@ -9,6 +9,7 @@ import { getTeamById } from '@/services/teamService'
 import { getTodoWorkItemSubmission } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
+import { CheckInSection } from './components/CheckInSection'
 import { MemberCertCard } from './components/MemberCertCard'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -222,7 +223,16 @@ function TodoDetailContent() {
                 setReassignTarget(workItem)
                 setSelectedAssigneeId(null)
               }}
-            />
+            >
+              <CheckInSection
+                workItemId={workItem.workItemId}
+                isOwnInProgress={
+                  workItem.assigneeId === user?.userId && workItem.status === 'IN_PROGRESS'
+                }
+                deadline={getWorkItemDeadline(workItem, todo.deadline)}
+                token={token}
+              />
+            </MemberCertCard>
           ))}
         </div>
       </div>

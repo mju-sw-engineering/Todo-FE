@@ -113,6 +113,16 @@ export interface TodoWorkItemAssignee {
   status: WorkItemStatus
 }
 
+/** WorkItem에 남긴 하루 1번의 진행 기록 */
+export interface WorkItemCheckIn {
+  checkInId: number
+  userId: number
+  nickname: string
+  /** ISO 날짜 (yyyy-MM-dd) */
+  checkDate: string
+  memo: string
+}
+
 export interface DailyTodoStat {
   date: string
   totalTodoCount: number
