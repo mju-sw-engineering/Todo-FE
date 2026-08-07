@@ -140,6 +140,28 @@ select {
   display: none;
 }
 
+/* Fade content at the horizontal scroll edges instead of a hard clip.
+   --fade-left/--fade-right (set inline per side, 0px = no fade) control the
+   fade width so an edge with nothing more to scroll stays fully opaque. */
+.fade-edges-x {
+  --fade-left: 0px;
+  --fade-right: 0px;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--fade-left),
+    black calc(100% - var(--fade-right)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--fade-left),
+    black calc(100% - var(--fade-right)),
+    transparent
+  );
+}
+
 /* Gradient button utility */
 .btn-gradient {
   background: linear-gradient(135deg, #669aff 0%, #4b8bff 100%);
