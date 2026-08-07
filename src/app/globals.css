@@ -163,6 +163,42 @@ select {
   );
 }
 
+/* 브랜드 보이스 자리 전용 라운드체 (로고·홈 날짜·말풍선·빈 상태·환영 문구) */
+.font-jua {
+  font-family:
+    var(--font-jua),
+    'Pretendard',
+    -apple-system,
+    sans-serif;
+  font-weight: 400;
+}
+
+/* 로그인·환영 화면의 옅은 벌집 육각 패턴 */
+.hex-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='34' viewBox='0 0 30 34'%3E%3Cpath d='M15 1.5l11.7 6.75v13.5L15 28.5 3.3 21.75V8.25z' fill='none' stroke='%23f0b429' stroke-opacity='0.22' stroke-width='1.4'/%3E%3C/svg%3E");
+}
+
+/* 벌 캐릭터 둥둥 떠다니기 */
+.bee-bob {
+  animation: bee-bob 3.5s ease-in-out infinite;
+}
+@keyframes bee-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bee-bob,
+  .bee-wing-left,
+  .bee-wing-right {
+    animation: none;
+  }
+}
+
 /* Gradient button utility */
 .btn-gradient {
   background: linear-gradient(135deg, #669aff 0%, #4b8bff 100%);
