@@ -1,10 +1,80 @@
-import type { FeedTeamRanking } from '@/types/feed.types'
+import type { MyStreak, StreakLevel, TeamRhythm } from '@/types/feed.types'
 
-export const MOCK_RANKINGS: FeedTeamRanking[] = [
-  { teamId: 1, teamName: '우리팀', teamImageUrl: null, streakDays: 12, rank: 1 },
-  { teamId: 2, teamName: '아침형인간', teamImageUrl: null, streakDays: 9, rank: 2 },
-  { teamId: 3, teamName: '다이어터클럽', teamImageUrl: null, streakDays: 4, rank: 3 },
-  { teamId: 4, teamName: '한강러너스', teamImageUrl: null, streakDays: 3, rank: 4 },
-  { teamId: 5, teamName: '500마디', teamImageUrl: null, streakDays: 3, rank: 5 },
-  { teamId: 6, teamName: '새벽독서단', teamImageUrl: null, streakDays: 2, rank: 6 },
+export const MOCK_TEAM_RHYTHMS: TeamRhythm[] = [
+  {
+    teamId: 1,
+    teamName: '우리팀',
+    memberCount: 5,
+    streakDays: 6,
+    weeks: [
+      { startDate: '2026-07-20', counts: [3, 2, 4, 4, 2, 1, 0] },
+      { startDate: '2026-07-27', counts: [4, 3, 3, 5, 4, 0, 1] },
+      { startDate: '2026-08-03', counts: [2, 4, 3, 1, 3, null, null] },
+    ],
+    todayMembers: [
+      { userId: 1, name: '나' },
+      { userId: 2, name: '준서' },
+      { userId: 3, name: '하은' },
+    ],
+  },
+  {
+    teamId: 2,
+    teamName: '다이어터클럽',
+    memberCount: 4,
+    streakDays: 4,
+    weeks: [
+      { startDate: '2026-07-20', counts: [1, 2, 2, 0, 3, 1, 0] },
+      { startDate: '2026-07-27', counts: [2, 2, 1, 3, 2, 0, 0] },
+      { startDate: '2026-08-03', counts: [3, 1, 2, 2, 2, null, null] },
+    ],
+    todayMembers: [
+      { userId: 1, name: '나' },
+      { userId: 4, name: '태오' },
+    ],
+  },
+  {
+    teamId: 3,
+    teamName: '한강러너스',
+    memberCount: 6,
+    streakDays: 1,
+    weeks: [
+      { startDate: '2026-07-20', counts: [2, 0, 1, 0, 2, 4, 3] },
+      { startDate: '2026-07-27', counts: [1, 1, 0, 2, 1, 3, 2] },
+      { startDate: '2026-08-03', counts: [0, 2, 1, 0, 1, null, null] },
+    ],
+    todayMembers: [{ userId: 1, name: '나' }],
+  },
 ]
+
+/** 16주(112일) 목데이터 — 2026-04-20(월) ~ 2026-08-09(일) */
+const LEVELS: StreakLevel[][] = [
+  [0, 1, 1, 0, 0, 0, 1],
+  [1, 1, 1, 1, 0, 0, 0],
+  [0, 2, 1, 2, 0, 1, 0],
+  [1, 2, 2, 1, 0, 0, 0],
+  [0, 1, 2, 1, 0, 0, 1],
+  [1, 2, 1, 2, 1, 0, 0],
+  [0, 2, 2, 1, 0, 0, 0],
+  [1, 1, 2, 1, 0, 1, 0],
+  [0, 2, 1, 1, 0, 0, 0],
+  [1, 1, 2, 2, 1, 0, 0],
+  [0, 1, 1, 0, 0, 0, 1],
+  [1, 3, 2, 1, 0, 0, 0],
+  [0, 1, 1, 1, 1, 0, 0],
+  [1, 2, 1, 0, 0, 0, 1],
+  [0, 1, 2, 1, 0, 0, 0],
+  [1, 1, 3, 1, 2, 0, 0],
+]
+
+const FIRST_MONDAY = new Date('2026-04-20')
+
+export const MOCK_MY_STREAK: MyStreak = {
+  currentStreak: 5,
+  days: LEVELS.flatMap((week, wi) =>
+    week.map((level, di) => {
+      const d = new Date(FIRST_MONDAY)
+      d.setDate(d.getDate() + wi * 7 + di)
+      return { date: d.toISOString().slice(0, 10), level }
+    })
+  ),
+}
