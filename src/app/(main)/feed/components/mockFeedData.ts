@@ -1,4 +1,11 @@
-import type { MyStreak, StreakLevel, TeamRhythm } from '@/types/feed.types'
+import type {
+  FeedBadge,
+  HiveArchiveMonth,
+  MonthlyHive,
+  MyStreak,
+  StreakLevel,
+  TeamRhythm,
+} from '@/types/feed.types'
 
 export const MOCK_TEAM_RHYTHMS: TeamRhythm[] = [
   {
@@ -78,3 +85,32 @@ export const MOCK_MY_STREAK: MyStreak = {
     })
   ),
 }
+
+/** 이번 달 벌집 목데이터 — 오늘(로컬 기준)까지 채우고 이후는 null */
+export function buildMockMonthlyHive(): MonthlyHive {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const totalDays = new Date(year, month, 0).getDate()
+  const today = now.getDate()
+  const pattern: StreakLevel[] = [2, 1, 3, 2, 1, 2, 3, 1, 2, 2]
+  const dayLevels = Array.from({ length: totalDays }, (_, i) =>
+    i + 1 > today ? null : pattern[i % pattern.length]
+  )
+  return { year, month, dayLevels, currentStreak: 5 }
+}
+
+export const MOCK_HIVE_ARCHIVE: HiveArchiveMonth[] = [
+  { year: 2026, month: 5, filledDays: 31, totalDays: 31 },
+  { year: 2026, month: 6, filledDays: 18, totalDays: 30 },
+  { year: 2026, month: 7, filledDays: 31, totalDays: 31 },
+]
+
+export const MOCK_BADGES: FeedBadge[] = [
+  { id: 'first-honey', label: '첫 꿀', icon: 'drop', acquired: true },
+  { id: 'streak-7', label: '7일 연속', icon: 'bee', acquired: true },
+  { id: 'first-full-hive', label: '첫 완주', icon: 'hive', acquired: true },
+  { id: 'streak-30', label: '30일 연속', icon: 'bee', acquired: false },
+  { id: 'full-hive-3', label: '3개월 완주', icon: 'hive', acquired: false },
+  { id: 'team-all-in', label: '팀 전원 참여', icon: 'drop', acquired: false },
+]

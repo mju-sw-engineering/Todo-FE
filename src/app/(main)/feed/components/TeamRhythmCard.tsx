@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { HiveIcon } from '@/components/ui/HiveIcon'
 import type { TeamRhythm } from '@/types/feed.types'
 
 const DAYS = ['월', '화', '수', '목', '금', '토', '일']
 
-/** 잔디와 공유하는 참여도 4단계 */
-export const GRASS = ['#f1f1f1', '#c8e6cd', '#7fca97', '#1ea64a']
+/** 벌집 채우기와 공유하는 꿀 팔레트 4단계 (참여 없음 → 많음) */
+export const HONEY = ['#f3ecd9', '#ffe29b', '#ffc94d', '#f59e0b']
 
 function formatWeekLabel(startDate: string, isCurrent: boolean) {
   const start = new Date(startDate)
@@ -46,7 +47,7 @@ export function TeamRhythmCard({ teams }: Props) {
   if (!team) return null
   if (team.weeks.length === 0) {
     return (
-      <section className="mx-5 bg-white rounded-[24px] border border-border p-5">
+      <section className="mx-5 bg-white rounded-[24px] border border-[#f1e6cd] p-5">
         <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] mb-2">우리의 꾸준함</h2>
         <p className="text-[13px] text-muted">아직 활동 기록이 없어요.</p>
       </section>
@@ -72,9 +73,12 @@ export function TeamRhythmCard({ teams }: Props) {
   const doneCount = week.counts.reduce<number>((a, b) => a + (b ?? 0), 0)
 
   return (
-    <section className="mx-5 bg-white rounded-[24px] border border-border p-5">
+    <section className="mx-5 bg-white rounded-[24px] border border-[#f1e6cd] p-5">
       <div className="flex items-start justify-between mb-0.5">
-        <h2 className="text-[16px] font-black text-ink tracking-[-0.2px]">우리의 꾸준함</h2>
+        <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] flex items-center gap-1.5">
+          <HiveIcon size={16} />
+          우리의 꾸준함
+        </h2>
         <span className="shrink-0 whitespace-nowrap text-[12px] font-bold text-ink">
           {isCurrentWeek && todayCount !== null
             ? `오늘 ${todayCount} / ${total}명`
@@ -219,8 +223,8 @@ export function TeamRhythmCard({ teams }: Props) {
                   className="w-full rounded-md"
                   style={{
                     height: future ? 10 : Math.round(16 + pct * 62),
-                    background: future || empty ? GRASS[0] : GRASS[Math.min(3, Math.ceil(pct * 3))],
-                    boxShadow: isToday ? 'inset 0 0 0 1.5px #111111' : 'none',
+                    background: future || empty ? HONEY[0] : HONEY[Math.min(3, Math.ceil(pct * 3))],
+                    boxShadow: isToday ? 'inset 0 0 0 1.5px #92600f' : 'none',
                   }}
                 />
               </div>
