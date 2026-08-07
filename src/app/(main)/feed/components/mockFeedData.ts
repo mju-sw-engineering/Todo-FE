@@ -97,7 +97,14 @@ export function buildMockMonthlyHive(): MonthlyHive {
   const dayLevels = Array.from({ length: totalDays }, (_, i) =>
     i + 1 > today ? null : pattern[i % pattern.length]
   )
-  return { year, month, dayLevels, currentStreak: 5 }
+  // 스트릭은 표시 데이터와 어긋나지 않도록 dayLevels에서 직접 계산한다
+  let currentStreak = 0
+  for (let i = today - 1; i >= 0; i--) {
+    const lv = dayLevels[i]
+    if (lv === null || lv === 0) break
+    currentStreak++
+  }
+  return { year, month, dayLevels, currentStreak }
 }
 
 export const MOCK_HIVE_ARCHIVE: HiveArchiveMonth[] = [

@@ -173,12 +173,7 @@ export default function SignupPage() {
   if (showWelcome) {
     return (
       <div className="flex-1 flex flex-col animate-fade-up overflow-hidden">
-        <div
-          className="flex-1 relative flex flex-col items-center justify-center gap-1.5 overflow-hidden"
-          style={{
-            background: 'linear-gradient(155deg, #ffedc2 0%, #fdf7ec 55%, #e8f1ff 100%)',
-          }}
-        >
+        <div className="flex-1 relative flex flex-col items-center justify-center gap-1.5 overflow-hidden bg-[linear-gradient(155deg,#ffedc2_0%,#fdf7ec_55%,#e8f1ff_100%)]">
           <div className="hex-pattern absolute inset-0 opacity-50 pointer-events-none" />
           <div className="relative mb-3">
             <HiveIcon size={96} />
