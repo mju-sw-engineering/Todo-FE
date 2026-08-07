@@ -146,6 +146,7 @@ select {
 .fade-edges-x {
   --fade-left: 0px;
   --fade-right: 0px;
+
   -webkit-mask-image: linear-gradient(
     to right,
     transparent,

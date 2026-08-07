@@ -44,6 +44,14 @@ export function TeamRhythmCard({ teams }: Props) {
   }, [teams])
 
   if (!team) return null
+  if (team.weeks.length === 0) {
+    return (
+      <section className="mx-5 bg-white rounded-[24px] border border-border p-5">
+        <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] mb-2">우리의 꾸준함</h2>
+        <p className="text-[13px] text-muted">아직 활동 기록이 없어요.</p>
+      </section>
+    )
+  }
 
   const clampedWeek = Math.min(weekIndex, team.weeks.length - 1)
   const week = team.weeks[clampedWeek]
@@ -179,7 +187,7 @@ export function TeamRhythmCard({ teams }: Props) {
 
       {/* 요일별 막대 — 좌우 스와이프로 주 이동 */}
       <div
-        style={{ touchAction: 'pan-y' }}
+        className="touch-pan-y"
         onPointerDown={(e) => {
           swipeX.current = e.clientX
         }}

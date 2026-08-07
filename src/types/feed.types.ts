@@ -6,6 +6,11 @@ export interface TeamWeekRhythm {
   counts: (number | null)[]
 }
 
+export interface TeamRhythmMember {
+  userId: number
+  name: string
+}
+
 export interface TeamRhythm {
   teamId: number
   teamName: string
@@ -14,7 +19,7 @@ export interface TeamRhythm {
   /** 오래된 주 → 최신 주 순서. 최신이 이번 주 */
   weeks: TeamWeekRhythm[]
   /** 오늘 참여한 팀원 (아바타 표시용, 앞 3명만 노출) */
-  todayMembers: { userId: number; name: string }[]
+  todayMembers: TeamRhythmMember[]
 }
 
 /** 나의 꾸준함 잔디: 0=없음, 1=1개, 2=2개, 3=3개 이상 */

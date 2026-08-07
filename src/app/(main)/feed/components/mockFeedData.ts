@@ -69,7 +69,7 @@ const LEVELS: StreakLevel[][] = [
 const FIRST_MONDAY = new Date('2026-04-20')
 
 export const MOCK_MY_STREAK: MyStreak = {
-  currentStreak: 4,
+  currentStreak: 5,
   days: LEVELS.flatMap((week, wi) =>
     week.map((level, di) => {
       const d = new Date(FIRST_MONDAY)
