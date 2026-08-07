@@ -21,7 +21,8 @@ function TeamsContent() {
   const [teams, setTeams] = useState<TeamListItem[]>([])
   const { isLoading, error, run } = useAsyncTask(true)
   const [showToast, setShowToast] = useState(() => searchParams.get('created') === '1')
-  const [showJoinModal, setShowJoinModal] = useState(false)
+  // 가입 완료 화면의 "초대 코드로 참여" CTA가 ?join=1로 진입한다
+  const [showJoinModal, setShowJoinModal] = useState(() => searchParams.get('join') === '1')
 
   useEffect(() => {
     if (!showToast) return
