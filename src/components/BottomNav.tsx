@@ -109,7 +109,7 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="h-16 shrink-0 bg-white border-t border-border flex">
+    <nav className="h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] shrink-0 bg-white border-t border-border flex">
       <button
         onClick={() => navigate('/')}
         aria-current={todoActive ? 'page' : undefined}

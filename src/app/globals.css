@@ -1,8 +1,7 @@
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: var(--font-pretendard), -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* ── dnd-13th-9-frontend design system palette ── */
   --color-primary-50: #669aff;
@@ -114,14 +113,12 @@ body {
 
 body {
   font-family:
-    'Pretendard',
+    var(--font-pretendard),
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
   background: #f7f7f7;
   color: #111111;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Prevent iOS Safari auto-zoom on input focus */
@@ -167,7 +164,7 @@ select {
 .font-jua {
   font-family:
     var(--font-jua),
-    Pretendard,
+    var(--font-pretendard),
     -apple-system,
     sans-serif;
   font-weight: 400;
