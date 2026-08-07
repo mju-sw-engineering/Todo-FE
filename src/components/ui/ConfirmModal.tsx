@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
 import { FiAlertTriangle } from 'react-icons/fi'
@@ -32,6 +33,22 @@ export function ConfirmModal({
   const accentBg = confirmDanger ? 'bg-status-red/10' : 'bg-primary/10'
   const confirmBg = confirmDanger ? 'bg-status-red' : 'bg-primary'
 
+  const cancelRef = useRef<HTMLButtonElement>(null)
+
+  // 열릴 때 취소 버튼에 포커스 — 실수로 확인을 누르지 않도록.
+  // children이 있으면(비밀번호 입력 등) 자식의 autoFocus를 존중한다.
+  useEffect(() => {
+    if (!children) cancelRef.current?.focus()
+  }, [children])
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !confirmPending) onCancel()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onCancel, confirmPending])
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
       <div className="fixed inset-0 bg-black/50" onClick={confirmPending ? undefined : onCancel} />
@@ -57,6 +74,7 @@ export function ConfirmModal({
         {children && <div className="w-full mb-5">{children}</div>}
         <div className="flex gap-2 w-full">
           <button
+            ref={cancelRef}
             type="button"
             onClick={onCancel}
             disabled={confirmPending}

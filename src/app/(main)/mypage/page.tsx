@@ -83,14 +83,14 @@ export default function MyPage() {
                   <button
                     onClick={handleSaveNickname}
                     disabled={savingNickname}
-                    className="px-3 py-1.5 text-[13px] font-semibold text-white bg-primary hover:opacity-85 rounded-lg transition-opacity disabled:opacity-50 shrink-0"
+                    className="px-3.5 py-2.5 text-[13px] font-semibold text-white bg-primary hover:opacity-85 rounded-lg transition-opacity disabled:opacity-50 shrink-0"
                   >
                     저장
                   </button>
                   <button
                     onClick={() => setEditingNickname(false)}
                     disabled={savingNickname}
-                    className="px-3 py-1.5 text-[13px] font-medium text-muted hover:text-ink transition-colors shrink-0"
+                    className="px-3.5 py-2.5 text-[13px] font-medium text-muted hover:text-ink transition-colors shrink-0"
                   >
                     취소
                   </button>
@@ -103,7 +103,7 @@ export default function MyPage() {
                       setNicknameInput(myInfo?.nickname ?? '')
                       setEditingNickname(true)
                     }}
-                    className="px-3 py-1.5 text-[12px] font-semibold text-neutral-100 bg-neutral-30 hover:bg-neutral-40 rounded-lg transition-colors shrink-0"
+                    className="px-3.5 py-2.5 text-[12px] font-semibold text-neutral-100 bg-neutral-30 hover:bg-neutral-40 rounded-lg transition-colors shrink-0"
                   >
                     수정
                   </button>
@@ -160,7 +160,7 @@ export default function MyPage() {
                   <button
                     onClick={() => setConfirm({ type: 'leaveTeam', team })}
                     disabled={leavingTeamId === team.teamId}
-                    className="px-3 py-1.5 text-[12px] font-semibold text-status-red bg-status-red/10 hover:bg-status-red/15 rounded-lg transition-colors shrink-0 disabled:opacity-50"
+                    className="px-3.5 py-2.5 text-[12px] font-semibold text-status-red bg-status-red/10 hover:bg-status-red/15 rounded-lg transition-colors shrink-0 disabled:opacity-50"
                   >
                     {leavingTeamId === team.teamId ? '나가는 중…' : '나가기'}
                   </button>
