@@ -1,10 +1,18 @@
 'use client'
 
 import type { MyStreak } from '@/types/feed.types'
-import { GRASS } from './TeamRhythmCard'
 
 const ROW_LABELS = ['월', '', '수', '', '금', '', '']
-const COUNT_LABELS = ['기록 없음', '1개', '2개', '3개 이상']
+
+/**
+ * 개수 → 색. 잔디는 "많이"가 아니라 "빠짐없이"를 보여주는 카드라
+ * 1개부터 이미 또렷한 초록이고, 2개·3개+는 보너스로만 진해진다.
+ */
+const GRASS_BY_COUNT = ['#f1f1f1', '#7fca97', '#3db368', '#1ea64a']
+
+function toGrassLevel(count: number): number {
+  return Math.min(count, 3)
+}
 
 interface Props {
   streak: MyStreak
@@ -58,14 +66,15 @@ export function MyStreakGrid({ streak }: Props) {
               if (!cell) return <div key={wi} className="flex-1 aspect-square min-w-0" />
               const isToday = cell.date === todayISO
               const isFuture = cell.date > todayISO
-              const lv = isFuture ? 0 : cell.level
+              const lv = isFuture ? 0 : toGrassLevel(cell.count)
+              const label = cell.count === 0 ? '기록 없음' : `${cell.count}개`
               return (
                 <div
                   key={wi}
-                  title={isFuture ? '아직 오지 않은 날' : `${cell.date} · ${COUNT_LABELS[lv]}`}
+                  title={isFuture ? '아직 오지 않은 날' : `${cell.date} · ${label}`}
                   className="flex-1 aspect-square min-w-0 rounded-[2px]"
                   style={{
-                    background: GRASS[lv],
+                    background: GRASS_BY_COUNT[lv],
                     boxShadow: isToday ? 'inset 0 0 0 1.5px #111111' : 'none',
                   }}
                 />
@@ -81,7 +90,7 @@ export function MyStreakGrid({ streak }: Props) {
           <span className="font-mono text-[10px] tracking-[0.8px] text-[#ababab] uppercase">
             Less
           </span>
-          {GRASS.map((bg) => (
+          {GRASS_BY_COUNT.map((bg) => (
             <div key={bg} className="w-2.5 h-2.5 rounded-[2px]" style={{ background: bg }} />
           ))}
           <span className="font-mono text-[10px] tracking-[0.8px] text-[#ababab] uppercase">

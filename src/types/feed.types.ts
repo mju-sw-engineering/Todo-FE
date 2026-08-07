@@ -22,13 +22,11 @@ export interface TeamRhythm {
   todayMembers: TeamRhythmMember[]
 }
 
-/** 나의 꾸준함 잔디: 0=없음, 1=1개, 2=2개, 3=3개 이상 */
-export type StreakLevel = 0 | 1 | 2 | 3
-
 export interface MyStreakDay {
   /** ISO 날짜 */
   date: string
-  level: StreakLevel
+  /** 그날 기록을 남긴 서로 다른 투두 수. 색 매핑은 프론트 정책 */
+  count: number
 }
 
 export interface MyStreak {
