@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { AvailabilityCalendarSheet } from './components/AvailabilityCalendarSheet'
+import { InlineDateCalendar } from './components/InlineDateCalendar'
 import { RangeTimeSheet } from './components/RangeTimeSheet'
 
 const WEEKDAY_SHORT = ['일', '월', '화', '수', '목', '금', '토']
@@ -35,9 +35,15 @@ export default function AvailabilityEventNewPage() {
   const [endTime, setEndTime] = useState('21:00')
   const [error, setError] = useState('')
 
-  const [showCalendarSheet, setShowCalendarSheet] = useState(false)
   const [showStartTimeSheet, setShowStartTimeSheet] = useState(false)
   const [showEndTimeSheet, setShowEndTimeSheet] = useState(false)
+
+  function toggleDate(dateStr: string) {
+    if (error) setError('')
+    setSelectedDates((prev) =>
+      prev.includes(dateStr) ? prev.filter((d) => d !== dateStr) : [...prev, dateStr].sort()
+    )
+  }
 
   function handleSubmit() {
     if (!title.trim()) return setError('이벤트 이름을 입력해주세요')
@@ -74,45 +80,39 @@ export default function AvailabilityEventNewPage() {
         />
 
         <div className="flex flex-col gap-2">
-          <span className="text-[13px] font-semibold text-gray-700 tracking-wide">
-            가능 날짜 선택
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              setShowCalendarSheet(true)
-              if (error) setError('')
-            }}
-            className={`w-full px-4 py-3.25 rounded-[14px] border-[1.5px] text-[14px] text-left transition-all duration-200 ${selectedDates.length > 0 ? 'border-primary bg-white text-ink font-medium' : 'border-border bg-white text-muted font-light'}`}
-          >
-            <div className="flex items-center justify-between">
-              <span>
-                {selectedDates.length > 0
-                  ? `${selectedDates.length}일 선택됨`
-                  : '캘린더에서 날짜를 선택해주세요'}
+          <div className="flex items-baseline justify-between">
+            <span className="text-[13px] font-semibold text-gray-700 tracking-wide">
+              가능 날짜 선택
+            </span>
+            {selectedDates.length > 0 && (
+              <span className="text-[12px] font-bold text-primary">
+                {selectedDates.length}일 선택됨
               </span>
-              <svg
-                className="w-4 h-4 text-muted shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <rect x="3.5" y="4.5" width="17" height="16" rx="3" />
-                <path strokeLinecap="round" d="M8 2.5v4M16 2.5v4M3.5 9.5h17" />
-              </svg>
-            </div>
-          </button>
+            )}
+          </div>
+          <InlineDateCalendar selectedDates={selectedDates} onToggle={toggleDate} />
 
           {selectedDates.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-0.5">
               {selectedDates.map((d) => (
-                <span
+                <button
                   key={d}
-                  className="text-[12px] font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary"
+                  type="button"
+                  onClick={() => toggleDate(d)}
+                  aria-label={`${formatDateChip(d)} 선택 해제`}
+                  className="flex items-center gap-1 text-[12px] font-semibold px-2.5 py-1.5 rounded-full bg-primary/10 text-primary active:scale-95 transition-transform"
                 >
                   {formatDateChip(d)}
-                </span>
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
               ))}
             </div>
           )}
@@ -157,16 +157,6 @@ export default function AvailabilityEventNewPage() {
           이벤트 만들기
         </Button>
       </div>
-
-      <AnimatePresence>
-        {showCalendarSheet && (
-          <AvailabilityCalendarSheet
-            selectedDates={selectedDates}
-            onConfirm={setSelectedDates}
-            onClose={() => setShowCalendarSheet(false)}
-          />
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {showStartTimeSheet && (
