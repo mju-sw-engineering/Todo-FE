@@ -93,10 +93,16 @@ function TeamsContent() {
                   <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} />
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
-                    {(team.memberCount !== undefined || team.successCount !== undefined) && (
-                      <p className="text-[12px] text-muted mt-0.5">
-                        팀원 {team.memberCount ?? 0}명 · 성공 {team.successCount ?? 0}회
+                    {team.description?.trim() ? (
+                      <p className="text-[12px] text-muted mt-0.5 truncate">
+                        {team.description.trim()}
                       </p>
+                    ) : (
+                      (team.memberCount !== undefined || team.successCount !== undefined) && (
+                        <p className="text-[12px] text-muted mt-0.5">
+                          팀원 {team.memberCount ?? 0}명 · 성공 {team.successCount ?? 0}회
+                        </p>
+                      )
                     )}
                   </div>
                   <div className="w-px h-8 bg-border shrink-0" />

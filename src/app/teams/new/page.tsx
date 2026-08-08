@@ -15,6 +15,7 @@ export default function TeamNewPage() {
   const { token } = useAuth()
 
   const [teamName, setTeamName] = useState('')
+  const [description, setDescription] = useState('')
   const [teamImage, setTeamImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isFeedPublic, setIsFeedPublic] = useState(true)
@@ -46,7 +47,10 @@ export default function TeamNewPage() {
       async () => {
         let teamImageKey: string | null = null
         if (teamImage) teamImageKey = await upload(teamImage)
-        const team = await createTeam({ teamName: teamName.trim(), teamImageKey }, token)
+        const team = await createTeam(
+          { teamName: teamName.trim(), description: description.trim() || null, teamImageKey },
+          token
+        )
         router.push(`/teams?created=1&teamId=${team.teamId}`)
       },
       { fallback: '팀 생성 중 오류가 발생했습니다.' }
@@ -78,6 +82,16 @@ export default function TeamNewPage() {
             }}
             placeholder="팀 이름을 입력해주세요"
             hint={error === '팀 이름을 입력해주세요' ? error : undefined}
+          />
+
+          <Input
+            id="teamDescription"
+            label="팀 설명 (선택)"
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="팀을 한 줄로 소개해 주세요"
+            maxLength={100}
           />
 
           <div className="flex flex-col gap-2">
