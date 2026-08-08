@@ -11,7 +11,7 @@ interface Props {
   hive: MonthlyHive
 }
 
-/** 이번 달 벌집 채우기 — 하루 = 1칸, 그날 완료 개수만큼 꿀이 진해진다 */
+/** 이번 달 벌집 채우기 — 하루 = 1칸, 그날 손댄(생성·체크인·제출) 투두 수만큼 꿀이 진해진다 */
 export function MonthlyHiveCard({ hive }: Props) {
   const { month, dayLevels, currentStreak } = hive
   const total = dayLevels.length
@@ -28,7 +28,7 @@ export function MonthlyHiveCard({ hive }: Props) {
           <span className="font-mono">{filled}</span> / {total}칸
         </span>
       </div>
-      <p className="text-[12px] text-muted mt-0.5">하루 한 칸 — 많이 완료한 날은 꿀이 진해져요</p>
+      <p className="text-[12px] text-muted mt-0.5">하루 한 칸 — 기록한 만큼 꿀이 진해져요</p>
 
       <div className="flex justify-center mt-4 pb-[13px]">
         {Array.from({ length: COLS }, (_, c) => (
