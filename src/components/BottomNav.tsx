@@ -112,6 +112,7 @@ export function BottomNav() {
     <nav className="h-16 shrink-0 bg-white border-t border-border flex">
       <button
         onClick={() => navigate('/')}
+        aria-current={todoActive ? 'page' : undefined}
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
       >
         {todoActive && (
@@ -125,6 +126,7 @@ export function BottomNav() {
 
       <button
         onClick={() => navigate('/teams')}
+        aria-current={teamsActive ? 'page' : undefined}
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
       >
         {teamsActive && (
@@ -140,6 +142,7 @@ export function BottomNav() {
 
       <button
         onClick={() => navigate('/feed')}
+        aria-current={feedActive ? 'page' : undefined}
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-200 relative"
       >
         {feedActive && (
@@ -153,6 +156,7 @@ export function BottomNav() {
 
       <button
         onClick={() => navigate('/mypage')}
+        aria-current={myPageActive ? 'page' : undefined}
         className="flex-1 flex flex-col items-center justify-center gap-1 transition-opacity duration-200 active:opacity-70 relative"
       >
         {myPageActive && (

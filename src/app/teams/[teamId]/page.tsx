@@ -69,7 +69,6 @@ export default function TeamDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               className="mb-3 px-4 py-3 bg-red-50 border border-red-200 rounded-[14px] text-[13px] font-semibold text-red-600"
-              onAnimationComplete={() => setTimeout(() => {}, 3000)}
             >
               {actionError}
             </motion.div>

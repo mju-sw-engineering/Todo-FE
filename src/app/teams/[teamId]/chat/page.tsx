@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useTeamChat } from '@/hooks/useTeamChat'
+import { getTeamById } from '@/services/teamService'
 import { useChatInput } from '@/hooks/useChatInput'
 import { useAuth } from '@/store/authStore'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
@@ -24,7 +25,22 @@ export default function TeamChatPage() {
   const searchParams = useSearchParams()
   const teamId = Number(params.teamId)
   const { user, token } = useAuth()
-  const title = searchParams.get('title') ?? '팀 채팅'
+
+  // 팀 이름: 쿼리 파라미터는 첫 진입 최적화일 뿐, 새로고침·딥링크에서도 유지되도록 조회로 보강
+  const [teamName, setTeamName] = useState(() => searchParams.get('title') ?? '')
+  useEffect(() => {
+    if (teamName || !token || Number.isNaN(teamId)) return
+    let cancelled = false
+    getTeamById(teamId, token)
+      .then((team) => {
+        if (!cancelled) setTeamName(team.teamName)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [teamName, token, teamId])
+  const title = teamName || '팀 채팅'
 
   const {
     messages,
