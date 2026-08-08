@@ -223,7 +223,7 @@ export default function TeamChatPage() {
 
           <div className="flex-1 relative flex items-center bg-gray-50 rounded-2xl px-4 min-h-12">
             {!hasContent && (
-              <span className="absolute text-[14px] text-muted pointer-events-none select-none">
+              <span className="absolute text-[16px] text-muted pointer-events-none select-none">
                 메시지를 입력하세요...
               </span>
             )}
@@ -234,7 +234,7 @@ export default function TeamChatPage() {
               onInput={handleInput}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
-              className="w-full outline-none text-[14px] text-ink py-3 leading-normal"
+              className="w-full outline-none text-[16px] text-ink py-3 leading-normal"
             />
           </div>
 

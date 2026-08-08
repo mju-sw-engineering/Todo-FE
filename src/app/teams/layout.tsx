@@ -24,7 +24,7 @@ export default function TeamsLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="h-dvh max-w-97.5 mx-auto overflow-hidden flex flex-col translate-x-0">
+    <div className="h-dvh max-w-97.5 mx-auto overflow-hidden flex flex-col translate-x-0 pt-[env(safe-area-inset-top)]">
       <div className="flex-1 flex flex-col min-h-0">{children}</div>
       <BottomNav />
     </div>

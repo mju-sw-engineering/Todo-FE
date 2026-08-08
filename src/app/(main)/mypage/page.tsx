@@ -75,7 +75,7 @@ export default function MyPage() {
                     value={nicknameInput}
                     onChange={(e) => setNicknameInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveNickname()}
-                    className="flex-1 min-w-0 border-[1.5px] border-border rounded-lg px-3 py-1.5 text-[14px] text-ink bg-white outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
+                    className="flex-1 min-w-0 border-[1.5px] border-border rounded-lg px-3 py-1.5 text-[16px] text-ink bg-white outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
                     autoFocus
                     maxLength={20}
                     disabled={savingNickname}
@@ -248,7 +248,7 @@ export default function MyPage() {
               autoFocus
               disabled={deletingAccount}
               placeholder="비밀번호를 입력해 주세요"
-              className="w-full rounded-xl border border-border px-3 py-2.5 text-[14px] text-ink outline-none transition-colors focus:border-status-red disabled:bg-neutral-30"
+              className="w-full rounded-xl border border-border px-3 py-2.5 text-[16px] text-ink outline-none transition-colors focus:border-status-red disabled:bg-neutral-30"
             />
             {deleteAccountError && (
               <p role="alert" className="mt-2 text-left text-[12px] text-status-red">

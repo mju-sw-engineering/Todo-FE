@@ -235,7 +235,7 @@ export default function SignupPage() {
                 placeholder="이메일을 입력해 주세요"
                 required
                 disabled={emailStatus === 'verified'}
-                className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)] disabled:bg-gray-50 disabled:text-muted"
+                className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[16px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)] disabled:bg-gray-50 disabled:text-muted"
               />
               <Button
                 type="button"
@@ -272,7 +272,7 @@ export default function SignupPage() {
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="6자리 인증번호"
                   maxLength={6}
-                  className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
+                  className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[16px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
                 />
                 <Button
                   type="button"
