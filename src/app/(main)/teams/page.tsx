@@ -93,8 +93,10 @@ function TeamsContent() {
                   <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} />
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
-                    {team.description ? (
-                      <p className="text-[12px] text-muted mt-0.5 truncate">{team.description}</p>
+                    {team.description?.trim() ? (
+                      <p className="text-[12px] text-muted mt-0.5 truncate">
+                        {team.description.trim()}
+                      </p>
                     ) : (
                       (team.memberCount !== undefined || team.successCount !== undefined) && (
                         <p className="text-[12px] text-muted mt-0.5">
