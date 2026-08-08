@@ -8,6 +8,7 @@ import { useAuth } from '@/store/authStore'
 import { MONTHS_KO, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Calendar } from '@/components/ui/Calendar'
 import { TeamTodoCard } from './components/TeamTodoCard'
+import { TeamHiveGrowthCard } from '@/app/teams/[teamId]/components/TeamHiveGrowthCard'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -190,6 +191,8 @@ function TodoListContent() {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-4 flex flex-col">
+        <TeamHiveGrowthCard teamId={teamId} token={token} />
+
         <div className="flex gap-1.5 px-5 py-3 shrink-0">
           {TAB_LABELS.map(({ key, label }) => {
             const count =
