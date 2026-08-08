@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { AnimatedBee } from '@/components/bee/AnimatedBee'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
@@ -43,12 +44,29 @@ export default function LoginPage() {
           'linear-gradient(155deg, var(--color-secondary-10) 0%, #fdf9f4 40%, #e8f1ff 100%)',
       }}
     >
-      {/* 타이틀 */}
-      <div className="flex-1 flex flex-col justify-end px-6 pb-10">
-        <h1 className="text-[40px] font-black text-gray-900 tracking-tight leading-none">
+      {/* 타이틀 + 벌 무리 */}
+      <div className="flex-1 relative px-6 pb-10 flex flex-col justify-end overflow-hidden">
+        <div className="hex-pattern absolute inset-0 opacity-50 pointer-events-none" />
+
+        {/* 큰 벌: 타이틀을 바라봄 */}
+        <div className="absolute right-4 bottom-36 w-[130px] bee-bob">
+          <AnimatedBee expression="happy" ns="lb1" />
+        </div>
+        {/* 작은 벌: 화면 안쪽을 바라보게 반전 */}
+        <div className="absolute left-5 top-24 w-16 bee-bob [animation-delay:0.6s]">
+          <AnimatedBee expression="default" ns="lb2" className="scale-x-[-1] -rotate-10" />
+        </div>
+        {/* 아주 작은 벌 */}
+        <div className="absolute right-24 top-14 w-11 bee-bob [animation-delay:1.1s]">
+          <AnimatedBee expression="cheer" ns="lb3" className="rotate-9" />
+        </div>
+
+        <h1 className="relative text-[40px] font-jua text-gray-900 tracking-tight leading-none">
           두비두비
         </h1>
-        <p className="text-[13px] text-gray-500 font-medium mt-2">팀과 함께 완성하는 하루</p>
+        <p className="relative text-[13px] text-gray-500 font-medium mt-2">
+          팀과 함께 완성하는 하루
+        </p>
       </div>
 
       {/* 폼 바텀 시트 */}

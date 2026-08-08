@@ -22,7 +22,7 @@ export interface TeamRhythm {
   todayMembers: TeamRhythmMember[]
 }
 
-/** 나의 꾸준함 잔디: 0=없음, 1=1개, 2=2개, 3=3개 이상 */
+/** 꿀 진하기: 0=없음, 1=1개, 2=2개, 3=3개 이상 완료 */
 export type StreakLevel = 0 | 1 | 2 | 3
 
 export interface MyStreakDay {
@@ -35,4 +35,34 @@ export interface MyStreak {
   /** 오래된 날 → 오늘 순서. 16주 = 112일 */
   days: MyStreakDay[]
   currentStreak: number
+}
+
+/** 이번 달 벌집 채우기: 하루 = 1칸, level은 그날 완료 개수에 따른 꿀 진하기 */
+export interface MonthlyHive {
+  year: number
+  /** 1~12 */
+  month: number
+  /** 1일부터 말일까지. 오늘 이후는 null */
+  dayLevels: (StreakLevel | null)[]
+  currentStreak: number
+}
+
+/** 벌집 보관함의 한 달 */
+export interface HiveArchiveMonth {
+  year: number
+  /** 1~12 */
+  month: number
+  /** 꿀을 채운 날 수 */
+  filledDays: number
+  totalDays: number
+  /** 이번 달(진행 중) 여부 */
+  inProgress?: boolean
+}
+
+export interface FeedBadge {
+  id: string
+  label: string
+  /** 아이콘 종류: 꿀방울 / 벌 / 벌집. 미획득이면 잠금으로 표시 */
+  icon: 'drop' | 'bee' | 'hive'
+  acquired: boolean
 }

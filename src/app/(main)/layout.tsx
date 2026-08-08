@@ -30,8 +30,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <header className="h-14 shrink-0 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-5">
         <div className="flex items-center gap-2">
           <LogoMark size={32} />
-          <span className="text-[17px] font-black text-gray-900 tracking-tight">
-            두비<span className="font-medium text-gray-500">두비</span>
+          <span className="text-[17px] font-jua text-gray-900 tracking-tight">
+            두비<span className="text-gray-500">두비</span>
           </span>
         </div>
         <NotificationBell />

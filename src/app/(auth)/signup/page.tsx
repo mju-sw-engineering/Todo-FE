@@ -3,11 +3,21 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { BeeCharacter } from '@/components/bee/BeeCharacter'
+import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
+import { HiveIcon } from '@/components/ui/HiveIcon'
 import { Input } from '@/components/ui/Input'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
-import { sendEmailVerification, signup, verifyEmailCode } from '@/services/authService'
+import {
+  getMyProfile,
+  login,
+  sendEmailVerification,
+  signup,
+  verifyEmailCode,
+} from '@/services/authService'
+import { useAuth } from '@/store/authStore'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png']
 const CODE_TTL_SECONDS = 180
@@ -16,6 +26,10 @@ type EmailStatus = 'idle' | 'sent' | 'verified'
 
 export default function SignupPage() {
   const router = useRouter()
+  const { setAuth } = useAuth()
+
+  /** 가입 성공 + 자동 로그인까지 되면 '벌집 합류' 환영 화면을 보여준다 */
+  const [showWelcome, setShowWelcome] = useState(false)
 
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -131,7 +145,20 @@ export default function SignupPage() {
           privacyAgreed,
           marketingAgreed,
         })
-        router.push('/login?registered=1')
+        try {
+          const { accessToken } = await login({ loginId, password })
+          const profile = await getMyProfile(accessToken)
+          setAuth(accessToken, {
+            loginId,
+            nickname: profile.nickname,
+            profileImageUrl: profile.profileImageUrl,
+            userId: profile.userId,
+          })
+          setShowWelcome(true)
+        } catch {
+          // 자동 로그인 실패 시 기존 동선 유지
+          router.push('/login?registered=1')
+        }
       },
       { fallback: '회원가입 중 오류가 발생했습니다.' }
     )
@@ -143,12 +170,50 @@ export default function SignupPage() {
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0')
   const ss = String(secondsLeft % 60).padStart(2, '0')
 
+  if (showWelcome) {
+    return (
+      <div className="flex-1 flex flex-col animate-fade-up overflow-hidden">
+        <div className="flex-1 relative flex flex-col items-center justify-center gap-1.5 overflow-hidden bg-[linear-gradient(155deg,#ffedc2_0%,#fdf7ec_55%,#e8f1ff_100%)]">
+          <div className="hex-pattern absolute inset-0 opacity-50 pointer-events-none" />
+          <div className="relative mb-3">
+            <HiveIcon size={96} />
+            <div className="absolute -left-16 top-8 bee-bob">
+              <BeeCharacter expression="cheer" size={58} flip />
+            </div>
+          </div>
+          <p className="relative text-[22px] font-jua text-ink px-8 text-center break-keep">
+            환영해요, {nickname}님!
+          </p>
+          <p className="relative text-[13px] text-gray-500 font-medium">
+            이제 우리 벌집을 만들어볼까요?
+          </p>
+        </div>
+        <div className="bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-6 pb-10 flex flex-col gap-2.5">
+          <Button size="lg" onClick={() => router.push('/teams/new')}>
+            팀 만들기
+          </Button>
+          <Button variant="outline" size="lg" onClick={() => router.push('/teams?join=1')}>
+            초대 코드로 참여
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 flex flex-col bg-white animate-fade-up">
       {/* Top header */}
-      <div className="px-6 pt-10 pb-6 text-center border-b border-border">
-        <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">회원가입</h1>
-        <p className="text-[13px] text-gray-400 mt-1">반가워요! 팀과 함께해요</p>
+      <div className="px-6 pt-5 pb-2">
+        <div className="flex items-center gap-2">
+          <BackButton onClick={() => router.push('/login')} />
+          <h1 className="text-[18px] font-bold text-gray-900 tracking-tight">회원가입</h1>
+        </div>
+        <div className="flex items-center gap-1 mt-2">
+          <BeeCharacter expression="happy" size={60} flip />
+          <span className="bg-[#faf4e4] rounded-xl rounded-bl-[4px] px-3 py-1.5 text-[13px] font-jua text-[#57430f]">
+            반가워요! 같이 꿀 모아요
+          </span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pt-7 pb-12">
@@ -327,24 +392,42 @@ export default function SignupPage() {
               전체 동의
             </label>
             <div className="h-px bg-border" />
-            <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-primary"
-                checked={termsAgreed}
-                onChange={(e) => setTermsAgreed(e.target.checked)}
-              />
-              (필수) 이용약관 동의
-            </label>
-            <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-primary"
-                checked={privacyAgreed}
-                onChange={(e) => setPrivacyAgreed(e.target.checked)}
-              />
-              (필수) 개인정보 처리방침 동의
-            </label>
+            <div className="flex items-center">
+              <label className="flex-1 flex items-center gap-2.5 text-[13px] text-gray-700">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 accent-primary"
+                  checked={termsAgreed}
+                  onChange={(e) => setTermsAgreed(e.target.checked)}
+                />
+                (필수) 이용약관 동의
+              </label>
+              <Link
+                href="/terms"
+                target="_blank"
+                className="text-[12px] text-muted underline underline-offset-2 hover:text-ink shrink-0"
+              >
+                보기
+              </Link>
+            </div>
+            <div className="flex items-center">
+              <label className="flex-1 flex items-center gap-2.5 text-[13px] text-gray-700">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 accent-primary"
+                  checked={privacyAgreed}
+                  onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                />
+                (필수) 개인정보 처리방침 동의
+              </label>
+              <Link
+                href="/privacy"
+                target="_blank"
+                className="text-[12px] text-muted underline underline-offset-2 hover:text-ink shrink-0"
+              >
+                보기
+              </Link>
+            </div>
             <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
               <input
                 type="checkbox"
