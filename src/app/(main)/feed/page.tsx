@@ -7,10 +7,10 @@ import { HiveShelfCard } from './components/HiveShelfCard'
 import { BadgesCard } from './components/BadgesCard'
 import { MOCK_BADGES } from './components/mockFeedData'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
-import { getHiveArchive, getMonthlyHive, getTeamRhythms } from '@/services/feedService'
+import { getBadges, getHiveArchive, getMonthlyHive, getTeamRhythms } from '@/services/feedService'
 import { useAuth } from '@/store/authStore'
 import { PageLoader } from '@/components/ui/PageLoader'
-import type { HiveArchiveMonth, MonthlyHive, TeamRhythm } from '@/types/feed.types'
+import type { FeedBadge, HiveArchiveMonth, MonthlyHive, TeamRhythm } from '@/types/feed.types'
 
 export default function FeedPage() {
   const { token } = useAuth()
@@ -19,19 +19,23 @@ export default function FeedPage() {
   const [teamRhythms, setTeamRhythms] = useState<TeamRhythm[]>([])
   const [monthlyHive, setMonthlyHive] = useState<MonthlyHive | null>(null)
   const [hiveArchive, setHiveArchive] = useState<HiveArchiveMonth[]>([])
+  const [badges, setBadges] = useState<FeedBadge[]>(MOCK_BADGES)
 
   useEffect(() => {
     if (!token) return
     run(
       async () => {
-        const [rhythms, hive, archive] = await Promise.all([
+        const [rhythms, hive, archive, badgeList] = await Promise.all([
           getTeamRhythms(token),
           getMonthlyHive(token),
           getHiveArchive(token),
+          // 배지 API가 아직 배포되지 않은 서버에서도 피드가 뜨도록 실패 시 목데이터를 유지한다
+          getBadges(token).catch(() => MOCK_BADGES),
         ])
         setTeamRhythms(rhythms)
         setMonthlyHive(hive)
         setHiveArchive(archive)
+        setBadges(badgeList)
       },
       { fallback: '피드를 불러오지 못했습니다.' }
     )
@@ -55,7 +59,7 @@ export default function FeedPage() {
         <TeamRhythmCard teams={teamRhythms} />
         {monthlyHive && <MonthlyHiveCard hive={monthlyHive} />}
         {monthlyHive && <HiveShelfCard months={hiveArchive} current={monthlyHive} />}
-        <BadgesCard badges={MOCK_BADGES} />
+        <BadgesCard badges={badges} />
       </div>
     </div>
   )
