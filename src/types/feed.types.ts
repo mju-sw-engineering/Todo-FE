@@ -22,7 +22,7 @@ export interface TeamRhythm {
   todayMembers: TeamRhythmMember[]
 }
 
-/** 꿀 진하기: 0=없음, 1=1개, 2=2개, 3=3개 이상 완료 */
+/** 꿀 진하기: 그날 손댄(생성·체크인·제출) 서로 다른 투두 수. 0=없음, 3=3개 이상 */
 export type StreakLevel = 0 | 1 | 2 | 3
 
 export interface MyStreakDay {
@@ -37,7 +37,7 @@ export interface MyStreak {
   currentStreak: number
 }
 
-/** 이번 달 벌집 채우기: 하루 = 1칸, level은 그날 완료 개수에 따른 꿀 진하기 */
+/** 이번 달 벌집 채우기: 하루 = 1칸, level은 그날 활동한 투두 수에 따른 꿀 진하기 */
 export interface MonthlyHive {
   year: number
   /** 1~12 */
