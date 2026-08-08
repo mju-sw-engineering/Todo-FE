@@ -1,8 +1,9 @@
 'use client'
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useTeamTodos } from '@/hooks/useTeamTodos'
+import { getTeamById } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import { MONTHS_KO, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Calendar } from '@/components/ui/Calendar'
@@ -24,6 +25,21 @@ function TodoListContent() {
   const searchParams = useSearchParams()
   const teamId = Number(params.teamId)
   const { token } = useAuth()
+
+  // 팀 홈이 된 화면이므로 어느 팀인지 항상 보여준다
+  const [teamName, setTeamName] = useState('')
+  useEffect(() => {
+    if (!token || Number.isNaN(teamId)) return
+    let cancelled = false
+    getTeamById(teamId, token)
+      .then((team) => {
+        if (!cancelled) setTeamName(team.teamName)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [token, teamId])
 
   const {
     displayTodos,
@@ -60,9 +76,11 @@ function TodoListContent() {
     <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-white">
       <div className="relative shrink-0">
         <div className="px-5 pt-4 pb-3 flex items-center gap-3 border-b border-gray-100">
-          <BackButton onClick={() => router.back()} />
+          <BackButton onClick={() => router.push('/teams')} />
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold text-gray-400 tracking-wide">{dayKo}</p>
+            <p className="text-[12px] font-bold text-primary tracking-wide truncate">
+              {teamName || dayKo}
+            </p>
             <div className="flex items-baseline gap-2">
               <span className="text-[26px] font-black text-gray-900 tracking-tight leading-tight">
                 {monthNum}.{dayNum} {monthKo}
@@ -77,7 +95,7 @@ function TodoListContent() {
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-[11px] font-semibold text-gray-400 flex-1">
                 {isToday
-                  ? '오늘의 할 일'
+                  ? `${dayKo} · 오늘의 할 일`
                   : `${selectedDateObj.getFullYear()}년 ${String(selectedDateObj.getMonth() + 1)}월 ${selectedDateObj.getDate()}일`}
               </p>
               <button
@@ -103,6 +121,46 @@ function TodoListContent() {
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
                 달력
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 self-start shrink-0">
+            <div className="flex items-center gap-0.5">
+              <button
+                aria-label="가능한 시간 투표"
+                onClick={() => router.push(`/teams/${teamId}/availability`)}
+                className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 active:scale-95 transition-all"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.9}
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path strokeLinecap="round" d="M12 7v5l3.5 2" />
+                </svg>
+              </button>
+              <button
+                aria-label="팀 설정"
+                onClick={() => router.push(`/teams/${teamId}/settings`)}
+                className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 active:scale-95 transition-all"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.9}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.34 4.1c.42-1.75 2.9-1.75 3.32 0a1.71 1.71 0 0 0 2.55 1.06c1.54-.94 3.3.82 2.37 2.37a1.71 1.71 0 0 0 1.05 2.54c1.76.42 1.76 2.91 0 3.33a1.71 1.71 0 0 0-1.05 2.54c.93 1.55-.83 3.31-2.37 2.37a1.71 1.71 0 0 0-2.55 1.06c-.42 1.75-2.9 1.75-3.32 0a1.71 1.71 0 0 0-2.55-1.06c-1.54.94-3.3-.82-2.37-2.37a1.71 1.71 0 0 0-1.05-2.54c-1.76-.42-1.76-2.91 0-3.33a1.71 1.71 0 0 0 1.05-2.54c-.93-1.55.83-3.31 2.37-2.37a1.71 1.71 0 0 0 2.55-1.06Z"
+                  />
+                  <circle cx="12" cy="12" r="2.6" />
+                </svg>
               </button>
             </div>
           </div>
