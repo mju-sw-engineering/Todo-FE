@@ -2,12 +2,16 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BeeCharacter } from '@/components/bee/BeeCharacter'
+import { ConsentAgreements, type ConsentState } from '@/components/ConsentAgreements'
+import { ProfileImagePicker } from '@/components/ProfileImagePicker'
+import { AppleLoginButton } from '@/components/ui/AppleLoginButton'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { HiveIcon } from '@/components/ui/HiveIcon'
 import { Input } from '@/components/ui/Input'
+import { useAppleSignIn } from '@/hooks/useAppleSignIn'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
 import {
@@ -19,7 +23,6 @@ import {
 } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png']
 const CODE_TTL_SECONDS = 180
 
 type EmailStatus = 'idle' | 'sent' | 'verified'
@@ -42,16 +45,17 @@ export default function SignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [nickname, setNickname] = useState('')
   const [profileImage, setProfileImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  const [termsAgreed, setTermsAgreed] = useState(false)
-  const [privacyAgreed, setPrivacyAgreed] = useState(false)
-  const [marketingAgreed, setMarketingAgreed] = useState(false)
+  const [consents, setConsents] = useState<ConsentState>({
+    termsAgreed: false,
+    privacyAgreed: false,
+    marketingAgreed: false,
+  })
 
   const { isLoading, error, setError, run } = useAsyncTask()
+  const apple = useAppleSignIn()
   const sendTask = useAsyncTask()
   const verifyTask = useAsyncTask()
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const { upload, isUploading } = usePresignedUpload({ type: 'PROFILE' })
 
   useEffect(() => {
@@ -98,34 +102,27 @@ export default function SignupPage() {
     )
   }
 
-  function handleAllAgreeChange(checked: boolean) {
-    setTermsAgreed(checked)
-    setPrivacyAgreed(checked)
-    setMarketingAgreed(checked)
+  async function handleAppleSignIn() {
+    setError('')
+    await apple.signIn()
   }
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setError('jpg, png 형식의 이미지만 업로드할 수 있습니다.')
-      e.target.value = ''
-      return
-    }
+  function handleImageSelect(file: File) {
     setError('')
     setProfileImage(file)
-    setPreviewUrl(URL.createObjectURL(file))
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
+    apple.setError(null)
     if (emailStatus !== 'verified' || !emailVerificationToken) {
       return setError('이메일 인증을 완료해 주세요.')
     }
     if (password.length < 6) return setError('비밀번호는 6자 이상이어야 합니다.')
     if (password !== passwordConfirm) return setError('비밀번호가 일치하지 않습니다.')
-    if (!termsAgreed || !privacyAgreed) return setError('필수 약관에 동의해 주세요.')
+    if (!consents.termsAgreed || !consents.privacyAgreed)
+      return setError('필수 약관에 동의해 주세요.')
 
     await run(
       async () => {
@@ -141,9 +138,7 @@ export default function SignupPage() {
           passwordConfirm,
           nickname,
           profileImageKey,
-          termsAgreed,
-          privacyAgreed,
-          marketingAgreed,
+          ...consents,
         })
         try {
           const { accessToken } = await login({ loginId, password })
@@ -166,7 +161,6 @@ export default function SignupPage() {
 
   const passwordMismatch = passwordConfirm.length > 0 && password !== passwordConfirm
   const passwordTooShort = password.length > 0 && password.length < 6
-  const allAgreed = termsAgreed && privacyAgreed && marketingAgreed
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0')
   const ss = String(secondsLeft % 60).padStart(2, '0')
 
@@ -336,119 +330,33 @@ export default function SignupPage() {
             required
           />
 
-          {/* Profile photo — show blob preview if no upload */}
-          <div>
-            <p className="text-[13px] font-semibold text-gray-700 tracking-wide mb-2.5">
-              프로필 사진 <span className="text-[12px] font-normal text-muted">선택</span>
-            </p>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-20 h-20 rounded-2xl border-2 border-dashed border-border bg-gray-50 flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-gray-400 hover:bg-gray-100 relative"
-            >
-              {previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={previewUrl}
-                  alt="프로필 미리보기"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <svg
-                  className="w-6 h-6 text-muted"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              )}
-            </button>
-            {!previewUrl && nickname && (
-              <p className="text-[11px] text-gray-400 mt-1.5">기본 아바타가 사용됩니다</p>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-          </div>
+          <ProfileImagePicker
+            onSelect={handleImageSelect}
+            onError={setError}
+            showFallbackHint={Boolean(nickname)}
+          />
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-border p-4">
-            <label className="flex items-center gap-2.5 text-[14px] font-semibold text-gray-900">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-primary"
-                checked={allAgreed}
-                onChange={(e) => handleAllAgreeChange(e.target.checked)}
-              />
-              전체 동의
-            </label>
-            <div className="h-px bg-border" />
-            <div className="flex items-center">
-              <label className="flex-1 flex items-center gap-2.5 text-[13px] text-gray-700">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-primary"
-                  checked={termsAgreed}
-                  onChange={(e) => setTermsAgreed(e.target.checked)}
-                />
-                (필수) 이용약관 동의
-              </label>
-              <Link
-                href="/terms"
-                target="_blank"
-                className="text-[12px] text-muted underline underline-offset-2 hover:text-ink shrink-0"
-              >
-                보기
-              </Link>
-            </div>
-            <div className="flex items-center">
-              <label className="flex-1 flex items-center gap-2.5 text-[13px] text-gray-700">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-primary"
-                  checked={privacyAgreed}
-                  onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                />
-                (필수) 개인정보 처리방침 동의
-              </label>
-              <Link
-                href="/privacy"
-                target="_blank"
-                className="text-[12px] text-muted underline underline-offset-2 hover:text-ink shrink-0"
-              >
-                보기
-              </Link>
-            </div>
-            <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-primary"
-                checked={marketingAgreed}
-                onChange={(e) => setMarketingAgreed(e.target.checked)}
-              />
-              (선택) 마케팅 정보 수신 동의
-            </label>
-          </div>
+          <ConsentAgreements value={consents} onChange={setConsents} />
 
-          {error && (
+          {(error || apple.error) && (
             <p className="text-sm text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
-              {error}
+              {error || apple.error}
             </p>
           )}
 
-          <Button type="submit" size="lg" disabled={isLoading || isUploading}>
+          <Button type="submit" size="lg" disabled={isLoading || isUploading || apple.isLoading}>
             {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '완료'}
           </Button>
         </form>
+
+        {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
+        <div className="mt-4">
+          <AppleLoginButton
+            label="Apple로 가입"
+            onClick={handleAppleSignIn}
+            disabled={isLoading || isUploading || apple.isLoading}
+          />
+        </div>
 
         <Link
           href="/login"

@@ -29,6 +29,8 @@ export default function MyPage() {
     setDeletePassword,
     deleteAccountError,
     deletingAccount,
+    isAppleAccount,
+    providerKnown,
     handleSaveNickname,
     handleLeaveTeam,
     handleLogout,
@@ -221,35 +223,49 @@ export default function MyPage() {
             message="계정과 모든 데이터가 삭제되며 복구할 수 없습니다. 정말 탈퇴하시겠습니까?"
             confirmLabel="탈퇴하기"
             confirmDanger
-            confirmDisabled={!deletePassword}
+            confirmDisabled={!providerKnown || (!isAppleAccount && !deletePassword)}
             confirmPending={deletingAccount}
             onConfirm={handleDeleteAccount}
             onCancel={closeDeleteAccountConfirm}
           >
-            <label
-              htmlFor="delete-account-password"
-              className="block text-left text-[12px] font-semibold text-ink mb-2"
-            >
-              현재 비밀번호
-            </label>
-            <input
-              id="delete-account-password"
-              type="password"
-              value={deletePassword}
-              onChange={(event) => {
-                setDeletePassword(event.target.value)
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && deletePassword && !deletingAccount) {
-                  handleDeleteAccount()
-                }
-              }}
-              autoComplete="current-password"
-              autoFocus
-              disabled={deletingAccount}
-              placeholder="비밀번호를 입력해 주세요"
-              className="w-full rounded-xl border border-border px-3 py-2.5 text-[16px] text-ink outline-none transition-colors focus:border-status-red disabled:bg-neutral-30"
-            />
+            {!providerKnown ? (
+              // 계정 정보를 못 불러오면 어떤 방식으로 본인 확인을 해야 할지 알 수 없다.
+              <p className="text-left text-[12px] text-muted">
+                계정 정보를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.
+              </p>
+            ) : isAppleAccount ? (
+              // 애플 계정은 비밀번호가 없다. 탈퇴하기를 누르면 애플 인증 시트로 본인을 확인한다.
+              <p className="text-left text-[12px] text-muted">
+                탈퇴하기를 누르면 Apple로 본인 확인을 진행합니다.
+              </p>
+            ) : (
+              <>
+                <label
+                  htmlFor="delete-account-password"
+                  className="block text-left text-[12px] font-semibold text-ink mb-2"
+                >
+                  현재 비밀번호
+                </label>
+                <input
+                  id="delete-account-password"
+                  type="password"
+                  value={deletePassword}
+                  onChange={(event) => {
+                    setDeletePassword(event.target.value)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && deletePassword && !deletingAccount) {
+                      handleDeleteAccount()
+                    }
+                  }}
+                  autoComplete="current-password"
+                  autoFocus
+                  disabled={deletingAccount}
+                  placeholder="비밀번호를 입력해 주세요"
+                  className="w-full rounded-xl border border-border px-3 py-2.5 text-[16px] text-ink outline-none transition-colors focus:border-status-red disabled:bg-neutral-30"
+                />
+              </>
+            )}
             {deleteAccountError && (
               <p role="alert" className="mt-2 text-left text-[12px] text-status-red">
                 {deleteAccountError}

@@ -47,6 +47,36 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+### iOS 앱에서 개발하기 (Capacitor)
+
+이 앱은 웹 자산을 번들에 넣지 않고 `capacitor.config.ts`의 `server.url`이 가리키는 웹을
+그대로 웹뷰에 띄웁니다. 기본값이 배포 주소라, **그냥 Xcode로 실행하면 로컬 수정이 반영되지
+않고 운영 화면이 뜹니다.** 애플 로그인처럼 네이티브 기능을 건드릴 때는 `CAP_SERVER_URL`로
+로컬 dev 서버를 가리켜야 합니다.
+
+```bash
+npm run dev
+CAP_SERVER_URL=http://localhost:3000 npx cap sync ios   # 시뮬레이터
+```
+
+**실기기는 평문 http dev 서버에 붙일 수 없습니다.** 두 가지가 동시에 막습니다.
+
+- iOS ATS가 평문을 차단합니다. `capacitor.config.ts`의 `cleartext`는 **Android 전용**이라
+  iOS에는 아무 효과가 없고, iOS 17+는 `NSAllowsLocalNetworking`으로도 IP 주소 접속을
+  허용하지 않습니다. 시뮬레이터에서 `localhost`가 되는 건 ATS가 루프백을 예외로 두기 때문입니다.
+- 애플 로그인은 nonce 해싱에 `crypto.subtle`이 필요한데, 이건 보안 컨텍스트(https 또는
+  localhost)에서만 존재합니다.
+
+실기기에서 확인해야 하면 https 터널을 쓰거나 배포본으로 테스트하세요.
+
+- 주소는 `npx cap sync`가 만드는 `ios/App/App/capacitor.config.json`에 구워지므로 바꿀 때마다
+  sync를 다시 돌려야 합니다. 이 파일은 gitignore돼 있어 커밋되지 않습니다.
+- 운영 주소로 되돌리려면 환경 변수 없이 `npx cap sync ios`만 실행하면 됩니다.
+- **이 상태에서는 `NEXT_PUBLIC_USE_API_PROXY=true`가 필요합니다.** 웹뷰 오리진이
+  `localhost:3000`이 되어 위에 적은 `SameSite=Strict` 리프레시 쿠키 문제가 그대로 재현됩니다.
+- 네이티브 플러그인을 새로 추가하면 웹만 배포해서는 동작하지 않습니다. `npx cap sync ios`
+  후 Xcode 재빌드와 앱 재배포가 필요합니다.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

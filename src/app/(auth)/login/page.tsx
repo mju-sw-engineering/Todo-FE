@@ -4,8 +4,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AnimatedBee } from '@/components/bee/AnimatedBee'
+import { AppleLoginButton } from '@/components/ui/AppleLoginButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { useAppleAvailable } from '@/hooks/useAppleAvailable'
+import { useAppleSignIn } from '@/hooks/useAppleSignIn'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { getMyProfile, login } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
@@ -16,10 +19,28 @@ export default function LoginPage() {
 
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
-  const { isLoading, error, run } = useAsyncTask()
+  const { isLoading, error, setError, run } = useAsyncTask()
+  const apple = useAppleSignIn()
+
+  // 애플 로그인을 못 쓰는 환경(브라우저·Android)에서는 아이디 로그인이 유일한 수단이므로
+  // 처음부터 펼쳐 둔다. 접어두면 로그인하려고 한 번 더 눌러야 하는 퇴행이 된다.
+  //
+  // 초기값을 state에 담으면 안 된다. useState 초기화는 하이드레이션 첫 렌더에서 한 번만 도는데
+  // 그 시점의 useSyncExternalStore는 서버 스냅샷(false)을 주므로, iOS에서도 폼이 펼쳐진 채 굳는다.
+  const appleAvailable = useAppleAvailable()
+  const [expandedByUser, setExpandedByUser] = useState(false)
+  const showPasswordForm = expandedByUser || !appleAvailable
+
+  // 한 흐름을 새로 시작하면 다른 흐름의 지난 오류를 지운다. 그러지 않으면
+  // 아이디 로그인에 실패한 뒤 애플 로그인을 눌렀을 때 옛 오류가 그대로 남는다.
+  async function handleAppleSignIn() {
+    setError(null)
+    await apple.signIn()
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    apple.setError(null)
     await run(
       async () => {
         const { accessToken } = await login({ loginId, password })
@@ -71,38 +92,58 @@ export default function LoginPage() {
 
       {/* 폼 바텀 시트 */}
       <div className="bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-10 flex flex-col gap-4">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-          <Input
-            id="loginId"
-            label="아이디"
-            type="text"
-            autoComplete="username"
-            value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
-            placeholder="아이디를 입력해 주세요"
-            required
-          />
-          <Input
-            id="password"
-            label="비밀번호"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="비밀번호를 입력해 주세요"
-            required
-          />
+        {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
+        <AppleLoginButton onClick={handleAppleSignIn} disabled={isLoading || apple.isLoading} />
 
-          {error && (
-            <p className="text-[13px] text-status-red bg-status-red/10 rounded-xl px-4 py-2.5">
-              {error}
-            </p>
-          )}
+        {!showPasswordForm && (
+          <button
+            type="button"
+            onClick={() => setExpandedByUser(true)}
+            className="text-[14px] font-semibold text-gray-500 py-1.5 hover:text-gray-800 transition-colors duration-200"
+          >
+            아이디로 로그인
+          </button>
+        )}
 
-          <Button type="submit" size="lg" disabled={isLoading} className="mt-1">
-            {isLoading ? '로그인 중...' : '로그인'}
-          </Button>
-        </form>
+        {showPasswordForm && (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+            <Input
+              id="loginId"
+              label="아이디"
+              type="text"
+              autoComplete="username"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              placeholder="아이디를 입력해 주세요"
+              required
+            />
+            <Input
+              id="password"
+              label="비밀번호"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호를 입력해 주세요"
+              required
+            />
+
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isLoading || apple.isLoading}
+              className="mt-1"
+            >
+              {isLoading ? '로그인 중...' : '로그인'}
+            </Button>
+          </form>
+        )}
+
+        {(error || apple.error) && (
+          <p className="text-[13px] text-status-red bg-status-red/10 rounded-xl px-4 py-2.5">
+            {error || apple.error}
+          </p>
+        )}
 
         <p className="text-center text-[13px] text-gray-400">
           계정이 없으신가요?{' '}
