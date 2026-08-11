@@ -1,57 +1,70 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import type { AvailabilityEventListItem } from '@/types/availability.types'
+import type { AvailabilityPollListItem } from '@/types/availability.types'
+import { DAYS_KO } from '@/lib/dateUtils'
 
 interface AvailabilityEventCardProps {
   teamId: number
-  event: AvailabilityEventListItem
+  poll: AvailabilityPollListItem
 }
 
-export function AvailabilityEventCard({ teamId, event }: AvailabilityEventCardProps) {
+function formatDateRangeLabel(dateOptions: string[]): string {
+  if (dateOptions.length === 0) return ''
+  const sorted = [...dateOptions].sort()
+  const first = sorted[0]
+  const last = sorted[sorted.length - 1]
+
+  function shortLabel(dateStr: string): string {
+    const date = new Date(`${dateStr}T00:00:00`)
+    const dow = DAYS_KO[date.getDay()].charAt(0)
+    const [, m, d] = dateStr.split('-').map(Number)
+    return `${dow} ${m}/${d}`
+  }
+
+  if (first === last) return shortLabel(first)
+  return `${shortLabel(first)} ~ ${shortLabel(last)}`
+}
+
+export function AvailabilityEventCard({ teamId, poll }: AvailabilityEventCardProps) {
   const router = useRouter()
-  const isClosed = event.status === 'CLOSED'
 
   return (
-    <div className={`rounded-2xl border border-border px-4 py-3.5 ${isClosed ? 'opacity-50' : ''}`}>
+    <div className="rounded-2xl border border-border px-4 py-3.5">
       <div className="flex items-start justify-between gap-2 mb-1.5">
-        <p className="text-[13.5px] font-bold text-ink">{event.title}</p>
-        <span
-          className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap ${
-            isClosed ? 'bg-gray-100 text-gray-400' : 'bg-blue-50 text-blue-600'
-          }`}
-        >
-          {isClosed ? '종료' : '진행중'}
-        </span>
+        <p className="text-[13.5px] font-bold text-ink">{poll.title}</p>
+        {poll.allResponded && (
+          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap bg-emerald-50 text-emerald-600">
+            전원 응답
+          </span>
+        )}
       </div>
       <p className="text-[11.5px] text-muted">
-        {event.respondedCount}/{event.totalCount}명 응답 · {event.dateRangeLabel}
+        {poll.respondedCount}/{poll.totalMemberCount}명 응답 ·{' '}
+        {formatDateRangeLabel(poll.dateOptions)}
       </p>
 
-      {!isClosed && (
-        <div className="flex items-center justify-between mt-2.5">
-          {event.myResponseSubmitted ? (
-            <span className="text-[11.5px] font-semibold text-emerald-600">✓ 응답완료</span>
-          ) : (
-            <span className="text-[11.5px] text-muted">내 응답: 미완료</span>
-          )}
-          {event.myResponseSubmitted ? (
-            <button
-              onClick={() => router.push(`/teams/${teamId}/availability/${event.eventId}/result`)}
-              className="text-[11px] font-bold px-3.5 py-1.5 rounded-full border border-border text-ink hover:border-primary transition-colors"
-            >
-              결과보기
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push(`/teams/${teamId}/availability/${event.eventId}`)}
-              className="text-[11px] font-bold px-3.5 py-1.5 rounded-full bg-primary text-white hover:opacity-85 transition-opacity"
-            >
-              응답하기
-            </button>
-          )}
+      <div className="flex items-center justify-between mt-2.5">
+        {poll.myResponded ? (
+          <span className="text-[11.5px] font-semibold text-emerald-600">✓ 응답완료</span>
+        ) : (
+          <span className="text-[11.5px] text-muted">내 응답: 미완료</span>
+        )}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => router.push(`/teams/${teamId}/availability/${poll.id}/result`)}
+            className="text-[11px] font-bold px-3.5 py-1.5 rounded-full border border-border text-ink hover:border-primary transition-colors"
+          >
+            결과보기
+          </button>
+          <button
+            onClick={() => router.push(`/teams/${teamId}/availability/${poll.id}`)}
+            className="text-[11px] font-bold px-3.5 py-1.5 rounded-full bg-primary text-white hover:opacity-85 transition-opacity"
+          >
+            {poll.myResponded ? '응답 수정' : '응답하기'}
+          </button>
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -12,6 +12,8 @@ export default function TeamIdLayout({ children }: { children: React.ReactNode }
 
   const hideFab =
     pathname.endsWith('/chat') ||
+    pathname.endsWith('/todos') ||
+    pathname.endsWith('/todos/new') ||
     /\/todos\/\d+$/.test(pathname) ||
     pathname.endsWith('/certify') ||
     /\/teams\/\d+$/.test(pathname) ||

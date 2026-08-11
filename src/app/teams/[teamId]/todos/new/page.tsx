@@ -5,19 +5,46 @@ import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useNewTodo } from '@/hooks/useNewTodo'
 import { useAuth } from '@/store/authStore'
-import { TimePicker } from './components/TimePicker'
+import { DeadlinePicker } from './components/DeadlinePicker'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Spinner } from '@/components/ui/Spinner'
 import { MemberAvatar } from '@/components/ui/MemberAvatar'
+import { DAYS_KO } from '@/lib/dateUtils'
 
-function formatDisplayTime(value: string): string {
-  if (!value) return ''
-  const [h, m] = value.split(':').map(Number)
-  const label = h < 12 ? '오전' : '오후'
-  return `${label} ${h % 12 || 12}:${m.toString().padStart(2, '0')}`
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+function formatDeadlineLong(date: Date): string {
+  const today = new Date()
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  const dayLabel = isSameDay(date, today)
+    ? '오늘'
+    : isSameDay(date, tomorrow)
+      ? '내일'
+      : DAYS_KO[date.getDay()]
+
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  const ampm = hours < 12 ? '오전' : '오후'
+  const hour12 = hours % 12 || 12
+  return `${dayLabel} · ${ampm} ${hour12}:${minutes.toString().padStart(2, '0')}`
+}
+
+function formatDeadlineShort(date: Date): string {
+  const dayInitial = DAYS_KO[date.getDay()].charAt(0)
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${dayInitial} ${hours}:${minutes}`
 }
 
 export default function TodoNewPage() {
@@ -26,30 +53,32 @@ export default function TodoNewPage() {
   const teamId = Number(params.teamId)
   const { token } = useAuth()
 
-  const [showTimePicker, setShowTimePicker] = useState(false)
+  const [pickerTarget, setPickerTarget] = useState<'common' | number | null>(null)
 
   const {
     members,
     isMembersLoading,
-    mode,
-    changeMode,
     title,
     setTitle,
-    deadline,
-    setDeadline,
     description,
     setDescription,
-    excludedIds,
+    commonDeadline,
+    setCommonDeadline,
+    memberDrafts,
     toggleExclude,
-    tasks,
-    updateTask,
-    addTask,
-    removeTask,
+    toggleExpand,
+    setMemberTitle,
+    setMemberDeadlineMode,
+    setMemberCustomDeadline,
     error,
     setError,
     isLoading,
     handleSubmit,
   } = useNewTodo(teamId, token)
+
+  const anyExpanded = members.some(
+    (member) => !memberDrafts[member.userId]?.excluded && memberDrafts[member.userId]?.expanded
+  )
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
@@ -57,7 +86,7 @@ export default function TodoNewPage() {
         <div className="flex items-center gap-2">
           <BackButton onClick={() => router.back()} />
           <div className="min-w-0">
-            <h1 className="text-[20px] font-black text-ink leading-tight">할 일 만들기</h1>
+            <h1 className="text-[20px] font-black text-ink leading-tight">새 할 일</h1>
             <p className="text-[12px] text-muted mt-0.5">오늘의 할 일을 추가해 주세요</p>
           </div>
         </div>
@@ -66,7 +95,7 @@ export default function TodoNewPage() {
       <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <label htmlFor="title" className="text-[13px] font-semibold text-gray-700 tracking-wide">
-            제목
+            할 일
           </label>
           <Input
             id="title"
@@ -76,36 +105,41 @@ export default function TodoNewPage() {
               setTitle(e.target.value)
               if (error) setError('')
             }}
-            placeholder="할 일 제목을 입력해주세요"
+            placeholder="할 일을 입력해주세요"
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-[13px] font-semibold text-gray-700 tracking-wide">마감 시간</p>
+          <p className="text-[13px] font-semibold text-gray-700 tracking-wide">공통 마감</p>
           <button
             type="button"
-            onClick={() => {
-              setShowTimePicker(true)
-              if (error) setError('')
-            }}
-            className={`w-full px-4 py-3.25 rounded-[14px] border-[1.5px] text-[14px] text-left transition-all duration-200 ${deadline ? 'border-primary bg-white text-ink font-medium' : 'border-border bg-white text-muted font-light'}`}
+            onClick={() => setPickerTarget('common')}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-[14px] border-[1.5px] text-left transition-all duration-200 ${
+              commonDeadline ? 'border-primary bg-white' : 'border-border bg-white'
+            }`}
           >
-            <div className="flex items-center justify-between">
-              <span>{deadline ? formatDisplayTime(deadline) : '시간을 선택해주세요'}</span>
-              <svg
-                className="w-4 h-4 text-muted shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+            <span className="w-9 h-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-[17px]">
+              ⏰
+            </span>
+            <span className="flex-1 min-w-0">
+              <span
+                className={`block text-[14px] font-semibold ${commonDeadline ? 'text-ink' : 'text-muted font-light'}`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
+                {commonDeadline ? formatDeadlineLong(commonDeadline) : '마감을 선택해주세요'}
+              </span>
+              <span className="block text-[11px] text-muted mt-0.5">
+                따로 안 정한 사람은 이 마감을 따라요
+              </span>
+            </span>
+            <svg
+              className="w-4 h-4 text-muted shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
 
@@ -125,147 +159,142 @@ export default function TodoNewPage() {
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <p className="text-[13px] font-semibold text-gray-700 tracking-wide">진행 방식</p>
-          <div className="grid grid-cols-2 gap-2 rounded-[14px] bg-gray-100 p-1">
-            {(['DIRECT', 'TASK'] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => changeMode(option)}
-                className={`rounded-[11px] px-3 py-2.5 text-[13px] font-bold transition-all ${
-                  mode === option ? 'bg-white text-ink shadow-sm' : 'text-muted'
-                }`}
-              >
-                {option === 'DIRECT' ? '같이 인증하기' : 'Task로 나누기'}
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-muted">
-            {mode === 'DIRECT'
-              ? '선택한 팀원이 같은 할 일을 각자 인증합니다.'
-              : 'Task마다 담당자와 개별 마감을 지정합니다.'}
-          </p>
-        </div>
-
         <div className="flex flex-col gap-3">
+          <p className="text-[13px] font-semibold text-gray-700 tracking-wide">
+            누가 <span className="ml-1 text-[12px] font-normal text-muted">· 여러 명 가능</span>
+          </p>
+
           {isMembersLoading ? (
             <div className="flex justify-center py-6">
               <Spinner size="sm" />
             </div>
-          ) : mode === 'DIRECT' ? (
-            <>
-              <p className="text-[13px] font-semibold text-gray-700 tracking-wide">팀원</p>
-              <ul className="flex flex-col gap-2">
-                {members.map((member) => {
-                  const isExcluded = excludedIds.has(member.userId)
+          ) : (
+            <ul className="flex flex-col gap-2.5">
+              {members.map((member) => {
+                const draft = memberDrafts[member.userId]
+                const isExcluded = draft?.excluded ?? false
+                const isExpanded = !isExcluded && (draft?.expanded ?? false)
+
+                if (isExpanded) {
                   return (
                     <li
                       key={member.userId}
-                      className={`flex items-center justify-between bg-white rounded-[14px] border border-border px-4 py-3.5 transition-all duration-200 ${isExcluded ? 'opacity-40' : ''}`}
+                      className="rounded-2xl border-2 border-primary bg-primary/5 p-4 flex flex-col gap-3"
                     >
-                      <div className="flex items-center gap-3">
-                        <MemberAvatar
-                          profileImageUrl={member.profileImageUrl}
-                          nickname={member.nickname}
-                          size={36}
-                        />
-                        <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <MemberAvatar
+                            profileImageUrl={member.profileImageUrl}
+                            nickname={member.nickname}
+                            size={32}
+                          />
+                          <span className="text-[14px] font-bold text-ink">{member.nickname}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleExpand(member.userId)}
+                          className="text-[12px] font-semibold text-primary"
+                        >
+                          접기 ▲
+                        </button>
                       </div>
+
+                      <label className="flex flex-col gap-1.5 text-[11px] font-semibold text-gray-500">
+                        맡은 부분
+                        <Input
+                          type="text"
+                          value={draft?.customTitle ?? ''}
+                          onChange={(e) => setMemberTitle(member.userId, e.target.value)}
+                          placeholder={title || '이 사람이 맡을 부분을 적어주세요'}
+                        />
+                      </label>
+
+                      <div className="flex flex-col gap-1.5">
+                        <p className="text-[11px] font-semibold text-gray-500">마감</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setMemberDeadlineMode(member.userId, false)}
+                            className={`py-2.5 rounded-[11px] text-[13px] font-bold transition-all ${
+                              !draft?.useCustomDeadline
+                                ? 'bg-primary text-white'
+                                : 'bg-white text-muted border border-border'
+                            }`}
+                          >
+                            공통과 같음
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPickerTarget(member.userId)}
+                            className={`py-2.5 rounded-[11px] text-[13px] font-bold transition-all ${
+                              draft?.useCustomDeadline
+                                ? 'bg-primary text-white'
+                                : 'bg-white text-muted border border-border'
+                            }`}
+                          >
+                            {draft?.useCustomDeadline && draft.customDeadline
+                              ? formatDeadlineShort(draft.customDeadline)
+                              : '따로 정하기'}
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  )
+                }
+
+                return (
+                  <li
+                    key={member.userId}
+                    className={`flex items-center justify-between bg-white rounded-[14px] border border-border px-4 py-3.5 transition-all duration-200 ${isExcluded ? 'opacity-40' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <MemberAvatar
+                        profileImageUrl={member.profileImageUrl}
+                        nickname={member.nickname}
+                        size={36}
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-[14px] font-medium text-ink">{member.nickname}</span>
+                        {!isExcluded && (
+                          <span className="text-[11px] text-muted">
+                            {draft?.useCustomDeadline && draft.customDeadline
+                              ? `따로 · ${formatDeadlineShort(draft.customDeadline)}`
+                              : commonDeadline
+                                ? `공통 · ${formatDeadlineShort(commonDeadline)}`
+                                : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         type="button"
                         onClick={() => toggleExclude(member.userId)}
-                        className={
-                          isExcluded
-                            ? 'text-[13px] font-semibold text-muted'
-                            : 'px-4 py-1.5 rounded-[10px] border border-border text-[13px] font-semibold text-ink transition-all duration-200 hover:border-primary hover:text-primary'
-                        }
+                        className="text-[12px] font-semibold text-muted"
                       >
                         {isExcluded ? '제외됨' : '제외'}
                       </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <p className="text-[13px] font-semibold text-gray-700 tracking-wide">Task</p>
-                <button
-                  type="button"
-                  onClick={addTask}
-                  className="text-[12px] font-bold text-primary"
-                >
-                  + Task 추가
-                </button>
-              </div>
-              <div className="flex flex-col gap-3">
-                {tasks.map((task, index) => (
-                  <section
-                    key={task.draftId}
-                    className="rounded-[16px] border border-border bg-gray-50/50 p-4 flex flex-col gap-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-[12px] font-bold text-ink">Task {index + 1}</p>
-                      {tasks.length > 1 && (
+                      {!isExcluded && (
                         <button
                           type="button"
-                          onClick={() => removeTask(task.draftId)}
-                          className="text-[11px] font-semibold text-status-red"
+                          onClick={() => toggleExpand(member.userId)}
+                          className="px-3 py-1.5 rounded-[10px] border border-border text-[12px] font-bold text-ink transition-all duration-200 hover:border-primary hover:text-primary"
                         >
-                          삭제
+                          + 따로
                         </button>
                       )}
                     </div>
-                    <Input
-                      type="text"
-                      value={task.title}
-                      onChange={(event) => updateTask(task.draftId, { title: event.target.value })}
-                      placeholder="Task 제목"
-                    />
-                    <Textarea
-                      value={task.description}
-                      onChange={(event) =>
-                        updateTask(task.draftId, { description: event.target.value })
-                      }
-                      placeholder="Task 설명 (선택)"
-                      rows={2}
-                    />
-                    <label className="flex flex-col gap-1.5 text-[12px] font-semibold text-gray-600">
-                      담당자
-                      <select
-                        value={task.assigneeId ?? ''}
-                        onChange={(event) =>
-                          updateTask(task.draftId, {
-                            assigneeId: event.target.value ? Number(event.target.value) : null,
-                          })
-                        }
-                        className="w-full rounded-[12px] border-[1.5px] border-border bg-white px-4 py-3 text-[14px] text-ink outline-none focus:border-primary"
-                      >
-                        <option value="">팀원을 선택해주세요</option>
-                        {members.map((member) => (
-                          <option key={member.userId} value={member.userId}>
-                            {member.nickname}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-[12px] font-semibold text-gray-600">
-                      개별 마감
-                      <Input
-                        type="time"
-                        value={task.deadline}
-                        max={deadline || undefined}
-                        onChange={(event) =>
-                          updateTask(task.draftId, { deadline: event.target.value })
-                        }
-                      />
-                    </label>
-                  </section>
-                ))}
-              </div>
-            </>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+
+          {!isMembersLoading && (
+            <p className="text-[11px] text-muted leading-relaxed bg-gray-50 rounded-xl px-3.5 py-3">
+              💡 아무도 &lsquo;따로&rsquo;를 안 펼치면 다 같이 하는 공통 업무가 돼요. 각자 완료만
+              체크하면 끝.
+            </p>
           )}
         </div>
 
@@ -278,7 +307,7 @@ export default function TodoNewPage() {
 
       <div className="px-6 py-5 border-t border-border flex flex-col gap-3">
         <Button onClick={handleSubmit} disabled={isLoading || isMembersLoading}>
-          {isLoading ? '생성 중...' : '생성하기'}
+          {isLoading ? '생성 중...' : anyExpanded ? '따로 나눠서 올리기' : '할 일 올리기'}
         </Button>
         <Button variant="secondary" onClick={() => router.back()}>
           돌아가기
@@ -286,14 +315,23 @@ export default function TodoNewPage() {
       </div>
 
       <AnimatePresence>
-        {showTimePicker && (
-          <TimePicker
-            value={deadline}
-            onChange={(v) => {
-              setDeadline(v)
+        {pickerTarget !== null && (
+          <DeadlinePicker
+            value={
+              pickerTarget === 'common'
+                ? commonDeadline
+                : (memberDrafts[pickerTarget]?.customDeadline ?? commonDeadline)
+            }
+            maxDate={pickerTarget === 'common' ? null : commonDeadline}
+            onChange={(date) => {
+              if (pickerTarget === 'common') {
+                setCommonDeadline(date)
+              } else {
+                setMemberCustomDeadline(pickerTarget, date)
+              }
               if (error) setError('')
             }}
-            onClose={() => setShowTimePicker(false)}
+            onClose={() => setPickerTarget(null)}
           />
         )}
       </AnimatePresence>

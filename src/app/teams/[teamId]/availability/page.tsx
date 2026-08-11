@@ -1,14 +1,32 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { BackButton } from '@/components/ui/BackButton'
+import { Spinner } from '@/components/ui/Spinner'
+import { useAuth } from '@/store/authStore'
+import { getAvailabilityPolls } from '@/services/availabilityService'
 import { AvailabilityEventCard } from './components/AvailabilityEventCard'
-import { MOCK_EVENTS } from './components/mockAvailabilityData'
+import type { AvailabilityPollListItem } from '@/types/availability.types'
 
 export default function AvailabilityEventListPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const teamId = Number(params.teamId)
+  const { token } = useAuth()
+
+  const [polls, setPolls] = useState<AvailabilityPollListItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!token || !teamId) return
+    getAvailabilityPolls(teamId, token)
+      .then(setPolls)
+      .catch(() => setError('투표 목록을 불러오지 못했습니다.'))
+      .finally(() => setIsLoading(false))
+  }, [token, teamId, searchParams])
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
@@ -38,7 +56,15 @@ export default function AvailabilityEventListPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-6">
-        {MOCK_EVENTS.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Spinner />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center gap-2">
+            <p className="text-[14px] font-semibold text-gray-500">{error}</p>
+          </div>
+        ) : polls.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
             <p className="text-[15px] font-bold text-gray-900">아직 만들어진 투표가 없어요</p>
             <p className="text-[13px] text-gray-400 mt-1">
@@ -47,8 +73,8 @@ export default function AvailabilityEventListPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {MOCK_EVENTS.map((event) => (
-              <AvailabilityEventCard key={event.eventId} teamId={teamId} event={event} />
+            {polls.map((poll) => (
+              <AvailabilityEventCard key={poll.id} teamId={teamId} poll={poll} />
             ))}
           </div>
         )}
