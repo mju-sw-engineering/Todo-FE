@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
+import { ApiError } from '@/lib/apiClient'
 import { clearAppleSetup, readAppleSetup } from '@/lib/appleSetupStorage'
 import { completeAppleSignup, getMyProfile } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
@@ -27,7 +28,6 @@ export default function AppleSetupPage() {
   const [setupToken, setSetupToken] = useState<string | null>(null)
   const [nickname, setNickname] = useState('')
   const [profileImage, setProfileImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [consents, setConsents] = useState<ConsentState>({
     termsAgreed: false,
     privacyAgreed: false,
@@ -52,7 +52,6 @@ export default function AppleSetupPage() {
   function handleImageSelect(file: File) {
     setError('')
     setProfileImage(file)
-    setPreviewUrl(URL.createObjectURL(file))
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -77,12 +76,24 @@ export default function AppleSetupPage() {
           profileImageKey = await upload(profileImage)
         }
 
-        const { accessToken } = await completeAppleSignup({
-          setupToken,
-          nickname: trimmed,
-          profileImageKey,
-          ...consents,
-        })
+        let accessToken: string
+        try {
+          ;({ accessToken } = await completeAppleSignup({
+            setupToken,
+            nickname: trimmed,
+            profileImageKey,
+            ...consents,
+          }))
+        } catch (e) {
+          // setup token은 5분이라 만료되면 이 화면에서 아무리 다시 눌러도 같은 400이 반복된다.
+          // 죽은 토큰을 버리고 로그인부터 다시 하게 보낸다. 409(이미 가입)도 마찬가지로
+          // 이 토큰으로는 진행할 수 없다.
+          if (e instanceof ApiError && (e.status === 400 || e.status === 409)) {
+            clearAppleSetup()
+            setTimeout(() => router.replace('/login'), 1200)
+          }
+          throw e
+        }
         clearAppleSetup()
 
         const profile = await getMyProfile(accessToken)
@@ -97,8 +108,8 @@ export default function AppleSetupPage() {
       {
         fallback: '가입을 마치지 못했습니다.',
         statusMessages: {
-          400: '인증 시간이 만료됐습니다. 애플 로그인을 다시 시도해 주세요.',
-          409: '이미 가입된 애플 계정입니다. 로그인해 주세요.',
+          400: '인증 시간이 만료됐습니다. 로그인 화면으로 돌아갑니다.',
+          409: '이미 가입된 애플 계정입니다. 로그인 화면으로 돌아갑니다.',
         },
       }
     )
@@ -134,7 +145,6 @@ export default function AppleSetupPage() {
         />
 
         <ProfileImagePicker
-          previewUrl={previewUrl}
           onSelect={handleImageSelect}
           onError={setError}
           showFallbackHint={Boolean(nickname)}

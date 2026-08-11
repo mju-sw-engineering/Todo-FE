@@ -19,7 +19,7 @@ export default function LoginPage() {
 
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
-  const { isLoading, error, run } = useAsyncTask()
+  const { isLoading, error, setError, run } = useAsyncTask()
   const apple = useAppleSignIn()
 
   // 애플 로그인을 못 쓰는 환경(브라우저·Android)에서는 아이디 로그인이 유일한 수단이므로
@@ -31,8 +31,16 @@ export default function LoginPage() {
   const [expandedByUser, setExpandedByUser] = useState(false)
   const showPasswordForm = expandedByUser || !appleAvailable
 
+  // 한 흐름을 새로 시작하면 다른 흐름의 지난 오류를 지운다. 그러지 않으면
+  // 아이디 로그인에 실패한 뒤 애플 로그인을 눌렀을 때 옛 오류가 그대로 남는다.
+  async function handleAppleSignIn() {
+    setError(null)
+    await apple.signIn()
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    apple.setError(null)
     await run(
       async () => {
         const { accessToken } = await login({ loginId, password })
@@ -85,7 +93,7 @@ export default function LoginPage() {
       {/* 폼 바텀 시트 */}
       <div className="bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-10 flex flex-col gap-4">
         {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
-        <AppleLoginButton onClick={apple.signIn} disabled={isLoading || apple.isLoading} />
+        <AppleLoginButton onClick={handleAppleSignIn} disabled={isLoading || apple.isLoading} />
 
         {!showPasswordForm && (
           <button
@@ -133,7 +141,7 @@ export default function LoginPage() {
 
         {(error || apple.error) && (
           <p className="text-[13px] text-status-red bg-status-red/10 rounded-xl px-4 py-2.5">
-            {error ?? apple.error}
+            {error || apple.error}
           </p>
         )}
 

@@ -45,7 +45,6 @@ export default function SignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [nickname, setNickname] = useState('')
   const [profileImage, setProfileImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const [consents, setConsents] = useState<ConsentState>({
     termsAgreed: false,
@@ -103,15 +102,20 @@ export default function SignupPage() {
     )
   }
 
+  async function handleAppleSignIn() {
+    setError('')
+    await apple.signIn()
+  }
+
   function handleImageSelect(file: File) {
     setError('')
     setProfileImage(file)
-    setPreviewUrl(URL.createObjectURL(file))
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
+    apple.setError(null)
     if (emailStatus !== 'verified' || !emailVerificationToken) {
       return setError('이메일 인증을 완료해 주세요.')
     }
@@ -327,7 +331,6 @@ export default function SignupPage() {
           />
 
           <ProfileImagePicker
-            previewUrl={previewUrl}
             onSelect={handleImageSelect}
             onError={setError}
             showFallbackHint={Boolean(nickname)}
@@ -337,7 +340,7 @@ export default function SignupPage() {
 
           {(error || apple.error) && (
             <p className="text-sm text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
-              {error ?? apple.error}
+              {error || apple.error}
             </p>
           )}
 
@@ -350,7 +353,7 @@ export default function SignupPage() {
         <div className="mt-4">
           <AppleLoginButton
             label="Apple로 가입"
-            onClick={apple.signIn}
+            onClick={handleAppleSignIn}
             disabled={isLoading || isUploading || apple.isLoading}
           />
         </div>

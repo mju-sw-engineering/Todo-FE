@@ -62,6 +62,10 @@ export function useMyPage() {
   const [deletingAccount, setDeletingAccount] = useState(false)
 
   // 애플 계정은 비밀번호가 없어 탈퇴 재인증 방식이 다르다.
+  //
+  // provider를 모르는 상태(getMyInfo 실패)를 그냥 false로 접으면 애플 계정이 비밀번호
+  // 흐름으로 들어가 탈퇴가 막힌다. 모르는 상태를 따로 표현해 탈퇴를 아예 잠근다.
+  const providerKnown = myInfo !== null
   const isAppleAccount = myInfo?.provider === 'APPLE'
 
   const profileImageUrl = myInfo?.profileImageUrl ?? user?.profileImageUrl ?? null
@@ -179,7 +183,7 @@ export function useMyPage() {
   }
 
   async function handleDeleteAccount() {
-    if (!token || deletingAccount) return
+    if (!token || deletingAccount || !providerKnown) return
     // 애플 계정은 입력란이 없으므로 비밀번호를 요구하지 않는다.
     if (!isAppleAccount && !deletePassword) return
 
@@ -222,6 +226,7 @@ export function useMyPage() {
     deleteAccountError,
     deletingAccount,
     isAppleAccount,
+    providerKnown,
     handleSaveNickname,
     handleLeaveTeam,
     handleLogout,
