@@ -47,6 +47,33 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+### iOS 앱에서 개발하기 (Capacitor)
+
+이 앱은 웹 자산을 번들에 넣지 않고 `capacitor.config.ts`의 `server.url`이 가리키는 웹을
+그대로 웹뷰에 띄웁니다. 기본값이 배포 주소라, **그냥 Xcode로 실행하면 로컬 수정이 반영되지
+않고 운영 화면이 뜹니다.** 애플 로그인처럼 네이티브 기능을 건드릴 때는 `CAP_SERVER_URL`로
+로컬 dev 서버를 가리켜야 합니다.
+
+```bash
+npm run dev
+CAP_SERVER_URL=http://localhost:3000 npx cap sync ios   # 시뮬레이터
+```
+
+실기기는 맥과 같은 Wi-Fi에 두고 LAN IP를 씁니다.
+
+```bash
+npm run dev -- -H 0.0.0.0
+CAP_SERVER_URL=http://192.168.0.10:3000 npx cap sync ios
+```
+
+- 주소는 `npx cap sync`가 만드는 `ios/App/App/capacitor.config.json`에 구워지므로 바꿀 때마다
+  sync를 다시 돌려야 합니다. 이 파일은 gitignore돼 있어 커밋되지 않습니다.
+- 운영 주소로 되돌리려면 환경 변수 없이 `npx cap sync ios`만 실행하면 됩니다.
+- **이 상태에서는 `NEXT_PUBLIC_USE_API_PROXY=true`가 필요합니다.** 웹뷰 오리진이
+  `localhost:3000`이 되어 위에 적은 `SameSite=Strict` 리프레시 쿠키 문제가 그대로 재현됩니다.
+- 네이티브 플러그인을 새로 추가하면 웹만 배포해서는 동작하지 않습니다. `npx cap sync ios`
+  후 Xcode 재빌드와 앱 재배포가 필요합니다.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
