@@ -1,70 +1,53 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import type { AvailabilityPollListItem } from '@/types/availability.types'
-import { DAYS_KO } from '@/lib/dateUtils'
+import type { AvailabilityEventListItem } from '@/types/availability.types'
 
 interface AvailabilityEventCardProps {
   teamId: number
-  poll: AvailabilityPollListItem
+  event: AvailabilityEventListItem
 }
 
-function formatDateRangeLabel(dateOptions: string[]): string {
-  if (dateOptions.length === 0) return ''
-  const sorted = [...dateOptions].sort()
-  const first = sorted[0]
-  const last = sorted[sorted.length - 1]
-
-  function shortLabel(dateStr: string): string {
-    const date = new Date(`${dateStr}T00:00:00`)
-    const dow = DAYS_KO[date.getDay()].charAt(0)
-    const [, m, d] = dateStr.split('-').map(Number)
-    return `${dow} ${m}/${d}`
-  }
-
-  if (first === last) return shortLabel(first)
-  return `${shortLabel(first)} ~ ${shortLabel(last)}`
-}
-
-export function AvailabilityEventCard({ teamId, poll }: AvailabilityEventCardProps) {
+/**
+ * 카드 전체가 버튼 — 미응답이면 응답 화면, 응답했거나 종료면 결과 화면으로 간다.
+ * 상태 배지·"내 응답" 라벨 같은 중복 표기는 하단 힌트 한 줄로 대신한다.
+ */
+export function AvailabilityEventCard({ teamId, event }: AvailabilityEventCardProps) {
   const router = useRouter()
+  const isClosed = event.status === 'CLOSED'
+  const goResult = isClosed || event.myResponseSubmitted
 
   return (
-    <div className="rounded-2xl border border-border px-4 py-3.5">
-      <div className="flex items-start justify-between gap-2 mb-1.5">
-        <p className="text-[13.5px] font-bold text-ink">{poll.title}</p>
-        {poll.allResponded && (
-          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap bg-emerald-50 text-emerald-600">
-            전원 응답
-          </span>
-        )}
+    <button
+      type="button"
+      onClick={() =>
+        router.push(
+          goResult
+            ? `/teams/${teamId}/availability/${event.eventId}/result`
+            : `/teams/${teamId}/availability/${event.eventId}`
+        )
+      }
+      className={`w-full text-left rounded-2xl border border-border px-4 py-3.5 transition-all duration-150 hover:border-gray-300 active:scale-[0.99] ${
+        isClosed ? 'opacity-55' : ''
+      }`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-[14px] font-bold text-ink truncate">{event.title}</p>
+        {isClosed && <span className="text-[11px] font-semibold text-gray-400 shrink-0">종료</span>}
       </div>
-      <p className="text-[11.5px] text-muted">
-        {poll.respondedCount}/{poll.totalMemberCount}명 응답 ·{' '}
-        {formatDateRangeLabel(poll.dateOptions)}
+      <p className="text-[11.5px] text-muted mt-1">
+        {event.respondedCount}/{event.totalCount}명 응답 · {event.dateRangeLabel}
       </p>
 
-      <div className="flex items-center justify-between mt-2.5">
-        {poll.myResponded ? (
-          <span className="text-[11.5px] font-semibold text-emerald-600">✓ 응답완료</span>
+      <p className="mt-2 text-[12px] font-bold">
+        {isClosed ? (
+          <span className="text-gray-500">결과 보기 →</span>
+        ) : event.myResponseSubmitted ? (
+          <span className="text-emerald-600">응답 완료 · 결과 보기 →</span>
         ) : (
-          <span className="text-[11.5px] text-muted">내 응답: 미완료</span>
+          <span className="text-primary">응답하러 가기 →</span>
         )}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => router.push(`/teams/${teamId}/availability/${poll.id}/result`)}
-            className="text-[11px] font-bold px-3.5 py-1.5 rounded-full border border-border text-ink hover:border-primary transition-colors"
-          >
-            결과보기
-          </button>
-          <button
-            onClick={() => router.push(`/teams/${teamId}/availability/${poll.id}`)}
-            className="text-[11px] font-bold px-3.5 py-1.5 rounded-full bg-primary text-white hover:opacity-85 transition-opacity"
-          >
-            {poll.myResponded ? '응답 수정' : '응답하기'}
-          </button>
-        </div>
-      </div>
-    </div>
+      </p>
+    </button>
   )
 }

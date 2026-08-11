@@ -6,6 +6,7 @@ import type {
   JoinTeamRequest,
   JoinTeamResponse,
   TeamDetailResponse,
+  TeamHiveResponse,
   TeamListResponse,
 } from '@/types/team.types'
 
@@ -19,6 +20,11 @@ export async function getTeamById(teamId: number, token: string): Promise<TeamDe
     () => getJson<TeamDetailResponse>(`/api/teams/${teamId}`, token),
     60_000
   )
+}
+
+/** 팀 벌집 성장 상태 — 기록 수가 자주 변하므로 캐시하지 않는다 */
+export async function getTeamHive(teamId: number, token: string): Promise<TeamHiveResponse> {
+  return getJson<TeamHiveResponse>(`/api/teams/${teamId}/hive`, token)
 }
 
 export async function createTeam(

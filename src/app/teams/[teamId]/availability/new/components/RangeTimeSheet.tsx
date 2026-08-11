@@ -5,24 +5,33 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 
 const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
 
 interface RangeTimeSheetProps {
   title: string
-  value: number
-  onChange: (hour: number) => void
+  value: string
+  onChange: (v: string) => void
   onClose: () => void
 }
 
 export function RangeTimeSheet({ title, value, onChange, onClose }: RangeTimeSheetProps) {
-  const [ampm, setAmpm] = useState<'AM' | 'PM'>(value >= 12 ? 'PM' : 'AM')
-  const [hour, setHour] = useState(value % 12 || 12)
+  const init = value
+    ? { h: Number(value.split(':')[0]), m: Number(value.split(':')[1]) }
+    : { h: 9, m: 0 }
+
+  const [ampm, setAmpm] = useState<'AM' | 'PM'>(init.h >= 12 ? 'PM' : 'AM')
+  const [hour, setHour] = useState(init.h % 12 || 12)
+  const [minute, setMinute] = useState(
+    MINUTES.includes(init.m) ? init.m : (MINUTES.find((m) => m >= init.m) ?? 0)
+  )
 
   function get24H(h: number, ap: 'AM' | 'PM') {
     return (h % 12) + (ap === 'PM' ? 12 : 0)
   }
 
   function confirm() {
-    onChange(get24H(hour, ampm))
+    const h = get24H(hour, ampm)
+    onChange(`${h.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
     onClose()
   }
 
@@ -68,7 +77,7 @@ export function RangeTimeSheet({ title, value, onChange, onClose }: RangeTimeShe
         </div>
 
         <p className="text-[11px] font-semibold text-muted tracking-wider mb-2">시</p>
-        <div className="grid grid-cols-6 gap-1.5 mb-6">
+        <div className="grid grid-cols-6 gap-1.5 mb-5">
           {HOURS.map((h) => (
             <button
               key={h}
@@ -79,6 +88,22 @@ export function RangeTimeSheet({ title, value, onChange, onClose }: RangeTimeShe
               }`}
             >
               {h}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-[11px] font-semibold text-muted tracking-wider mb-2">분</p>
+        <div className="grid grid-cols-6 gap-1.5 mb-6">
+          {MINUTES.map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMinute(m)}
+              className={`py-2.5 rounded-[10px] text-[14px] font-semibold transition-all duration-150 ${
+                minute === m ? 'bg-primary text-white' : 'bg-surface text-ink hover:bg-gray-100'
+              }`}
+            >
+              {m.toString().padStart(2, '0')}
             </button>
           ))}
         </div>

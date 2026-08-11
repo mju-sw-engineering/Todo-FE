@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useTeamChat } from '@/hooks/useTeamChat'
+import { getTeamById } from '@/services/teamService'
 import { useChatInput } from '@/hooks/useChatInput'
 import { useAuth } from '@/store/authStore'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
@@ -24,7 +25,22 @@ export default function TeamChatPage() {
   const searchParams = useSearchParams()
   const teamId = Number(params.teamId)
   const { user, token } = useAuth()
-  const title = searchParams.get('title') ?? '팀 채팅'
+
+  // 팀 이름: 쿼리 파라미터는 첫 진입 최적화일 뿐, 새로고침·딥링크에서도 유지되도록 조회로 보강
+  const [teamName, setTeamName] = useState(() => searchParams.get('title') ?? '')
+  useEffect(() => {
+    if (teamName || !token || Number.isNaN(teamId)) return
+    let cancelled = false
+    getTeamById(teamId, token)
+      .then((team) => {
+        if (!cancelled) setTeamName(team.teamName)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [teamName, token, teamId])
+  const title = teamName || '팀 채팅'
 
   const {
     messages,
@@ -207,7 +223,7 @@ export default function TeamChatPage() {
 
           <div className="flex-1 relative flex items-center bg-gray-50 rounded-2xl px-4 min-h-12">
             {!hasContent && (
-              <span className="absolute text-[14px] text-muted pointer-events-none select-none">
+              <span className="absolute text-[16px] text-muted pointer-events-none select-none">
                 메시지를 입력하세요...
               </span>
             )}
@@ -218,7 +234,7 @@ export default function TeamChatPage() {
               onInput={handleInput}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
-              className="w-full outline-none text-[14px] text-ink py-3 leading-normal"
+              className="w-full outline-none text-[16px] text-ink py-3 leading-normal"
             />
           </div>
 

@@ -29,6 +29,8 @@ export default function MyPage() {
     setDeletePassword,
     deleteAccountError,
     deletingAccount,
+    isAppleAccount,
+    providerKnown,
     handleSaveNickname,
     handleLeaveTeam,
     handleLogout,
@@ -75,7 +77,7 @@ export default function MyPage() {
                     value={nicknameInput}
                     onChange={(e) => setNicknameInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveNickname()}
-                    className="flex-1 min-w-0 border-[1.5px] border-border rounded-lg px-3 py-1.5 text-[14px] text-ink bg-white outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
+                    className="flex-1 min-w-0 border-[1.5px] border-border rounded-lg px-3 py-1.5 text-[16px] text-ink bg-white outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
                     autoFocus
                     maxLength={20}
                     disabled={savingNickname}
@@ -83,14 +85,14 @@ export default function MyPage() {
                   <button
                     onClick={handleSaveNickname}
                     disabled={savingNickname}
-                    className="px-3 py-1.5 text-[13px] font-semibold text-white bg-primary hover:opacity-85 rounded-lg transition-opacity disabled:opacity-50 shrink-0"
+                    className="px-3.5 py-2.5 text-[13px] font-semibold text-white bg-primary hover:opacity-85 rounded-lg transition-opacity disabled:opacity-50 shrink-0"
                   >
                     저장
                   </button>
                   <button
                     onClick={() => setEditingNickname(false)}
                     disabled={savingNickname}
-                    className="px-3 py-1.5 text-[13px] font-medium text-muted hover:text-ink transition-colors shrink-0"
+                    className="px-3.5 py-2.5 text-[13px] font-medium text-muted hover:text-ink transition-colors shrink-0"
                   >
                     취소
                   </button>
@@ -103,7 +105,7 @@ export default function MyPage() {
                       setNicknameInput(myInfo?.nickname ?? '')
                       setEditingNickname(true)
                     }}
-                    className="px-3 py-1.5 text-[12px] font-semibold text-neutral-100 bg-neutral-30 hover:bg-neutral-40 rounded-lg transition-colors shrink-0"
+                    className="px-3.5 py-2.5 text-[12px] font-semibold text-neutral-100 bg-neutral-30 hover:bg-neutral-40 rounded-lg transition-colors shrink-0"
                   >
                     수정
                   </button>
@@ -160,7 +162,7 @@ export default function MyPage() {
                   <button
                     onClick={() => setConfirm({ type: 'leaveTeam', team })}
                     disabled={leavingTeamId === team.teamId}
-                    className="px-3 py-1.5 text-[12px] font-semibold text-status-red bg-status-red/10 hover:bg-status-red/15 rounded-lg transition-colors shrink-0 disabled:opacity-50"
+                    className="px-3.5 py-2.5 text-[12px] font-semibold text-status-red bg-status-red/10 hover:bg-status-red/15 rounded-lg transition-colors shrink-0 disabled:opacity-50"
                   >
                     {leavingTeamId === team.teamId ? '나가는 중…' : '나가기'}
                   </button>
@@ -221,35 +223,49 @@ export default function MyPage() {
             message="계정과 모든 데이터가 삭제되며 복구할 수 없습니다. 정말 탈퇴하시겠습니까?"
             confirmLabel="탈퇴하기"
             confirmDanger
-            confirmDisabled={!deletePassword}
+            confirmDisabled={!providerKnown || (!isAppleAccount && !deletePassword)}
             confirmPending={deletingAccount}
             onConfirm={handleDeleteAccount}
             onCancel={closeDeleteAccountConfirm}
           >
-            <label
-              htmlFor="delete-account-password"
-              className="block text-left text-[12px] font-semibold text-ink mb-2"
-            >
-              현재 비밀번호
-            </label>
-            <input
-              id="delete-account-password"
-              type="password"
-              value={deletePassword}
-              onChange={(event) => {
-                setDeletePassword(event.target.value)
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && deletePassword && !deletingAccount) {
-                  handleDeleteAccount()
-                }
-              }}
-              autoComplete="current-password"
-              autoFocus
-              disabled={deletingAccount}
-              placeholder="비밀번호를 입력해 주세요"
-              className="w-full rounded-xl border border-border px-3 py-2.5 text-[14px] text-ink outline-none transition-colors focus:border-status-red disabled:bg-neutral-30"
-            />
+            {!providerKnown ? (
+              // 계정 정보를 못 불러오면 어떤 방식으로 본인 확인을 해야 할지 알 수 없다.
+              <p className="text-left text-[12px] text-muted">
+                계정 정보를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.
+              </p>
+            ) : isAppleAccount ? (
+              // 애플 계정은 비밀번호가 없다. 탈퇴하기를 누르면 애플 인증 시트로 본인을 확인한다.
+              <p className="text-left text-[12px] text-muted">
+                탈퇴하기를 누르면 Apple로 본인 확인을 진행합니다.
+              </p>
+            ) : (
+              <>
+                <label
+                  htmlFor="delete-account-password"
+                  className="block text-left text-[12px] font-semibold text-ink mb-2"
+                >
+                  현재 비밀번호
+                </label>
+                <input
+                  id="delete-account-password"
+                  type="password"
+                  value={deletePassword}
+                  onChange={(event) => {
+                    setDeletePassword(event.target.value)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && deletePassword && !deletingAccount) {
+                      handleDeleteAccount()
+                    }
+                  }}
+                  autoComplete="current-password"
+                  autoFocus
+                  disabled={deletingAccount}
+                  placeholder="비밀번호를 입력해 주세요"
+                  className="w-full rounded-xl border border-border px-3 py-2.5 text-[16px] text-ink outline-none transition-colors focus:border-status-red disabled:bg-neutral-30"
+                />
+              </>
+            )}
             {deleteAccountError && (
               <p role="alert" className="mt-2 text-left text-[12px] text-status-red">
                 {deleteAccountError}

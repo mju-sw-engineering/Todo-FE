@@ -2,20 +2,37 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { BeeCharacter } from '@/components/bee/BeeCharacter'
+import { ConsentAgreements, type ConsentState } from '@/components/ConsentAgreements'
+import { ProfileImagePicker } from '@/components/ProfileImagePicker'
+import { AppleLoginButton } from '@/components/ui/AppleLoginButton'
+import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
+import { HiveIcon } from '@/components/ui/HiveIcon'
 import { Input } from '@/components/ui/Input'
+import { useAppleSignIn } from '@/hooks/useAppleSignIn'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { usePresignedUpload } from '@/hooks/usePresignedUpload'
-import { sendEmailVerification, signup, verifyEmailCode } from '@/services/authService'
+import {
+  getMyProfile,
+  login,
+  sendEmailVerification,
+  signup,
+  verifyEmailCode,
+} from '@/services/authService'
+import { useAuth } from '@/store/authStore'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png']
 const CODE_TTL_SECONDS = 180
 
 type EmailStatus = 'idle' | 'sent' | 'verified'
 
 export default function SignupPage() {
   const router = useRouter()
+  const { setAuth } = useAuth()
+
+  /** 가입 성공 + 자동 로그인까지 되면 '벌집 합류' 환영 화면을 보여준다 */
+  const [showWelcome, setShowWelcome] = useState(false)
 
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -28,16 +45,17 @@ export default function SignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [nickname, setNickname] = useState('')
   const [profileImage, setProfileImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  const [termsAgreed, setTermsAgreed] = useState(false)
-  const [privacyAgreed, setPrivacyAgreed] = useState(false)
-  const [marketingAgreed, setMarketingAgreed] = useState(false)
+  const [consents, setConsents] = useState<ConsentState>({
+    termsAgreed: false,
+    privacyAgreed: false,
+    marketingAgreed: false,
+  })
 
   const { isLoading, error, setError, run } = useAsyncTask()
+  const apple = useAppleSignIn()
   const sendTask = useAsyncTask()
   const verifyTask = useAsyncTask()
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const { upload, isUploading } = usePresignedUpload({ type: 'PROFILE' })
 
   useEffect(() => {
@@ -84,34 +102,27 @@ export default function SignupPage() {
     )
   }
 
-  function handleAllAgreeChange(checked: boolean) {
-    setTermsAgreed(checked)
-    setPrivacyAgreed(checked)
-    setMarketingAgreed(checked)
+  async function handleAppleSignIn() {
+    setError('')
+    await apple.signIn()
   }
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setError('jpg, png 형식의 이미지만 업로드할 수 있습니다.')
-      e.target.value = ''
-      return
-    }
+  function handleImageSelect(file: File) {
     setError('')
     setProfileImage(file)
-    setPreviewUrl(URL.createObjectURL(file))
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
+    apple.setError(null)
     if (emailStatus !== 'verified' || !emailVerificationToken) {
       return setError('이메일 인증을 완료해 주세요.')
     }
     if (password.length < 6) return setError('비밀번호는 6자 이상이어야 합니다.')
     if (password !== passwordConfirm) return setError('비밀번호가 일치하지 않습니다.')
-    if (!termsAgreed || !privacyAgreed) return setError('필수 약관에 동의해 주세요.')
+    if (!consents.termsAgreed || !consents.privacyAgreed)
+      return setError('필수 약관에 동의해 주세요.')
 
     await run(
       async () => {
@@ -127,11 +138,22 @@ export default function SignupPage() {
           passwordConfirm,
           nickname,
           profileImageKey,
-          termsAgreed,
-          privacyAgreed,
-          marketingAgreed,
+          ...consents,
         })
-        router.push('/login?registered=1')
+        try {
+          const { accessToken } = await login({ loginId, password })
+          const profile = await getMyProfile(accessToken)
+          setAuth(accessToken, {
+            loginId,
+            nickname: profile.nickname,
+            profileImageUrl: profile.profileImageUrl,
+            userId: profile.userId,
+          })
+          setShowWelcome(true)
+        } catch {
+          // 자동 로그인 실패 시 기존 동선 유지
+          router.push('/login?registered=1')
+        }
       },
       { fallback: '회원가입 중 오류가 발생했습니다.' }
     )
@@ -139,16 +161,53 @@ export default function SignupPage() {
 
   const passwordMismatch = passwordConfirm.length > 0 && password !== passwordConfirm
   const passwordTooShort = password.length > 0 && password.length < 6
-  const allAgreed = termsAgreed && privacyAgreed && marketingAgreed
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0')
   const ss = String(secondsLeft % 60).padStart(2, '0')
+
+  if (showWelcome) {
+    return (
+      <div className="flex-1 flex flex-col animate-fade-up overflow-hidden">
+        <div className="flex-1 relative flex flex-col items-center justify-center gap-1.5 overflow-hidden bg-[linear-gradient(155deg,#ffedc2_0%,#fdf7ec_55%,#e8f1ff_100%)]">
+          <div className="hex-pattern absolute inset-0 opacity-50 pointer-events-none" />
+          <div className="relative mb-3">
+            <HiveIcon size={96} />
+            <div className="absolute -left-16 top-8 bee-bob">
+              <BeeCharacter expression="cheer" size={58} flip />
+            </div>
+          </div>
+          <p className="relative text-[22px] font-jua text-ink px-8 text-center break-keep">
+            환영해요, {nickname}님!
+          </p>
+          <p className="relative text-[13px] text-gray-500 font-medium">
+            이제 우리 벌집을 만들어볼까요?
+          </p>
+        </div>
+        <div className="bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-6 pb-10 flex flex-col gap-2.5">
+          <Button size="lg" onClick={() => router.push('/teams/new')}>
+            팀 만들기
+          </Button>
+          <Button variant="outline" size="lg" onClick={() => router.push('/teams?join=1')}>
+            초대 코드로 참여
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-white animate-fade-up">
       {/* Top header */}
-      <div className="px-6 pt-10 pb-6 text-center border-b border-border">
-        <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">회원가입</h1>
-        <p className="text-[13px] text-gray-400 mt-1">반가워요! 팀과 함께해요</p>
+      <div className="px-6 pt-5 pb-2">
+        <div className="flex items-center gap-2">
+          <BackButton onClick={() => router.push('/login')} />
+          <h1 className="text-[18px] font-bold text-gray-900 tracking-tight">회원가입</h1>
+        </div>
+        <div className="flex items-center gap-1 mt-2">
+          <BeeCharacter expression="happy" size={60} flip />
+          <span className="bg-[#faf4e4] rounded-xl rounded-bl-[4px] px-3 py-1.5 text-[13px] font-jua text-[#57430f]">
+            반가워요! 같이 꿀 모아요
+          </span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pt-7 pb-12">
@@ -170,7 +229,7 @@ export default function SignupPage() {
                 placeholder="이메일을 입력해 주세요"
                 required
                 disabled={emailStatus === 'verified'}
-                className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)] disabled:bg-gray-50 disabled:text-muted"
+                className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[16px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)] disabled:bg-gray-50 disabled:text-muted"
               />
               <Button
                 type="button"
@@ -207,7 +266,7 @@ export default function SignupPage() {
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="6자리 인증번호"
                   maxLength={6}
-                  className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
+                  className="flex-1 min-w-0 px-4 py-3.25 rounded-[14px] border-[1.5px] border-border bg-white text-[16px] text-ink placeholder:text-muted placeholder:font-light outline-none transition-all duration-200 focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,154,255,0.15)]"
                 />
                 <Button
                   type="button"
@@ -271,101 +330,33 @@ export default function SignupPage() {
             required
           />
 
-          {/* Profile photo — show blob preview if no upload */}
-          <div>
-            <p className="text-[13px] font-semibold text-gray-700 tracking-wide mb-2.5">
-              프로필 사진 <span className="text-[12px] font-normal text-muted">선택</span>
-            </p>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-20 h-20 rounded-2xl border-2 border-dashed border-border bg-gray-50 flex items-center justify-center overflow-hidden transition-all duration-200 hover:border-gray-400 hover:bg-gray-100 relative"
-            >
-              {previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={previewUrl}
-                  alt="프로필 미리보기"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <svg
-                  className="w-6 h-6 text-muted"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              )}
-            </button>
-            {!previewUrl && nickname && (
-              <p className="text-[11px] text-gray-400 mt-1.5">기본 아바타가 사용됩니다</p>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-          </div>
+          <ProfileImagePicker
+            onSelect={handleImageSelect}
+            onError={setError}
+            showFallbackHint={Boolean(nickname)}
+          />
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-border p-4">
-            <label className="flex items-center gap-2.5 text-[14px] font-semibold text-gray-900">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-primary"
-                checked={allAgreed}
-                onChange={(e) => handleAllAgreeChange(e.target.checked)}
-              />
-              전체 동의
-            </label>
-            <div className="h-px bg-border" />
-            <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-primary"
-                checked={termsAgreed}
-                onChange={(e) => setTermsAgreed(e.target.checked)}
-              />
-              (필수) 이용약관 동의
-            </label>
-            <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-primary"
-                checked={privacyAgreed}
-                onChange={(e) => setPrivacyAgreed(e.target.checked)}
-              />
-              (필수) 개인정보 처리방침 동의
-            </label>
-            <label className="flex items-center gap-2.5 text-[13px] text-gray-700">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-primary"
-                checked={marketingAgreed}
-                onChange={(e) => setMarketingAgreed(e.target.checked)}
-              />
-              (선택) 마케팅 정보 수신 동의
-            </label>
-          </div>
+          <ConsentAgreements value={consents} onChange={setConsents} />
 
-          {error && (
+          {(error || apple.error) && (
             <p className="text-sm text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
-              {error}
+              {error || apple.error}
             </p>
           )}
 
-          <Button type="submit" size="lg" disabled={isLoading || isUploading}>
+          <Button type="submit" size="lg" disabled={isLoading || isUploading || apple.isLoading}>
             {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '완료'}
           </Button>
         </form>
+
+        {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
+        <div className="mt-4">
+          <AppleLoginButton
+            label="Apple로 가입"
+            onClick={handleAppleSignIn}
+            disabled={isLoading || isUploading || apple.isLoading}
+          />
+        </div>
 
         <Link
           href="/login"

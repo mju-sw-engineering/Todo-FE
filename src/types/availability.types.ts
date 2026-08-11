@@ -1,46 +1,40 @@
-export interface AvailabilityPollListItem {
-  id: number
+export type AvailabilityEventStatus = 'ONGOING' | 'CLOSED'
+
+export interface AvailabilityEventListItem {
+  eventId: number
   title: string
-  dateOptions: string[]
-  totalMemberCount: number
+  status: AvailabilityEventStatus
   respondedCount: number
-  myResponded: boolean
-  allResponded: boolean
+  totalCount: number
+  myResponseSubmitted: boolean
+  dateRangeLabel: string
+  resultLabel?: string
 }
 
-export interface CreateAvailabilityPollRequest {
+export interface AvailabilityDateOption {
+  label: string
+  date: string
+}
+
+export interface AvailabilityEventDetail {
+  eventId: number
   title: string
-  dateOptions: string[]
-  startHour: number
-  endHour: number
+  dateOptions: AvailabilityDateOption[]
+  timeSlots: string[]
 }
 
-export interface AvailabilitySlot {
+export interface AvailabilitySlotSummary {
   date: string
-  hour: number
-}
-
-export interface SubmitAvailabilityRequest {
-  slots: AvailabilitySlot[]
-}
-
-export interface HeatmapSlot {
-  date: string
-  hour: number
+  time: string
   count: number
-  members: string[]
+  total: number
+  memberNames: string[]
 }
 
-export interface AvailabilitySummaryResponse {
-  pollId: number
+export interface AvailabilityEventSummary {
+  eventId: number
   title: string
-  dateOptions: string[]
-  startHour: number
-  endHour: number
-  totalMemberCount: number
-  respondedCount: number
-  allResponded: boolean
-  mySlots: AvailabilitySlot[]
-  heatmap: HeatmapSlot[]
-  bestSlot: HeatmapSlot | null
+  dateOptions: AvailabilityDateOption[]
+  timeSlots: string[]
+  slots: AvailabilitySlotSummary[]
 }

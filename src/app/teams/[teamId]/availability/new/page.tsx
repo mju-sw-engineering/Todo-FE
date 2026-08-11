@@ -6,10 +6,7 @@ import { useState } from 'react'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useAsyncTask } from '@/hooks/useAsyncTask'
-import { useAuth } from '@/store/authStore'
-import { createAvailabilityPoll } from '@/services/availabilityService'
-import { AvailabilityCalendarSheet } from './components/AvailabilityCalendarSheet'
+import { InlineDateCalendar } from './components/InlineDateCalendar'
 import { RangeTimeSheet } from './components/RangeTimeSheet'
 
 const WEEKDAY_SHORT = ['일', '월', '화', '수', '목', '금', '토']
@@ -20,54 +17,38 @@ function formatDateChip(dateStr: string): string {
   return `${WEEKDAY_SHORT[dow]} ${m}/${d}`
 }
 
-function formatHourLabel(hour: number): string {
-  if (hour === 24) return '자정(24시)'
-  const label = hour < 12 ? '오전' : '오후'
-  const hour12 = hour % 12 || 12
-  return `${label} ${hour12}:00`
+function formatDisplayTime(value: string): string {
+  if (!value) return ''
+  const [h, m] = value.split(':').map(Number)
+  const label = h < 12 ? '오전' : '오후'
+  return `${label} ${h % 12 || 12}:${m.toString().padStart(2, '0')}`
 }
 
 export default function AvailabilityEventNewPage() {
   const router = useRouter()
   const params = useParams()
   const teamId = Number(params.teamId)
-  const { token } = useAuth()
 
   const [title, setTitle] = useState('')
   const [selectedDates, setSelectedDates] = useState<string[]>([])
-  const [startHour, setStartHour] = useState(9)
-  const [endHour, setEndHour] = useState(21)
-  const { isLoading, error, setError, run } = useAsyncTask()
+  const [startTime, setStartTime] = useState('09:00')
+  const [endTime, setEndTime] = useState('21:00')
+  const [error, setError] = useState('')
 
-  const [showCalendarSheet, setShowCalendarSheet] = useState(false)
   const [showStartTimeSheet, setShowStartTimeSheet] = useState(false)
   const [showEndTimeSheet, setShowEndTimeSheet] = useState(false)
 
-  async function handleSubmit() {
+  function toggleDate(dateStr: string) {
+    if (error) setError('')
+    setSelectedDates((prev) =>
+      prev.includes(dateStr) ? prev.filter((d) => d !== dateStr) : [...prev, dateStr].sort()
+    )
+  }
+
+  function handleSubmit() {
     if (!title.trim()) return setError('이벤트 이름을 입력해주세요')
     if (selectedDates.length === 0) return setError('가능 날짜를 하나 이상 선택해주세요')
-    if (startHour >= endHour) return setError('시간 범위를 확인해주세요')
-    if (!token) return setError('로그인이 필요합니다.')
-
-    try {
-      await run(
-        () =>
-          createAvailabilityPoll(
-            teamId,
-            {
-              title: title.trim(),
-              dateOptions: selectedDates,
-              startHour,
-              endHour,
-            },
-            token
-          ),
-        { fallback: '투표 생성 중 오류가 발생했습니다.', rethrow: true }
-      )
-    } catch {
-      return
-    }
-
+    if (startTime >= endTime) return setError('시간 범위를 확인해주세요')
     router.push(`/teams/${teamId}/availability?created=1`)
   }
 
@@ -99,45 +80,39 @@ export default function AvailabilityEventNewPage() {
         />
 
         <div className="flex flex-col gap-2">
-          <span className="text-[13px] font-semibold text-gray-700 tracking-wide">
-            가능 날짜 선택
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              setShowCalendarSheet(true)
-              if (error) setError('')
-            }}
-            className={`w-full px-4 py-3.25 rounded-[14px] border-[1.5px] text-[14px] text-left transition-all duration-200 ${selectedDates.length > 0 ? 'border-primary bg-white text-ink font-medium' : 'border-border bg-white text-muted font-light'}`}
-          >
-            <div className="flex items-center justify-between">
-              <span>
-                {selectedDates.length > 0
-                  ? `${selectedDates.length}일 선택됨`
-                  : '캘린더에서 날짜를 선택해주세요'}
+          <div className="flex items-baseline justify-between">
+            <span className="text-[13px] font-semibold text-gray-700 tracking-wide">
+              가능 날짜 선택
+            </span>
+            {selectedDates.length > 0 && (
+              <span className="text-[12px] font-bold text-primary">
+                {selectedDates.length}일 선택됨
               </span>
-              <svg
-                className="w-4 h-4 text-muted shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <rect x="3.5" y="4.5" width="17" height="16" rx="3" />
-                <path strokeLinecap="round" d="M8 2.5v4M16 2.5v4M3.5 9.5h17" />
-              </svg>
-            </div>
-          </button>
+            )}
+          </div>
+          <InlineDateCalendar selectedDates={selectedDates} onToggle={toggleDate} />
 
           {selectedDates.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-0.5">
               {selectedDates.map((d) => (
-                <span
+                <button
                   key={d}
-                  className="text-[12px] font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary"
+                  type="button"
+                  onClick={() => toggleDate(d)}
+                  aria-label={`${formatDateChip(d)} 선택 해제`}
+                  className="flex items-center gap-1 text-[12px] font-semibold px-2.5 py-1.5 rounded-full bg-primary/10 text-primary active:scale-95 transition-transform"
                 >
                   {formatDateChip(d)}
-                </span>
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
               ))}
             </div>
           )}
@@ -154,7 +129,7 @@ export default function AvailabilityEventNewPage() {
               }}
               className="flex-1 min-w-0 text-center px-3 py-3 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink transition-all duration-200 hover:border-primary"
             >
-              {formatHourLabel(startHour)}
+              {formatDisplayTime(startTime)}
             </button>
             <span className="text-[13px] text-muted shrink-0">~</span>
             <button
@@ -165,7 +140,7 @@ export default function AvailabilityEventNewPage() {
               }}
               className="flex-1 min-w-0 text-center px-3 py-3 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink transition-all duration-200 hover:border-primary"
             >
-              {formatHourLabel(endHour)}
+              {formatDisplayTime(endTime)}
             </button>
           </div>
         </div>
@@ -178,27 +153,17 @@ export default function AvailabilityEventNewPage() {
       </div>
 
       <div className="px-5 py-4 border-t border-border">
-        <Button size="lg" onClick={handleSubmit} disabled={isLoading}>
-          {isLoading ? '만드는 중...' : '이벤트 만들기'}
+        <Button size="lg" onClick={handleSubmit}>
+          이벤트 만들기
         </Button>
       </div>
-
-      <AnimatePresence>
-        {showCalendarSheet && (
-          <AvailabilityCalendarSheet
-            selectedDates={selectedDates}
-            onConfirm={setSelectedDates}
-            onClose={() => setShowCalendarSheet(false)}
-          />
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {showStartTimeSheet && (
           <RangeTimeSheet
             title="시작 시간 선택"
-            value={startHour}
-            onChange={setStartHour}
+            value={startTime}
+            onChange={setStartTime}
             onClose={() => setShowStartTimeSheet(false)}
           />
         )}
@@ -208,8 +173,8 @@ export default function AvailabilityEventNewPage() {
         {showEndTimeSheet && (
           <RangeTimeSheet
             title="종료 시간 선택"
-            value={endHour}
-            onChange={setEndHour}
+            value={endTime}
+            onChange={setEndTime}
             onClose={() => setShowEndTimeSheet(false)}
           />
         )}

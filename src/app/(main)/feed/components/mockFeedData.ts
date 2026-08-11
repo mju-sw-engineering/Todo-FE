@@ -1,10 +1,11 @@
-import type { FeedTeamRanking } from '@/types/feed.types'
+import type { FeedBadge } from '@/types/feed.types'
 
-export const MOCK_RANKINGS: FeedTeamRanking[] = [
-  { teamId: 1, teamName: '우리팀', teamImageUrl: null, streakDays: 12, rank: 1 },
-  { teamId: 2, teamName: '아침형인간', teamImageUrl: null, streakDays: 9, rank: 2 },
-  { teamId: 3, teamName: '다이어터클럽', teamImageUrl: null, streakDays: 4, rank: 3 },
-  { teamId: 4, teamName: '한강러너스', teamImageUrl: null, streakDays: 3, rank: 4 },
-  { teamId: 5, teamName: '500마디', teamImageUrl: null, streakDays: 3, rank: 5 },
-  { teamId: 6, teamName: '새벽독서단', teamImageUrl: null, streakDays: 2, rank: 6 },
+/** 배지 API(BE)가 아직 없어 임시 목데이터로 표시한다 */
+export const MOCK_BADGES: FeedBadge[] = [
+  { id: 'first-honey', label: '첫 꿀', icon: 'drop', acquired: true },
+  { id: 'streak-7', label: '7일 연속', icon: 'bee', acquired: true },
+  { id: 'first-full-hive', label: '첫 완주', icon: 'hive', acquired: true },
+  { id: 'streak-30', label: '30일 연속', icon: 'bee', acquired: false },
+  { id: 'full-hive-3', label: '3개월 완주', icon: 'hive', acquired: false },
+  { id: 'team-all-in', label: '팀 전원 참여', icon: 'drop', acquired: false },
 ]

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="225 236 819 728" fill="none">
+  <title>Bumblebee 남자 — 집중</title>
+  
+  <defs>
+    <linearGradient id="background-fill" x1="165" y1="130" x2="1045" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8BC5FF"/>
+      <stop offset="1" stop-color="#6FA8ED"/>
+    </linearGradient>
+    <radialGradient id="background-glow" cx="0" cy="0" r="1" gradientTransform="translate(420 315) rotate(46) scale(720 660)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C6E3FF" stop-opacity=".48"/>
+      <stop offset=".7" stop-color="#8BC5FF" stop-opacity=".07"/>
+      <stop offset="1" stop-color="#6FA8ED" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wing-left-fill" x1="383" y1="278" x2="568" y2="548" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/><stop offset=".42" stop-color="#F4FAFE"/><stop offset="1" stop-color="#D7E7F1"/>
+    </linearGradient>
+    <linearGradient id="wing-right-fill" x1="953" y1="306" x2="721" y2="552" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/><stop offset=".48" stop-color="#F5FAFE"/><stop offset="1" stop-color="#D7E7F0"/>
+    </linearGradient>
+    <radialGradient id="body-yellow" cx="0" cy="0" r="1" gradientTransform="translate(420 555) rotate(62) scale(410 690)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE77B"/><stop offset=".42" stop-color="#FFD454"/><stop offset="1" stop-color="#EEAC32"/>
+    </radialGradient>
+    <linearGradient id="body-gloss" x1="510" y1="505" x2="520" y2="780" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF5B5" stop-opacity=".56"/><stop offset=".5" stop-color="#FFE46C" stop-opacity=".08"/><stop offset="1" stop-color="#C9801B" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="brown-fill" x1="620" y1="505" x2="682" y2="895" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#64442F"/><stop offset=".48" stop-color="#4E3021"/><stop offset="1" stop-color="#372016"/>
+    </linearGradient>
+    <radialGradient id="face-brown" cx="0" cy="0" r="1" gradientTransform="translate(339 685) rotate(56) scale(82)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6B4930"/><stop offset=".55" stop-color="#4A2D1D"/><stop offset="1" stop-color="#2E190F"/>
+    </radialGradient>
+    <radialGradient id="tail-brown" cx="0" cy="0" r="1" gradientTransform="translate(972 681) rotate(63) scale(72 58)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#805A3D"/><stop offset=".5" stop-color="#563522"/><stop offset="1" stop-color="#352015"/>
+    </radialGradient>
+    <linearGradient id="coral-bow" x1="465" y1="454" x2="526" y2="507" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB28C"/><stop offset="1" stop-color="#E97862"/>
+    </linearGradient>
+    <clipPath id="body-clip">
+      <path d="M455 500C334 500 245 584 245 700C245 819 338 886 468 886C583 886 690 890 793 879C909 867 977 802 977 704C977 605 917 541 804 521C690 501 572 500 455 500Z"/>
+    </clipPath>
+    <filter id="blur-24" x="-30%" y="-80%" width="160%" height="260%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+    <filter id="blur-12" x="-30%" y="-40%" width="160%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+  
+  
+  <g id="ground-shadow" data-name="Ground Shadow">
+    <ellipse cx="612" cy="895" rx="365" ry="49" fill="#245C9E" fill-opacity=".27" filter="url(#blur-24)"/>
+  </g>
+  <g id="wing-left" data-name="Wing / Left">
+    <path d="M570 545C523 551 438 514 379 449C324 389 316 319 363 282C411 244 479 271 526 328C574 386 607 495 570 545Z" fill="#346DA8" fill-opacity=".18" filter="url(#blur-12)" transform="translate(6 12)"/>
+    <path d="M570 537C523 543 438 506 379 441C324 381 316 311 363 274C411 236 479 263 526 320C574 378 607 487 570 537Z" fill="url(#wing-left-fill)"/>
+    <path d="M383 294C423 266 473 282 510 325C552 375 582 451 576 498C555 428 519 359 471 319C439 292 409 286 383 294Z" fill="#FFFFFF" fill-opacity=".58"/>
+  </g>
+  <g id="wing-right" data-name="Wing / Right">
+    <path d="M711 553C701 508 742 413 828 345C907 282 984 286 1011 340C1039 397 990 467 911 510C832 554 728 588 711 553Z" fill="#346DA8" fill-opacity=".18" filter="url(#blur-12)" transform="translate(5 12)"/>
+    <path d="M711 545C701 500 742 405 828 337C907 274 984 278 1011 332C1039 389 990 459 911 502C832 546 728 580 711 545Z" fill="url(#wing-right-fill)"/>
+    <path d="M982 326C1001 371 963 423 901 464C835 507 767 531 728 539C757 483 800 422 856 376C908 334 950 319 982 326Z" fill="#FFFFFF" fill-opacity=".48"/>
+  </g>
+  <g id="tail" data-name="Tail">
+    <ellipse cx="973" cy="706" rx="37" ry="48" fill="#2E5A8B" fill-opacity=".22" filter="url(#blur-12)" transform="translate(6 9)"/>
+    <ellipse cx="973" cy="697" rx="37" ry="48" fill="url(#tail-brown)"/>
+    <ellipse cx="962" cy="681" rx="12" ry="19" fill="#A47A59" fill-opacity=".33"/>
+  </g>
+  <g id="body-base" data-name="Body Base">
+    <path d="M455 500C334 500 245 584 245 700C245 819 338 886 468 886C583 886 690 890 793 879C909 867 977 802 977 704C977 605 917 541 804 521C690 501 572 500 455 500Z" fill="#7A5B2A" fill-opacity=".16" filter="url(#blur-12)" transform="translate(5 11)"/>
+    <path d="M455 500C334 500 245 584 245 700C245 819 338 886 468 886C583 886 690 890 793 879C909 867 977 802 977 704C977 605 917 541 804 521C690 501 572 500 455 500Z" fill="url(#body-yellow)"/>
+    <path d="M275 654C298 563 371 516 467 511C534 508 592 520 636 543C535 535 417 545 338 603C307 626 287 648 275 654Z" fill="url(#body-gloss)" clip-path="url(#body-clip)"/>
+  </g>
+  <g id="stripe-center" data-name="Stripe / Center" clip-path="url(#body-clip)">
+    <path d="M548 489C609 500 645 552 664 643C686 747 673 825 631 890C673 890 713 888 751 885C787 811 796 735 776 646C756 556 715 510 657 493Z" fill="url(#brown-fill)"/>
+    <path d="M568 501C613 519 640 567 657 646C674 725 670 793 651 843C675 792 680 726 665 645C649 566 617 518 568 501Z" fill="#8E6B50" fill-opacity=".18"/>
+  </g>
+  <g id="stripe-rear" data-name="Stripe / Rear" clip-path="url(#body-clip)">
+    <path d="M790 517C827 528 849 568 862 641C879 739 864 817 835 872C866 866 894 856 918 842C943 780 950 713 938 651C923 575 891 535 842 524Z" fill="url(#brown-fill)"/>
+    <path d="M806 523C834 541 851 581 860 643C872 720 865 784 849 831C869 786 878 724 867 641C858 579 838 540 806 523Z" fill="#8E6B50" fill-opacity=".16"/>
+  </g>
+  <g id="antenna-left" data-name="Antenna / Left">
+    <path d="M364 534C364 512 358 491 340 472" stroke="#3A2115" stroke-width="20" stroke-linecap="round"/>
+    <path d="M363 529C362 509 356 492 342 476" stroke="#755238" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+    <circle cx="330" cy="465" r="24" fill="url(#face-brown)"/>
+    <circle cx="323" cy="458" r="7" fill="#B58A66" fill-opacity=".38"/>
+  </g>
+  <g id="antenna-right" data-name="Antenna / Right">
+    <path d="M475 533C476 508 472 486 457 466" stroke="#3A2115" stroke-width="20" stroke-linecap="round"/>
+    <path d="M474 527C474 507 470 489 459 471" stroke="#755238" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+    <circle cx="450" cy="458" r="24" fill="url(#face-brown)"/>
+    <circle cx="443" cy="451" r="7" fill="#B58A66" fill-opacity=".38"/>
+  </g>
+  
+  <g id="expression-focus" data-name="Expression / 집중">
+    
+    <g id="eye-left" data-name="Eye / Left">
+      <ellipse cx="350" cy="697" rx="31" ry="35" fill="url(#face-brown)"/>
+      <ellipse cx="340" cy="686" rx="8" ry="10" fill="#C9A17D" fill-opacity=".28"/>
+    </g>
+    <g id="eye-right" data-name="Eye / Right">
+      <ellipse cx="478" cy="697" rx="31" ry="35" fill="url(#face-brown)"/>
+      <ellipse cx="468" cy="686" rx="8" ry="10" fill="#C9A17D" fill-opacity=".28"/>
+    </g>
+    <g id="brows-focus" data-name="Brows / Focus">
+      <path d="M320 645L377 660" stroke="#4A2D1D" stroke-width="14" stroke-linecap="round"/>
+      <path d="M451 660L508 645" stroke="#4A2D1D" stroke-width="14" stroke-linecap="round"/>
+    </g>
+    <path id="mouth-focus" d="M389 772H439" stroke="#2E190F" stroke-width="16" stroke-linecap="round"/>
+  </g>
+  
+  <g id="gender-male" data-name="Gender / 남자">
+    <g id="forelock" data-name="Forelock">
+      <path d="M394 521C397 504 405 493 411 516C417 496 427 495 430 520" stroke="#4A2D1D" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M402 513C405 505 407 504 410 515" stroke="#A07555" stroke-width="4" stroke-linecap="round" opacity=".42"/>
+    </g>
+  </g>
+  
+</svg>

@@ -18,13 +18,19 @@ const REFRESH_PATH = '/api/auth/refresh'
 /**
  * 401을 받아도 토큰 갱신을 시도하지 않는 경로.
  *
- * 로그인·회원가입의 401은 자격 증명이 틀린 것이라 갱신해도 소용없고,
+ * 로그인·회원가입·애플 로그인의 401은 자격 증명이 틀린 것이라 갱신해도 소용없고,
  * 갱신 경로 자체에서 재시도하면 무한 루프가 된다.
  *
  * 로그아웃은 일부러 뺐다. 서버에서 인증이 필요한 경로인데, 액세스 토큰이 만료된 채
  * 로그아웃하면 401로 끝나 쿠키가 서버에 남는다. 갱신 후 재시도해야 쿠키까지 정리된다.
  */
-const NO_REFRESH_PATHS = [REFRESH_PATH, '/api/auth/login', '/api/auth/signup']
+const NO_REFRESH_PATHS = [
+  REFRESH_PATH,
+  '/api/auth/login',
+  '/api/auth/signup',
+  '/api/auth/apple/login',
+  '/api/auth/apple/complete',
+]
 
 export class ApiError extends Error {
   constructor(
@@ -187,18 +193,6 @@ export async function patchJson<T>(path: string, body: unknown, token?: string):
     path,
     {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    },
-    token
-  )
-}
-
-export async function putJson<T>(path: string, body: unknown, token?: string): Promise<T> {
-  return request<T>(
-    path,
-    {
-      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     },

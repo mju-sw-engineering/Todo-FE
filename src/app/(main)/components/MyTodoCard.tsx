@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { ConvexCard } from '@/components/ui/ConvexCard'
-import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
 import { CARD_PALETTES } from '@/lib/cardPalettes'
 import { parseAchievementCount } from '@/lib/formatters'
 import { formatISOTime } from '@/lib/dateUtils'
@@ -37,73 +36,64 @@ export function MyTodoCard({ todo, colorIndex, onClick }: MyTodoCardProps) {
       shadow={false}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-          <span
-            className="flex items-center gap-1.5 text-[11px] font-bold pl-1 pr-2.5 py-1 rounded-full truncate max-w-40"
-            style={{ background: palette.badge, color: palette.text }}
-          >
-            {todo.teamImageUrl ? (
-              <span className="w-4 h-4 rounded-full overflow-hidden shrink-0 inline-block relative">
-                <Image
-                  src={todo.teamImageUrl}
-                  alt={todo.teamName}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </span>
-            ) : (
-              <span className="shrink-0 inline-block">
-                <BlobAvatar seed={todo.teamName} size={16} />
-              </span>
-            )}
-            {todo.teamName}
-          </span>
-          <TodoStatusBadge status={todo.status} />
-          {todo.mode === 'TASK' && (
-            <span className="rounded-full bg-white/55 px-2 py-0.5 text-[9px] font-black text-gray-600">
-              TASK
+        <span
+          className="flex items-center gap-1.5 min-w-0 text-[12px] font-semibold truncate"
+          style={{ color: palette.text, opacity: 0.65 }}
+        >
+          {todo.teamImageUrl ? (
+            <span className="w-4 h-4 rounded-full overflow-hidden shrink-0 inline-block relative">
+              <Image src={todo.teamImageUrl} alt="" fill className="object-cover" unoptimized />
+            </span>
+          ) : (
+            <span className="shrink-0 inline-block">
+              <BlobAvatar seed={todo.teamName} size={16} />
             </span>
           )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {todo.myWorkSummary.totalCount > 0 && (
+          {todo.teamName}
+        </span>
+        {todo.status === 'FAIL' ? (
+          <span className="text-[12px] font-bold text-status-red shrink-0">마감 지남</span>
+        ) : (
+          time && (
             <span
-              className="text-[10px] font-black px-2 py-0.5 rounded-full text-white"
-              style={{ background: myWorkComplete ? palette.accent : 'rgba(0,0,0,0.18)' }}
-            >
-              {myWorkComplete
-                ? '완료'
-                : `${todo.myWorkSummary.successCount}/${todo.myWorkSummary.totalCount} 완료`}
-            </span>
-          )}
-          {time && (
-            <span
-              className="text-[13px] font-black tracking-tight"
+              className="text-[13px] font-black tracking-tight shrink-0"
               style={{ color: palette.accent }}
             >
               ~{time}
             </span>
-          )}
-        </div>
+          )
+        )}
       </div>
 
-      <p className="text-[17px] font-black leading-snug" style={{ color: palette.text }}>
-        {todo.title}
-      </p>
+      <div className="flex items-center gap-2.5">
+        <span
+          className="w-5.5 h-5.5 rounded-full shrink-0 flex items-center justify-center"
+          style={
+            myWorkComplete
+              ? { background: palette.accent }
+              : { border: '2px solid rgba(0,0,0,0.15)', background: 'rgba(255,255,255,0.6)' }
+          }
+          aria-label={myWorkComplete ? '내 할 일 완료' : '내 할 일 미완료'}
+          role="img"
+        >
+          {myWorkComplete && (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M2.5 6.2L5 8.7L9.5 3.5"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </span>
+        <p className="text-[17px] font-black leading-snug" style={{ color: palette.text }}>
+          {todo.title}
+        </p>
+      </div>
 
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <span
-            className="text-[11px] font-semibold"
-            style={{ color: palette.text, opacity: 0.65 }}
-          >
-            {achieved}/{total} {todo.mode === 'TASK' ? 'Task' : '인증'}
-          </span>
-          <span className="text-[12px] font-black" style={{ color: palette.accent }}>
-            {percentage}%
-          </span>
-        </div>
         <div
           className="w-full h-2 rounded-full overflow-hidden"
           style={{ background: 'rgba(255,255,255,0.5)' }}
@@ -113,6 +103,12 @@ export function MyTodoCard({ todo, colorIndex, onClick }: MyTodoCardProps) {
             style={{ width: `${percentage}%`, background: palette.accent }}
           />
         </div>
+        <p
+          className="mt-1.5 text-right text-[11px] font-semibold"
+          style={{ color: palette.text, opacity: 0.65 }}
+        >
+          {achieved}/{total} {todo.mode === 'TASK' ? 'Task' : '인증'}
+        </p>
       </div>
     </ConvexCard>
   )

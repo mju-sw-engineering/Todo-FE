@@ -1,35 +1,65 @@
 'use client'
 
-import { TeamRankingPodium } from './components/TeamRankingPodium'
-import { TeamRankingList } from './components/TeamRankingList'
-import { MyHoneyRecordCalendar } from './components/MyHoneyRecordCalendar'
-import { MOCK_RANKINGS } from './components/mockFeedData'
+import { useEffect, useState } from 'react'
+import { TeamRhythmCard } from './components/TeamRhythmCard'
+import { MonthlyHiveCard } from './components/MonthlyHiveCard'
+import { HiveShelfCard } from './components/HiveShelfCard'
+import { BadgesCard } from './components/BadgesCard'
+import { MOCK_BADGES } from './components/mockFeedData'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
+import { getBadges, getHiveArchive, getMonthlyHive, getTeamRhythms } from '@/services/feedService'
+import { useAuth } from '@/store/authStore'
+import { PageLoader } from '@/components/ui/PageLoader'
+import type { FeedBadge, HiveArchiveMonth, MonthlyHive, TeamRhythm } from '@/types/feed.types'
 
 export default function FeedPage() {
+  const { token } = useAuth()
+  const { isLoading, error, run } = useAsyncTask(true)
+
+  const [teamRhythms, setTeamRhythms] = useState<TeamRhythm[]>([])
+  const [monthlyHive, setMonthlyHive] = useState<MonthlyHive | null>(null)
+  const [hiveArchive, setHiveArchive] = useState<HiveArchiveMonth[]>([])
+  const [badges, setBadges] = useState<FeedBadge[]>(MOCK_BADGES)
+
+  useEffect(() => {
+    if (!token) return
+    run(
+      async () => {
+        const [rhythms, hive, archive, badgeList] = await Promise.all([
+          getTeamRhythms(token),
+          getMonthlyHive(token),
+          getHiveArchive(token),
+          // 배지 API가 아직 배포되지 않은 서버에서도 피드가 뜨도록 실패 시 목데이터를 유지한다
+          getBadges(token).catch(() => MOCK_BADGES),
+        ])
+        setTeamRhythms(rhythms)
+        setMonthlyHive(hive)
+        setHiveArchive(archive)
+        setBadges(badgeList)
+      },
+      { fallback: '피드를 불러오지 못했습니다.' }
+    )
+  }, [token, run])
+
+  if (isLoading) return <PageLoader />
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-white">
-      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-8">
-        <div className="px-5 pt-6 pb-4">
-          <h1 className="text-[20px] font-black text-ink leading-tight">팀 랭킹</h1>
-          <p className="text-[12px] text-muted mt-0.5">우리 팀과 나의 기록을 확인해보세요</p>
+    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-[#faf4e4]">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-5">
+        <div className="px-5 pt-7 pb-[18px]">
+          <h1 className="text-[23px] font-black text-ink tracking-[-0.5px]">피드</h1>
         </div>
 
-        <div
-          className="mx-5 rounded-[18px] border border-border p-4"
-          style={{
-            background: 'linear-gradient(180deg, var(--color-primary-50) 0%, #ffffff 70%)',
-          }}
-        >
-          <TeamRankingPodium rankings={MOCK_RANKINGS} />
-          <div className="mt-4">
-            <TeamRankingList rankings={MOCK_RANKINGS} />
-          </div>
-        </div>
+        {error && (
+          <p className="mx-5 mb-4 text-sm text-status-red bg-status-red/10 rounded-[14px] px-4 py-3">
+            {error}
+          </p>
+        )}
 
-        <div className="mx-5 mt-3 bg-white rounded-[18px] border border-border p-4">
-          <p className="text-[14px] font-black text-ink mb-3">나의 꿀 기록</p>
-          <MyHoneyRecordCalendar />
-        </div>
+        <TeamRhythmCard teams={teamRhythms} />
+        {monthlyHive && <MonthlyHiveCard hive={monthlyHive} />}
+        {monthlyHive && <HiveShelfCard months={hiveArchive} current={monthlyHive} />}
+        <BadgesCard badges={badges} />
       </div>
     </div>
   )
