@@ -76,6 +76,10 @@ CAP_SERVER_URL=http://localhost:3000 npx cap sync ios   # 시뮬레이터
   `localhost:3000`이 되어 위에 적은 `SameSite=Strict` 리프레시 쿠키 문제가 그대로 재현됩니다.
 - 네이티브 플러그인을 새로 추가하면 웹만 배포해서는 동작하지 않습니다. `npx cap sync ios`
   후 Xcode 재빌드와 앱 재배포가 필요합니다.
+- **깨끗한 clone에서는 `npm install` 없이 Xcode를 열면 SPM 해석이 실패합니다.**
+  `ios/App/CapApp-SPM/Package.swift`가 Capacitor 플러그인을 `node_modules` 안의 로컬
+  경로로 참조하기 때문입니다. CI에서는 [`ci_scripts/ci_post_clone.sh`](ci_scripts/ci_post_clone.sh)가
+  이걸 처리합니다.
 
 ## Learn More
 
