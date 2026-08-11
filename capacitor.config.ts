@@ -16,7 +16,14 @@ import type { CapacitorConfig } from '@capacitor/cli'
  */
 const serverUrl = process.env.CAP_SERVER_URL ?? 'https://todo.bluerack.org/'
 
-// 로컬 dev 서버는 평문 http라 ATS 예외가 필요하다. 운영 https에는 절대 붙이지 않는다.
+/**
+ * 평문 http 허용 — **Android 전용 설정이다.**
+ *
+ * iOS는 이 값을 읽지 않는다(Capacitor iOS 프레임워크에 `cleartext` 문자열 자체가 없다).
+ * iOS의 평문 차단은 ATS가 담당하며 Info.plist로만 풀 수 있다. 시뮬레이터에서
+ * `http://localhost:3000`이 뜨는 건 ATS가 루프백을 예외로 두기 때문이지 이 설정 덕이 아니다.
+ * 실기기를 LAN IP의 평문 dev 서버에 붙이는 건 지원하지 않는다 — README 참조.
+ */
 const isCleartext = serverUrl.startsWith('http://')
 
 const config: CapacitorConfig = {

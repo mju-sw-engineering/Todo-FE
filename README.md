@@ -59,12 +59,15 @@ npm run dev
 CAP_SERVER_URL=http://localhost:3000 npx cap sync ios   # 시뮬레이터
 ```
 
-실기기는 맥과 같은 Wi-Fi에 두고 LAN IP를 씁니다.
+**실기기는 평문 http dev 서버에 붙일 수 없습니다.** 두 가지가 동시에 막습니다.
 
-```bash
-npm run dev -- -H 0.0.0.0
-CAP_SERVER_URL=http://192.168.0.10:3000 npx cap sync ios
-```
+- iOS ATS가 평문을 차단합니다. `capacitor.config.ts`의 `cleartext`는 **Android 전용**이라
+  iOS에는 아무 효과가 없고, iOS 17+는 `NSAllowsLocalNetworking`으로도 IP 주소 접속을
+  허용하지 않습니다. 시뮬레이터에서 `localhost`가 되는 건 ATS가 루프백을 예외로 두기 때문입니다.
+- 애플 로그인은 nonce 해싱에 `crypto.subtle`이 필요한데, 이건 보안 컨텍스트(https 또는
+  localhost)에서만 존재합니다.
+
+실기기에서 확인해야 하면 https 터널을 쓰거나 배포본으로 테스트하세요.
 
 - 주소는 `npx cap sync`가 만드는 `ios/App/App/capacitor.config.json`에 구워지므로 바꿀 때마다
   sync를 다시 돌려야 합니다. 이 파일은 gitignore돼 있어 커밋되지 않습니다.
