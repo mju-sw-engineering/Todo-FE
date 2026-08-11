@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { reauthenticate } from '@/services/authService'
+import { reauthenticate, reauthenticateWithApple } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
 import { ApiError } from '@/lib/apiClient'
+import { AppleSignInCancelledError, requestAppleCredential } from '@/lib/appleAuth'
 import {
   deleteAccount,
   getMyInfo,
@@ -21,13 +22,15 @@ export type MyPageConfirmState =
 type DeleteAccountPhase = 'reauth' | 'withdrawal'
 
 function deleteAccountErrorMessage(error: unknown, phase: DeleteAccountPhase): string {
+  // 사용자가 애플 시트를 닫은 것은 실패가 아니다. 에러 문구 없이 조용히 끝낸다.
+  if (error instanceof AppleSignInCancelledError) return ''
+
   if (!(error instanceof ApiError)) {
     return '회원 탈퇴에 실패했습니다.'
   }
 
   if (phase === 'reauth') {
-    if (error.status === 429)
-      return '비밀번호 확인 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'
+    if (error.status === 429) return '본인 확인 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'
     if (error.status === 401) return error.message
   }
 
@@ -57,6 +60,9 @@ export function useMyPage() {
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null)
   const [deletingAccount, setDeletingAccount] = useState(false)
+
+  // 애플 계정은 비밀번호가 없어 탈퇴 재인증 방식이 다르다.
+  const isAppleAccount = myInfo?.provider === 'APPLE'
 
   const profileImageUrl = myInfo?.profileImageUrl ?? user?.profileImageUrl ?? null
   const avatarSeed = myInfo?.nickname ?? user?.nickname ?? user?.loginId ?? ''
@@ -143,18 +149,46 @@ export function useMyPage() {
     setConfirm(null)
   }
 
+  /**
+   * 탈퇴 전 재인증.
+   *
+   * 애플 계정은 비밀번호가 없어 `/api/auth/reauth`가 400으로 거절한다. 대신 애플 시트를
+   * 새로 통과했다는 증거를 보낸다 — 시트가 Face ID를 거치므로 더 약하지 않다.
+   */
+  async function requestReauthToken(): Promise<string> {
+    if (!token) throw new Error('로그인이 필요합니다.')
+
+    if (isAppleAccount) {
+      const credential = await requestAppleCredential()
+      const { reauthToken } = await reauthenticateWithApple(
+        {
+          identityToken: credential.identityToken,
+          nonce: credential.nonce,
+          purpose: 'WITHDRAWAL',
+        },
+        token
+      )
+      return reauthToken
+    }
+
+    const { reauthToken } = await reauthenticate(
+      { password: deletePassword, purpose: 'WITHDRAWAL' },
+      token
+    )
+    return reauthToken
+  }
+
   async function handleDeleteAccount() {
-    if (!token || !deletePassword || deletingAccount) return
+    if (!token || deletingAccount) return
+    // 애플 계정은 입력란이 없으므로 비밀번호를 요구하지 않는다.
+    if (!isAppleAccount && !deletePassword) return
 
     setDeletingAccount(true)
     setDeleteAccountError(null)
     let phase: DeleteAccountPhase = 'reauth'
 
     try {
-      const { reauthToken } = await reauthenticate(
-        { password: deletePassword, purpose: 'WITHDRAWAL' },
-        token
-      )
+      const reauthToken = await requestReauthToken()
       phase = 'withdrawal'
       await deleteAccount(reauthToken, token)
       setConfirm(null)
@@ -187,6 +221,7 @@ export function useMyPage() {
     setDeletePassword,
     deleteAccountError,
     deletingAccount,
+    isAppleAccount,
     handleSaveNickname,
     handleLeaveTeam,
     handleLogout,
