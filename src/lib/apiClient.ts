@@ -200,6 +200,18 @@ export async function patchJson<T>(path: string, body: unknown, token?: string):
   )
 }
 
+export async function putJson<T>(path: string, body: unknown, token?: string): Promise<T> {
+  return request<T>(
+    path,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    token
+  )
+}
+
 export async function deleteJson<T>(path: string, token?: string, body?: unknown): Promise<T> {
   return request<T>(
     path,

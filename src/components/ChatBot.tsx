@@ -53,13 +53,13 @@ function makeInitialMessages(): ChatMessage[] {
   return [
     {
       role: 'bot',
-      content: '안녕하세요! 팀 투두 AI입니다.\n오늘 할 일을 함께 정리해볼까요?',
+      content: '안녕하세요! 팀 태스크 AI입니다.\n오늘 할 일을 함께 정리해볼까요?',
       time: new Date(),
     },
   ]
 }
 
-const QUICK_ACTIONS = ['오늘 투두 요약', 'AI 할일 추천', '연속 달성 확인', '어제 달성률']
+const QUICK_ACTIONS = ['오늘 할 일 요약', 'AI 할일 추천', '연속 달성 확인', '어제 달성률']
 
 export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
   const isPickerMode = teamIdProp === undefined
@@ -164,7 +164,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                     <AiIcon size={20} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
+                    <p className="text-[15px] font-bold text-ink">팀 태스크 AI 매니저</p>
                     <p className="text-[12px] text-muted mt-0.5">대화할 팀을 선택해주세요</p>
                   </div>
                   <button
@@ -235,7 +235,7 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
                     <AiIcon size={20} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[15px] font-bold text-ink">팀 투두 AI 매니저</p>
+                    <p className="text-[15px] font-bold text-ink">팀 태스크 AI 매니저</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
                       <p className="text-[12px] text-muted">

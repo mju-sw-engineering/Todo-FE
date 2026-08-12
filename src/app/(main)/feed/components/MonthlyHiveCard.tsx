@@ -3,9 +3,15 @@ import { HONEY } from './TeamRhythmCard'
 
 const HEX_CLIP = 'polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)'
 const COLS = 8
-const CELL_W = 20
-const CELL_H = 22
-const GAP = 2
+// 카드 안쪽 너비(약 310px)를 실제로 채우도록 셀을 키운다 — 예전 20px 셀은 그리드가
+// 가운데에 작게 뭉쳐 보이는 문제가 있었다
+const CELL_W = 38
+const CELL_H = 42
+// 뾰족한 위·아래 꼭짓점을 가진 육각형이 실제 벌집처럼 이가 맞물리려면 칸 사이에
+// 틈이 있으면 안 된다. 열 간격은 셀 너비의 3/4, 짝수 열은 셀 높이의 절반만큼
+// 내려와야 위아래 대각선 변이 정확히 맞닿는다.
+const COL_STEP = (CELL_W * 3) / 4
+const ROW_OFFSET = CELL_H / 2
 
 interface Props {
   hive: MonthlyHive
@@ -21,10 +27,10 @@ export function MonthlyHiveCard({ hive }: Props) {
   const rows = Math.ceil(total / COLS)
 
   return (
-    <section className="mx-5 mt-3.5 bg-white rounded-[24px] border border-[#f1e6cd] p-5">
+    <section className="mx-5 mt-3.5 bg-white rounded-[24px] border border-border p-5">
       <div className="flex items-start justify-between">
         <h2 className="text-[16px] font-black text-ink tracking-[-0.2px]">{month}월의 벌집</h2>
-        <span className="shrink-0 text-[12px] font-bold text-[#b45309]">
+        <span className="shrink-0 text-[12px] font-bold text-ink">
           <span className="font-mono">{filled}</span> / {total}칸
         </span>
       </div>
@@ -36,9 +42,8 @@ export function MonthlyHiveCard({ hive }: Props) {
             key={c}
             className="flex flex-col"
             style={{
-              gap: GAP,
-              marginLeft: c > 0 ? -1 : 0,
-              transform: c % 2 === 1 ? `translateY(${CELL_H / 2 + GAP / 2}px)` : undefined,
+              marginLeft: c > 0 ? -(CELL_W - COL_STEP) : 0,
+              transform: c % 2 === 1 ? `translateY(${ROW_OFFSET}px)` : undefined,
             }}
           >
             {Array.from({ length: rows }, (_, r) => {
@@ -50,35 +55,12 @@ export function MonthlyHiveCard({ hive }: Props) {
               }
               const lv = dayLevels[day]
               const isToday = day === todayIndex
-              const bg = lv === null ? '#faf6ea' : HONEY[lv]
-              if (isToday) {
-                return (
-                  <div
-                    key={r}
-                    title={`${month}월 ${day + 1}일 · 오늘`}
-                    className="flex items-center justify-center"
-                    style={{
-                      width: CELL_W,
-                      height: CELL_H,
-                      clipPath: HEX_CLIP,
-                      background: '#92600f',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: CELL_W - 5,
-                        height: CELL_H - 5,
-                        clipPath: HEX_CLIP,
-                        background: bg,
-                      }}
-                    />
-                  </div>
-                )
-              }
+              const bg = lv === null ? '#f4f4f4' : HONEY[lv]
               return (
                 <div
                   key={r}
-                  title={`${month}월 ${day + 1}일`}
+                  title={`${month}월 ${day + 1}일${isToday ? ' · 오늘' : ''}`}
+                  className={isToday ? 'today-pulse' : ''}
                   style={{ width: CELL_W, height: CELL_H, clipPath: HEX_CLIP, background: bg }}
                 />
               )
@@ -88,10 +70,8 @@ export function MonthlyHiveCard({ hive }: Props) {
       </div>
 
       <div className="flex items-center justify-between mt-2">
-        <span className="text-[11px] font-bold text-[#92600f]">
-          {currentStreak}일 연속 꿀 모으는 중
-        </span>
-        <div className="flex items-center gap-[5px] text-[10px] text-[#a89f8d]">
+        <span className="text-[11px] font-bold text-ink">{currentStreak}일 연속 꿀 모으는 중</span>
+        <div className="flex items-center gap-[5px] text-[10px] text-muted">
           <span>묽은 꿀</span>
           {HONEY.slice(1).map((bg) => (
             <div key={bg} style={{ width: 11, height: 12, clipPath: HEX_CLIP, background: bg }} />

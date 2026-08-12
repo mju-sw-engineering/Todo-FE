@@ -86,7 +86,7 @@ function TodoDetailContent() {
         >
           ← 뒤로
         </button>
-        <p className="text-center text-[14px] text-muted">{error || '투두를 찾을 수 없습니다.'}</p>
+        <p className="text-center text-[14px] text-muted">{error || '할 일을 찾을 수 없습니다.'}</p>
       </div>
     )
   }

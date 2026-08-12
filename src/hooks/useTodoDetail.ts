@@ -15,7 +15,7 @@ export function useTodoDetail(todoId: number, token: string | null) {
 
   useEffect(() => {
     if (!token || !todoId) return
-    run(refreshTodo, { fallback: '투두를 불러오지 못했습니다.' })
+    run(refreshTodo, { fallback: '할 일을 불러오지 못했습니다.' })
   }, [token, todoId, refreshTodo, run])
 
   async function handleReact(workItemId: number, type: ReactionType) {

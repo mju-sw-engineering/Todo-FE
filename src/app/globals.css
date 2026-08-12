@@ -226,11 +226,26 @@ select {
   }
 }
 
+/* "오늘" 표시 — 리듬 막대·벌집 칸에서 공용으로 쓰는 은은한 깜빡임 */
+.today-pulse {
+  animation: today-pulse 1.8s ease-in-out infinite;
+}
+@keyframes today-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
 /* 날개·둥둥 기본 규칙보다 뒤에 있어야 animation: none이 이긴다 */
 @media (prefers-reduced-motion: reduce) {
   .bee-bob,
   .bee-wing-left,
-  .bee-wing-right {
+  .bee-wing-right,
+  .today-pulse {
     animation: none;
   }
 }

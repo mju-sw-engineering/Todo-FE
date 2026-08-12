@@ -2,13 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Calendar } from '@/components/ui/Calendar'
 import { BeeCharacter, expressionForProgress } from '@/components/bee/BeeCharacter'
 import { MyTodoCard } from './components/MyTodoCard'
 import { getTeams } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import { useHomeTodos } from '@/hooks/useHomeTodos'
-import { MONTHS_EN, DAYS_KO, pad } from '@/lib/dateUtils'
 import { Spinner } from '@/components/ui/Spinner'
 import type { TeamListItem } from '@/types/team.types'
 import { isMyWorkComplete } from '@/types/todo.types'
@@ -32,24 +30,10 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [tab, setTab] = useState<TabType>('all')
 
-  const {
-    todayStr,
-    selectedDate,
-    calendarOpen,
-    setCalendarOpen,
-    calendarYear,
-    setCalendarYear,
-    calendarMonth,
-    setCalendarMonth,
-    dailyCounts,
-    historyTodos,
-    historyLoading,
-    historyError,
-    handleSelectDate,
-    handlePrevMonth,
-    handleNextMonth,
-    isToday,
-  } = useHomeTodos(token, teamList)
+  const { todayStr, historyTodos, historyLoading, historyError, handleSelectDate } = useHomeTodos(
+    token,
+    teamList
+  )
 
   useEffect(() => {
     if (!token) return
@@ -65,10 +49,6 @@ export default function HomePage() {
   }, [token])
 
   const displayTodos = historyTodos ?? []
-  const selectedDateObj = new Date(selectedDate + 'T00:00:00')
-  const dayNum = pad(selectedDateObj.getDate())
-  const monthNum = pad(selectedDateObj.getMonth() + 1)
-  const dayKo = DAYS_KO[selectedDateObj.getDay()]
 
   const completeCount = displayTodos.filter((todo) => isMyWorkComplete(todo.myWorkSummary)).length
   const remainingCount = displayTodos.length - completeCount
@@ -107,45 +87,14 @@ export default function HomePage() {
     <div className="flex-1 flex flex-col min-h-0 animate-fade-up bg-white">
       <div className="shrink-0 relative">
         <div className="px-6 pt-6 pb-4 relative">
-          <p className="text-[13px] font-semibold text-gray-400 mb-1 tracking-wide">{dayKo}</p>
-          {/* 날짜 자체가 달력 토글 — 별도 달력 버튼을 없애 UI를 줄인다 */}
-          <button
-            onClick={() => {
-              setCalendarOpen((prev) => !prev)
-              if (!calendarOpen) {
-                setCalendarYear(selectedDateObj.getFullYear())
-                setCalendarMonth(selectedDateObj.getMonth() + 1)
-              }
-            }}
-            aria-expanded={calendarOpen}
-            aria-label="달력 열기"
-            className="flex items-end gap-1.5 leading-none active:opacity-70 transition-opacity"
-          >
-            <span className="text-[76px] font-jua text-gray-900 tracking-tight leading-none">
-              {monthNum}.{dayNum}
-            </span>
-            <svg
-              className={`mb-4 w-6 h-6 transition-transform duration-200 ${
-                calendarOpen ? 'rotate-180 text-primary' : 'text-gray-300'
-              }`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={3}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+          <span className="text-[32px] font-jua text-gray-900 tracking-tight leading-none">
+            할 일
+          </span>
           {displayTodos.length > 0 && (
-            <p className="text-[13px] font-semibold text-gray-400 mt-1">
+            <p className="text-[13px] font-semibold text-gray-400 mt-2">
               <span className="font-black text-gray-900">{remainingCount}</span>개 남음
             </p>
           )}
-          <p className="text-[13px] font-semibold text-gray-400 tracking-wide mt-2">
-            {isToday
-              ? '오늘의 할 일'
-              : `${MONTHS_EN[calendarMonth - 1]} ${selectedDateObj.getDate()}, ${calendarYear}`}
-          </p>
 
           {displayTodos.length > 0 && (
             <div className="absolute top-2 right-3 flex flex-col items-center">
@@ -161,32 +110,6 @@ export default function HomePage() {
             </div>
           )}
         </div>
-
-        {calendarOpen && (
-          <>
-            <div className="fixed inset-0 z-20" onClick={() => setCalendarOpen(false)} />
-            <div
-              className="absolute top-full left-0 right-0 z-30 px-4 pt-1 pb-3"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="shadow-[0_8px_32px_rgba(0,0,0,0.13)] rounded-[18px]">
-                <Calendar
-                  selectedDate={selectedDate}
-                  year={calendarYear}
-                  month={calendarMonth}
-                  dailyCounts={dailyCounts}
-                  onSelectDate={(date) => {
-                    handleSelectDate(date)
-                    setTab('all')
-                    setCalendarOpen(false)
-                  }}
-                  onPrevMonth={handlePrevMonth}
-                  onNextMonth={handleNextMonth}
-                />
-              </div>
-            </div>
-          </>
-        )}
       </div>
 
       {!historyLoading && !historyError && displayTodos.length > 0 && completionPct === 100 && (
@@ -244,20 +167,14 @@ export default function HomePage() {
               </span>
               <BeeCharacter expression="proud" size={120} />
             </div>
-            {isToday ? (
-              <>
-                <p className="text-[16px] font-jua text-gray-900">오늘 할 일이 없어요</p>
-                <p className="text-[13px] text-gray-400">팀에서 할 일을 추가해보세요</p>
-                <button
-                  onClick={() => router.push('/teams')}
-                  className="mt-4 px-6 py-2.5 bg-primary text-white text-[14px] font-semibold rounded-xl transition-all duration-200 active:scale-95 hover:opacity-85"
-                >
-                  내 팀 보기
-                </button>
-              </>
-            ) : (
-              <p className="text-[14px] font-semibold text-gray-500">등록된 투두가 없습니다</p>
-            )}
+            <p className="text-[16px] font-jua text-gray-900">오늘 할 일이 없어요</p>
+            <p className="text-[13px] text-gray-400">팀에서 할 일을 추가해보세요</p>
+            <button
+              onClick={() => router.push('/teams')}
+              className="mt-4 px-6 py-2.5 bg-primary text-white text-[14px] font-semibold rounded-xl transition-all duration-200 active:scale-95 hover:opacity-85"
+            >
+              내 팀 보기
+            </button>
           </div>
         ) : filteredTodos.length === 0 ? (
           <div className="flex items-center justify-center py-20">

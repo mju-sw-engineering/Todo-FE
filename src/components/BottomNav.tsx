@@ -120,7 +120,7 @@ export function BottomNav() {
         )}
         <TodoIcon active={todoActive} />
         <span className={`text-[11px] font-semibold ${todoActive ? 'text-primary' : 'text-muted'}`}>
-          투두
+          할일
         </span>
       </button>
 
@@ -150,7 +150,7 @@ export function BottomNav() {
         )}
         <FeedIcon active={feedActive} />
         <span className={`text-[11px] font-semibold ${feedActive ? 'text-primary' : 'text-muted'}`}>
-          피드
+          기록
         </span>
       </button>
 

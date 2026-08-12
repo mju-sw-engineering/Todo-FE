@@ -1,20 +1,24 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BackButton } from '@/components/ui/BackButton'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { Button } from '@/components/ui/Button'
+import { Spinner } from '@/components/ui/Spinner'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
+import { getAvailabilitySummary } from '@/services/availabilityService'
+import { useAuth } from '@/store/authStore'
 import { AvailabilityGridShell } from '../../components/AvailabilityGridShell'
-import { MOCK_EVENT_SUMMARY } from '../../components/mockAvailabilityData'
-import type { AvailabilitySlotSummary } from '@/types/availability.types'
+import type { AvailabilitySummaryResponse, HeatmapSlot } from '@/types/availability.types'
 
-const HEAT_LEVELS = [
-  { label: '1명', className: 'bg-primary/15' },
-  { label: '2명', className: 'bg-primary/40' },
-  { label: '3명', className: 'bg-primary/70' },
-  { label: '4명(전원)', className: 'bg-primary' },
-]
+const WEEKDAY_SHORT = ['일', '월', '화', '수', '목', '금', '토']
+
+function fullDateLabel(date: string): string {
+  const dow = new Date(`${date}T00:00:00`).getDay()
+  const [, m, d] = date.split('-').map(Number)
+  return `${m}월 ${d}일 (${WEEKDAY_SHORT[dow]})`
+}
 
 function heatClassName(count: number, total: number) {
   if (count <= 0) return 'bg-gray-50 border-border'
@@ -24,30 +28,57 @@ function heatClassName(count: number, total: number) {
   return 'bg-primary/15 border-primary/15'
 }
 
+function buildTimeSlots(startHour: number, endHour: number): string[] {
+  return Array.from({ length: endHour - startHour }, (_, i) =>
+    String(startHour + i).padStart(2, '0')
+  )
+}
+
 export default function AvailabilityResultPage() {
   const router = useRouter()
   const params = useParams()
   const teamId = Number(params.teamId)
+  const pollId = Number(params.eventId)
+  const { token } = useAuth()
 
-  const summary = MOCK_EVENT_SUMMARY
-  const bestSlot =
-    summary.slots.find((s) => s.count === s.total && s.total > 0) ??
-    summary.slots.reduce<AvailabilitySlotSummary | null>(
-      (best, s) => (best === null || s.count > best.count ? s : best),
-      null
+  const [poll, setPoll] = useState<AvailabilitySummaryResponse | null>(null)
+  const { isLoading, error, run } = useAsyncTask(true)
+  const [activeSlot, setActiveSlot] = useState<HeatmapSlot | null>(null)
+
+  useEffect(() => {
+    if (!token || Number.isNaN(pollId)) return
+    run(() => getAvailabilitySummary(pollId, token), {
+      fallback: '결과를 불러오지 못했습니다.',
+    }).then((data) => {
+      if (!data) return
+      setPoll(data)
+      setActiveSlot(data.bestSlot)
+    })
+  }, [token, pollId, run])
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Spinner variant="track" />
+      </div>
     )
-
-  const [activeSlot, setActiveSlot] = useState<AvailabilitySlotSummary | null>(bestSlot)
-
-  function findSlot(date: string, time: string) {
-    return summary.slots.find((s) => s.date === date && s.time === time) ?? null
   }
 
-  function dateLabel(date: string) {
-    return summary.dateOptions.find((d) => d.date === date)?.label ?? ''
+  if (error || !poll) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-2 px-6 text-center">
+        <p className="text-[14px] font-semibold text-gray-500">
+          {error || '투표를 찾을 수 없습니다.'}
+        </p>
+      </div>
+    )
   }
 
-  const allMatchSlot = summary.slots.find((s) => s.count === s.total && s.total > 0)
+  const timeSlots = buildTimeSlots(poll.startHour, poll.endHour)
+
+  function findSlot(date: string, hour: number): HeatmapSlot | null {
+    return poll!.heatmap.find((s) => s.date === date && s.hour === hour) ?? null
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
@@ -55,32 +86,45 @@ export default function AvailabilityResultPage() {
         <div className="flex items-center gap-2">
           <BackButton onClick={() => router.back()} />
           <h1 className="text-[18px] font-black text-ink leading-tight truncate">
-            {summary.title} · 결과
+            {poll.title} · 결과
           </h1>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-4">
-        {allMatchSlot && (
-          <div className="mx-5 mb-3 px-4 py-3 rounded-2xl bg-emerald-50 text-emerald-700 text-[12.5px] font-bold leading-relaxed">
-            🎉 전원({allMatchSlot.total}/{allMatchSlot.total}명) 가능한 시간:{' '}
-            {dateLabel(allMatchSlot.date)} {allMatchSlot.date} · {allMatchSlot.time}:00
+        {poll.bestSlot && (
+          <div className="mx-5 mb-3 rounded-2xl bg-primary/10 px-4 py-3.5 flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center text-[19px] shrink-0">
+              🎉
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10.5px] font-bold text-primary tracking-wide">
+                가장 많이 가능한 시간
+              </p>
+              <p className="text-[15px] font-black text-ink mt-0.5 truncate">
+                {fullDateLabel(poll.bestSlot.date)} {poll.bestSlot.hour}:00
+              </p>
+              <p className="text-[12px] text-muted mt-0.5">
+                {poll.bestSlot.count}/{poll.totalMemberCount}명 가능
+              </p>
+            </div>
           </div>
         )}
 
         <AvailabilityGridShell
-          dateOptions={summary.dateOptions}
-          timeSlots={summary.timeSlots}
+          dateOptions={poll.dateOptions}
+          timeSlots={timeSlots}
           renderCell={(date, time) => {
-            const slot = findSlot(date, time)
-            const isActive = activeSlot?.date === date && activeSlot?.time === time
+            const hour = Number(time)
+            const slot = findSlot(date, hour)
+            const isActive = activeSlot?.date === date && activeSlot?.hour === hour
             return (
               <button
                 type="button"
-                onClick={() => setActiveSlot(slot)}
+                onClick={() => setActiveSlot(slot ?? { date, hour, count: 0, members: [] })}
                 className={`w-full h-full rounded-[4px] border transition-all duration-100 relative ${heatClassName(
                   slot?.count ?? 0,
-                  slot?.total ?? 4
+                  poll.totalMemberCount
                 )} ${isActive ? 'ring-2 ring-primary ring-offset-1' : ''}`}
               />
             )
@@ -88,17 +132,19 @@ export default function AvailabilityResultPage() {
         />
 
         <div className="flex items-center gap-3 flex-wrap px-5 py-3 text-[10px] font-semibold text-muted">
-          {HEAT_LEVELS.map((level) => (
-            <span key={level.label} className="flex items-center gap-1.5">
-              <span className={`w-3 h-3 rounded-sm inline-block ${level.className}`} />
-              {level.label}
-            </span>
-          ))}
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-sm inline-block bg-primary/15" />
+            응답 적음
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-sm inline-block bg-primary" />
+            전원 가능
+          </span>
         </div>
 
         <div className="mx-5 px-3.5 py-3 rounded-2xl border border-border flex items-center gap-2.5">
           <div className="flex shrink-0">
-            {(activeSlot?.memberNames ?? []).map((name, i) => (
+            {(activeSlot?.members ?? []).map((name, i) => (
               <div key={name} className={i > 0 ? '-ml-2' : ''}>
                 <div className="rounded-full ring-2 ring-white">
                   <BlobAvatar seed={name} size={26} />
@@ -110,12 +156,12 @@ export default function AvailabilityResultPage() {
             {activeSlot ? (
               <>
                 <p className="text-[12.5px] font-bold text-ink">
-                  {dateLabel(activeSlot.date)} {activeSlot.date} {activeSlot.time}:00 ·{' '}
-                  {activeSlot.count}/{activeSlot.total}명 가능
+                  {fullDateLabel(activeSlot.date)} {activeSlot.hour}:00 · {activeSlot.count}/
+                  {poll.totalMemberCount}명 가능
                 </p>
                 <p className="text-[11px] text-muted mt-0.5 truncate">
-                  {activeSlot.memberNames.length > 0
-                    ? activeSlot.memberNames.join(', ')
+                  {activeSlot.members.length > 0
+                    ? activeSlot.members.join(', ')
                     : '아직 아무도 선택하지 않았어요'}
                 </p>
               </>

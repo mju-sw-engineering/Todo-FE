@@ -17,7 +17,8 @@ export default function TeamIdLayout({ children }: { children: React.ReactNode }
     /\/todos\/\d+$/.test(pathname) ||
     pathname.endsWith('/certify') ||
     /\/teams\/\d+$/.test(pathname) ||
-    pathname.includes('/availability')
+    pathname.includes('/availability') ||
+    pathname.endsWith('/settings')
 
   return (
     <>

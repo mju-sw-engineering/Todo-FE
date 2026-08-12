@@ -179,7 +179,7 @@ export default function MyPage() {
           >
             개인정보처리방침
           </Link>
-          <Button variant="danger" size="sm" onClick={openDeleteAccountConfirm}>
+          <Button variant="danger" size="lg" onClick={openDeleteAccountConfirm}>
             회원 탈퇴
           </Button>
         </div>

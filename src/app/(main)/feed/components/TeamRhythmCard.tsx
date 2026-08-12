@@ -6,8 +6,8 @@ import type { TeamRhythm } from '@/types/feed.types'
 
 const DAYS = ['월', '화', '수', '목', '금', '토', '일']
 
-/** 벌집 채우기와 공유하는 꿀 팔레트 4단계 (참여 없음 → 많음) */
-export const HONEY = ['#f3ecd9', '#ffe29b', '#ffc94d', '#f59e0b']
+/** 벌집 채우기와 공유하는 꿀 팔레트 4단계 (참여 없음 → 많음). 브랜드 옐로우 #ffe042를 최대 진하기로 두고 같은 색상으로만 옅어진다 */
+export const HONEY = ['#faf0d2', '#ffe9a0', '#ffdd66', '#ffe042']
 
 function formatWeekLabel(startDate: string, isCurrent: boolean) {
   const start = new Date(startDate)
@@ -31,6 +31,14 @@ export function TeamRhythmCard({ teams }: Props) {
   const tabsRef = useRef<HTMLDivElement>(null)
   const [tabFade, setTabFade] = useState({ left: false, right: false })
 
+  // 막대가 0에서 목표 높이까지 차오르는 모션 — 마운트 시점에 0으로 그렸다가
+  // 다음 프레임에 실제 높이로 올려서 transition이 타도록 한다
+  const [risen, setRisen] = useState(false)
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setRisen(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
   const updateTabFade = () => {
     const el = tabsRef.current
     if (!el) return
@@ -47,7 +55,7 @@ export function TeamRhythmCard({ teams }: Props) {
   if (!team) return null
   if (team.weeks.length === 0) {
     return (
-      <section className="mx-5 bg-white rounded-[24px] border border-[#f1e6cd] p-5">
+      <section className="mx-5 bg-white rounded-[24px] border border-border p-5">
         <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] mb-2">우리의 꾸준함</h2>
         <p className="text-[13px] text-muted">아직 활동 기록이 없어요.</p>
       </section>
@@ -73,7 +81,7 @@ export function TeamRhythmCard({ teams }: Props) {
   const doneCount = week.counts.reduce<number>((a, b) => a + (b ?? 0), 0)
 
   return (
-    <section className="mx-5 bg-white rounded-[24px] border border-[#f1e6cd] p-5">
+    <section className="mx-5 bg-white rounded-[24px] border border-border p-5">
       <div className="flex items-start justify-between mb-0.5">
         <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] flex items-center gap-1.5">
           <HiveIcon size={16} />
@@ -90,7 +98,7 @@ export function TeamRhythmCard({ teams }: Props) {
       <div className="flex items-center gap-2 my-4">
         {teams.length === 1 ? (
           <>
-            <span className="w-[26px] h-[26px] shrink-0 rounded-full bg-[#e9e9ec] flex items-center justify-center text-[10px] font-bold text-[#333]">
+            <span className="w-[26px] h-[26px] shrink-0 rounded-full bg-neutral-40 flex items-center justify-center text-[10px] font-bold text-neutral-100">
               {team.teamName.slice(0, 2)}
             </span>
             <span className="text-[14px] font-bold text-ink whitespace-nowrap">
@@ -124,10 +132,10 @@ export function TeamRhythmCard({ teams }: Props) {
                     })
                   }}
                   className={`shrink-0 snap-start flex items-center gap-1.5 pl-[5px] pr-[11px] py-[5px] rounded-full border active:scale-[0.97] transition-transform ${
-                    active ? 'border-ink bg-[#f7f7f7]' : 'border-border bg-white'
+                    active ? 'border-ink bg-surface' : 'border-border bg-white'
                   }`}
                 >
-                  <span className="w-5 h-5 rounded-full bg-[#e9e9ec] flex items-center justify-center text-[9px] font-bold text-[#333]">
+                  <span className="w-5 h-5 rounded-full bg-neutral-40 flex items-center justify-center text-[9px] font-bold text-neutral-100">
                     {t.teamName.slice(0, 2)}
                   </span>
                   <span
@@ -214,19 +222,23 @@ export function TeamRhythmCard({ teams }: Props) {
               <div key={day} className="flex-1 min-w-0 flex flex-col items-center gap-[7px]">
                 <span
                   className={`font-mono text-[10px] font-semibold ${
-                    future || empty ? 'text-[#d3d3d3]' : isToday ? 'text-ink' : 'text-[#ababab]'
+                    future || empty ? 'text-neutral-50' : isToday ? 'text-ink' : 'text-neutral-60'
                   }`}
                 >
                   {future ? '·' : `${n}/${total}`}
                 </span>
-                <div
-                  className="w-full rounded-md"
-                  style={{
-                    height: future ? 10 : Math.round(16 + pct * 62),
-                    background: future || empty ? HONEY[0] : HONEY[Math.min(3, Math.ceil(pct * 3))],
-                    boxShadow: isToday ? 'inset 0 0 0 1.5px #92600f' : 'none',
-                  }}
-                />
+                <div className="relative w-full">
+                  <div
+                    className={`w-full rounded-md transition-[height] duration-700 ease-out ${
+                      isToday ? 'today-pulse' : ''
+                    }`}
+                    style={{
+                      height: risen ? (future ? 10 : Math.round(16 + pct * 62)) : 0,
+                      background:
+                        future || empty ? HONEY[0] : HONEY[Math.min(3, Math.ceil(pct * 3))],
+                    }}
+                  />
+                </div>
               </div>
             )
           })}
@@ -240,7 +252,7 @@ export function TeamRhythmCard({ teams }: Props) {
                 key={day}
                 className={`flex-1 min-w-0 text-center text-[11px] ${
                   future
-                    ? 'text-[#d3d3d3] font-medium'
+                    ? 'text-neutral-50 font-medium'
                     : isToday
                       ? 'text-ink font-extrabold'
                       : 'text-muted font-medium'
@@ -253,15 +265,15 @@ export function TeamRhythmCard({ teams }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2.5 mt-4 pt-3.5 border-t border-[#f1f1f1]">
-        <span className="text-[11px] text-[#ababab]">진행 또는 완료를 남긴 팀원 기준</span>
+      <div className="flex items-center justify-between gap-2.5 mt-4 pt-3.5 border-t border-neutral-30">
+        <span className="text-[11px] text-neutral-60">진행 또는 완료를 남긴 팀원 기준</span>
         <div className="flex items-center gap-[7px] shrink-0">
           <span className="text-[11px] text-muted whitespace-nowrap">오늘</span>
           <div className="flex">
             {team.todayMembers.slice(0, 3).map((m) => (
               <div
                 key={m.userId}
-                className="w-6 h-6 -ml-1.5 rounded-full border-2 border-white bg-[#e9e9ec] flex items-center justify-center text-[9px] font-bold text-[#333]"
+                className="w-6 h-6 -ml-1.5 rounded-full border-2 border-white bg-neutral-40 flex items-center justify-center text-[9px] font-bold text-neutral-100"
               >
                 {m.name.slice(0, 1)}
               </div>

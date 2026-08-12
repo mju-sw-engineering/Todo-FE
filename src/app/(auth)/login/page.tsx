@@ -58,27 +58,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="flex-1 flex flex-col animate-fade-up overflow-hidden"
-      style={{
-        background:
-          'linear-gradient(155deg, var(--color-secondary-10) 0%, #fdf9f4 40%, #e8f1ff 100%)',
-      }}
-    >
+    <div className="flex-1 flex bg-gradient-to-b from-[#fdf9f4] to-[#3180ff] flex-col animate-fade-up overflow-hidden">
       {/* 타이틀 + 벌 무리 */}
       <div className="flex-1 relative px-6 pb-10 flex flex-col justify-end overflow-hidden">
-        <div className="hex-pattern absolute inset-0 opacity-50 pointer-events-none" />
+        <div className=" absolute inset-0 opacity-50 pointer-events-none" />
 
         {/* 큰 벌: 타이틀을 바라봄 */}
-        <div className="absolute right-4 bottom-36 w-[130px] bee-bob">
+        <div className="absolute right-4 bottom-30 w-[50px] bee-bob">
           <AnimatedBee expression="happy" ns="lb1" />
         </div>
         {/* 작은 벌: 화면 안쪽을 바라보게 반전 */}
-        <div className="absolute left-5 top-24 w-16 bee-bob [animation-delay:0.6s]">
+        <div className="absolute left-5 -top-2 w-75 bee-bob [animation-delay:0.6s]">
           <AnimatedBee expression="default" ns="lb2" className="scale-x-[-1] -rotate-10" />
         </div>
         {/* 아주 작은 벌 */}
-        <div className="absolute right-24 top-14 w-11 bee-bob [animation-delay:1.1s]">
+        <div className="absolute right-12 top-56 w-20 bee-bob [animation-delay:1.1s]">
           <AnimatedBee expression="cheer" ns="lb3" className="rotate-9" />
         </div>
 

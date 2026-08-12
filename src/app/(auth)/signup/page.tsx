@@ -195,7 +195,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up">
+    <div className="flex-1 min-h-0 flex flex-col bg-white animate-fade-up">
       {/* Top header */}
       <div className="px-6 pt-5 pb-2">
         <div className="flex items-center gap-2">
@@ -210,8 +210,8 @@ export default function SignupPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-7 pb-12">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 overflow-y-auto px-6 pt-7 pb-6 flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <label
               htmlFor="email"
@@ -344,13 +344,7 @@ export default function SignupPage() {
             </p>
           )}
 
-          <Button type="submit" size="lg" disabled={isLoading || isUploading || apple.isLoading}>
-            {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '완료'}
-          </Button>
-        </form>
-
-        {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
-        <div className="mt-4">
+          {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
           <AppleLoginButton
             label="Apple로 가입"
             onClick={handleAppleSignIn}
@@ -358,13 +352,19 @@ export default function SignupPage() {
           />
         </div>
 
-        <Link
-          href="/login"
-          className="block text-center mt-auto pt-8 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
-        >
-          로그인으로 돌아가기
-        </Link>
-      </div>
+        {/* 제출 버튼 + 로그인 링크는 스크롤과 무관하게 항상 눈에 보이도록 바텀시트로 고정 */}
+        <div className="shrink-0 bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-5 pb-8 flex flex-col gap-3">
+          <Button type="submit" size="lg" disabled={isLoading || isUploading || apple.isLoading}>
+            {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '완료'}
+          </Button>
+          <Link
+            href="/login"
+            className="block text-center text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
+          >
+            로그인으로 돌아가기
+          </Link>
+        </div>
+      </form>
     </div>
   )
 }

@@ -44,14 +44,14 @@ export default function FeedPage() {
   if (isLoading) return <PageLoader />
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-[#faf4e4]">
-      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-5">
+    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-[linear-gradient(180deg,#669aff_0%,#8fb4ff_45%,#eef4ff_100%)]">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-5 scrollbar-hidden">
         <div className="px-5 pt-7 pb-[18px]">
-          <h1 className="text-[23px] font-black text-ink tracking-[-0.5px]">피드</h1>
+          <h1 className="text-[23px] font-black text-white tracking-[-0.5px]">기록</h1>
         </div>
 
         {error && (
-          <p className="mx-5 mb-4 text-sm text-status-red bg-status-red/10 rounded-[14px] px-4 py-3">
+          <p className="mx-5 mb-4 text-sm text-status-red bg-white rounded-[14px] px-4 py-3">
             {error}
           </p>
         )}

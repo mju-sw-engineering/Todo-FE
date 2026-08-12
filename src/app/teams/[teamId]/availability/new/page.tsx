@@ -6,6 +6,9 @@ import { useState } from 'react'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { useAsyncTask } from '@/hooks/useAsyncTask'
+import { createAvailabilityPoll } from '@/services/availabilityService'
+import { useAuth } from '@/store/authStore'
 import { InlineDateCalendar } from './components/InlineDateCalendar'
 import { RangeTimeSheet } from './components/RangeTimeSheet'
 
@@ -28,12 +31,13 @@ export default function AvailabilityEventNewPage() {
   const router = useRouter()
   const params = useParams()
   const teamId = Number(params.teamId)
+  const { token } = useAuth()
 
   const [title, setTitle] = useState('')
   const [selectedDates, setSelectedDates] = useState<string[]>([])
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('21:00')
-  const [error, setError] = useState('')
+  const { isLoading, error, setError, run } = useAsyncTask()
 
   const [showStartTimeSheet, setShowStartTimeSheet] = useState(false)
   const [showEndTimeSheet, setShowEndTimeSheet] = useState(false)
@@ -45,10 +49,28 @@ export default function AvailabilityEventNewPage() {
     )
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!title.trim()) return setError('이벤트 이름을 입력해주세요')
     if (selectedDates.length === 0) return setError('가능 날짜를 하나 이상 선택해주세요')
     if (startTime >= endTime) return setError('시간 범위를 확인해주세요')
+    if (!token) return setError('로그인이 필요합니다.')
+
+    const startHour = Number(startTime.split(':')[0])
+    const endHour = Number(endTime.split(':')[0])
+
+    try {
+      await run(
+        () =>
+          createAvailabilityPoll(
+            teamId,
+            { title: title.trim(), dateOptions: selectedDates, startHour, endHour },
+            token
+          ),
+        { fallback: '투표 생성에 실패했습니다.', rethrow: true }
+      )
+    } catch {
+      return
+    }
     router.push(`/teams/${teamId}/availability?created=1`)
   }
 
@@ -153,8 +175,8 @@ export default function AvailabilityEventNewPage() {
       </div>
 
       <div className="px-5 py-4 border-t border-border">
-        <Button size="lg" onClick={handleSubmit}>
-          이벤트 만들기
+        <Button size="lg" onClick={handleSubmit} disabled={isLoading}>
+          {isLoading ? '만드는 중...' : '이벤트 만들기'}
         </Button>
       </div>
 

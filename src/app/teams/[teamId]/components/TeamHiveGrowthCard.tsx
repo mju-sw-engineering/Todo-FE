@@ -72,28 +72,30 @@ export function TeamHiveGrowthCard({ teamId, token }: Props) {
 
   return (
     <>
-      <div className="mx-5 mt-3 flex items-center gap-3 rounded-[16px] border border-[#f1e6cd] bg-[#fdf6e6] px-3.5 py-2.5">
+      <div className="mx-5 mt-3 flex items-center gap-3 rounded-[16px] border border-border bg-white px-3.5 py-2.5">
         <div className="shrink-0">
           <TeamHiveIcon level={level} size={46} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2">
             <span className="text-[13px] font-black text-ink truncate">우리 벌집 Lv.{level}</span>
-            <span className="shrink-0 text-[10.5px] font-semibold text-[#a08c60]">
+            <span className="shrink-0 text-[10.5px] font-semibold text-muted">
               {isMax ? (
                 '최고 단계'
               ) : (
                 <>
-                  다음 단계까지 <b className="font-black text-[#92600f]">{remaining}개</b>
+                  다음 단계까지 <b className="font-black text-ink">{remaining}개</b>
                 </>
               )}
             </span>
           </div>
-          <p className="text-[10.5px] text-[#a08c60] mt-0.5">함께 모은 기록 {totalRecords}개</p>
-          <div className="mt-1.5 h-1.5 rounded-full bg-[#f3ecd9] overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#ffcf5e] to-[#f39d17] transition-[width] duration-700"
-              style={{ width: `${progress}%` }}
+          <p className="text-[10.5px] text-muted mt-0.5">함께 모은 기록 {totalRecords}개</p>
+          <div className="mt-1.5 h-1.5 rounded-full bg-neutral-30 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
             />
           </div>
         </div>
@@ -110,7 +112,7 @@ export function TeamHiveGrowthCard({ teamId, token }: Props) {
             onClick={() => setCelebrate(false)}
           >
             <motion.div
-              className="w-full max-w-xs rounded-[24px] bg-[#fdf6e6] border border-[#f1e6cd] px-6 pt-8 pb-6 text-center"
+              className="w-full max-w-xs rounded-[24px] bg-white border border-border px-6 pt-8 pb-6 text-center"
               initial={{ scale: 0.7, y: 24 }}
               animate={{ scale: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 22 }}
@@ -125,7 +127,7 @@ export function TeamHiveGrowthCard({ teamId, token }: Props) {
                 <TeamHiveIcon level={level} size={96} />
               </motion.div>
               <p className="mt-4 text-[17px] font-black text-ink">우리 벌집이 자랐어요!</p>
-              <p className="mt-1 text-[13px] font-bold text-[#92600f]">
+              <p className="mt-1 text-[13px] font-bold text-primary">
                 Lv.{level} {LEVEL_NAMES[level]}
               </p>
               <button
