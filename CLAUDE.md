@@ -4,36 +4,88 @@
 
 - **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript (strict mode)
-- **Styling**: Tailwind CSS v4
-- **Linting**: ESLint + Prettier
-- **Git Hooks**: Husky + lint-staged
+- **Styling**: Tailwind CSS v4 (`@theme` 토큰 기반 디자인 시스템)
+- **서버 상태**: TanStack React Query v5
+- **전역 상태**: React Context (`src/store/authStore.tsx`)
+- **애니메이션**: framer-motion + globals.css의 `--animate-*` 토큰
+- **네이티브 앱**: Capacitor 8 (iOS / Android 래핑)
+- **실시간 채팅**: STOMP (@stomp/stompjs) + SockJS
+- **아이콘**: react-icons
+- **Linting**: ESLint + Prettier, Husky + lint-staged
 
 ## 개발 명령어
 
 ```bash
-npm run dev        # 개발 서버 실행
-npm run build      # 프로덕션 빌드
-npm run lint       # ESLint 검사
-npm run lint:fix   # ESLint 자동 수정
-npm run format     # Prettier 포맷팅
+npm run dev             # 개발 서버 실행
+npm run build           # 프로덕션 빌드
+npm run lint            # ESLint 검사
+npm run lint:fix        # ESLint 자동 수정
+npm run format          # Prettier 포맷팅
+npm run cap:sync        # 웹 빌드를 iOS/Android 프로젝트에 동기화
+npm run cap:open:ios    # Xcode로 iOS 프로젝트 열기
+npm run cap:open:android # Android Studio로 프로젝트 열기
 ```
+
+## 디자인 시스템 (필수 준수)
+
+**새 UI를 만들 때 임의로 디자인하지 않는다.** 이 프로젝트는 자체 디자인 시스템을 갖고 있고, 모든 화면은 여기에 맞춰야 한다.
+
+### 1. 공용 컴포넌트를 먼저 사용한다
+
+버튼, 인풋, 모달 등 UI가 필요하면 **`src/components/ui/`의 기존 컴포넌트를 먼저 찾아 사용**한다. `<button>`, `<input>` 등을 직접 스타일링해서 새로 만들지 않는다.
+
+주요 공용 컴포넌트:
+
+| 컴포넌트                                       | 용도                                                    |
+| ---------------------------------------------- | ------------------------------------------------------- |
+| `Button`                                       | 모든 버튼 (`variant`: primary/secondary/danger/outline) |
+| `Input`, `Textarea`                            | 텍스트 입력                                             |
+| `ConfirmModal`                                 | 확인/취소 모달                                          |
+| `Toast`                                        | 토스트 알림                                             |
+| `Spinner`, `PageLoader`                        | 로딩 표시                                               |
+| `Calendar`                                     | 날짜 선택                                               |
+| `MemberAvatar`, `TeamAvatar`, `BlobAvatar`     | 아바타                                                  |
+| `TodoStatusBadge`                              | 할일 상태 뱃지                                          |
+| `BackButton`, `ConvexCard`, `ReactionEmoji` 등 | 그 외 `src/components/ui/` 참고                         |
+
+- 필요한 변형이 없으면 **기존 컴포넌트에 variant/prop을 추가**하는 것을 우선 검토하고, 완전히 새로운 컴포넌트 생성은 최후의 수단으로 한다.
+- 새 공용 컴포넌트를 만들 때도 기존 컴포넌트의 스타일 언어(둥근 모서리 `rounded-[14px]` 계열, transition 패턴, disabled 처리 등)를 그대로 따른다.
+
+### 2. 색상은 디자인 토큰만 사용한다
+
+색상은 `src/app/globals.css`의 `@theme` 토큰만 사용한다. **임의의 hex 값(`bg-[#4b8bff]` 등)이나 Tailwind 기본 팔레트(`bg-blue-500` 등)로 새 색을 도입하지 않는다.**
+
+- 시맨틱 토큰 우선: `primary`, `primary-hover`, `primary-light`, `surface`, `border`, `ink`, `muted`
+- 필요 시 팔레트 토큰: `primary-50/55`, `secondary-50/10`, `neutral-20~120`, `coolGray-20/50/80`, `status-red`, `static-black/white`
+- 새 색이 정말 필요하면 코드에 하드코딩하지 말고 `@theme`에 토큰으로 추가한 뒤 사용한다.
+
+### 3. 폰트는 Pretendard로 고정한다
+
+- 기본 서체는 **Pretendard** (`src/fonts/PretendardVariable.woff2`, `--font-sans`로 body에 이미 적용됨). 별도 `font-family` 지정 없이 그대로 상속받아 쓴다.
+- 예외는 **Jua(`font-jua`) 하나뿐**이며, 로고·캐릭터 말풍선 같은 브랜드 장식 텍스트에만 쓴다. 일반 본문/버튼/입력에는 쓰지 않는다.
+- **새 폰트를 추가하거나 다른 서체를 지정하지 않는다.** (Google Fonts 추가, `font-family` 인라인 지정 금지)
+
+### 4. 애니메이션도 토큰을 우선 사용한다
+
+`animate-fade-up`, `animate-emoji-pop`, `animate-blob-float`, `animate-shimmer`, `animate-fall-in` 등 globals.css에 정의된 애니메이션을 우선 사용하고, 복잡한 인터랙션만 framer-motion을 쓴다.
 
 ## 폴더 구조
 
 ```
 src/
-├── app/                      # Next.js App Router (페이지, 레이아웃, API route)
+├── app/                      # Next.js App Router (페이지, 레이아웃)
+│   ├── globals.css           # 글로벌 스타일 + @theme 디자인 토큰
+│   ├── providers.tsx         # QueryClient, Auth 등 전역 Provider
 │   └── (route)/
 │       ├── components/       # 이 라우트(페이지)에서만 쓰이는 컴포넌트
 │       └── page.tsx
-├── components/                # 2곳 이상에서 재사용되는 공용 컴포넌트
-│   └── ui/                    # 아토믹 단위 (Button, Input 등) — 역할 기반 공용, 호출처가 1곳이어도 여기 유지
-├── hooks/            # 커스텀 React 훅
-├── lib/              # 유틸리티 함수, 헬퍼
-├── services/         # API 호출 함수
-├── store/            # 전역 상태 관리
-├── styles/           # 글로벌 스타일
-└── types/            # TypeScript 타입 정의
+├── components/               # 2곳 이상에서 재사용되는 공용 컴포넌트
+│   └── ui/                   # 아토믹 단위 (Button, Input 등) — 역할 기반 공용, 호출처가 1곳이어도 여기 유지
+├── hooks/                    # 커스텀 React 훅
+├── lib/                      # 유틸리티 함수, 헬퍼 (apiClient, dateUtils 등)
+├── services/                 # API 호출 함수
+├── store/                    # 전역 상태 (React Context)
+└── types/                    # TypeScript 타입 정의 (도메인별 *.types.ts)
 ```
 
 **컴포넌트 배치 기준**: 특정 페이지(라우트)에서만 쓰이는 컴포넌트는 해당 라우트 폴더 아래 `components/`에 둔다. 2곳 이상의 페이지에서 재사용되거나 `Button`/`Input`처럼 디자인 시스템 아토믹 단위 컴포넌트라면 `src/components/`(또는 `src/components/ui/`)로 뺀다. 새 컴포넌트를 만들 때 "이게 다른 페이지에서도 쓰일까?"를 먼저 판단하고, 아니라면 페이지 폴더 안에 두는 것이 기본값이다.
@@ -56,7 +108,7 @@ import { TeamMembersCard } from './components/TeamMembersCard' // 같은 라우�
 | 컴포넌트 파일    | PascalCase                    | `TodoItem.tsx`   |
 | 훅 파일          | camelCase, `use` 접두사       | `useTodos.ts`    |
 | 유틸/서비스 파일 | camelCase                     | `todoService.ts` |
-| 타입 파일        | camelCase                     | `todo.types.ts`  |
+| 타입 파일        | camelCase, `.types.ts` 접미사 | `todo.types.ts`  |
 | 상수             | UPPER_SNAKE_CASE              | `MAX_TODO_COUNT` |
 | CSS 클래스       | Tailwind 유틸리티 클래스 우선 |                  |
 
@@ -79,6 +131,12 @@ export function TodoItem({ id, title, completed }: TodoItemProps) {
 }
 ```
 
+## 데이터 & API 규칙
+
+- API 호출은 컴포넌트에서 직접 fetch하지 않고 `src/services/`의 서비스 함수를 통한다 (내부적으로 `src/lib/apiClient.ts` 사용)
+- 서버 데이터 fetching/mutation은 React Query 훅으로 감싼다 (`src/hooks/` 참고)
+- 도메인별 타입은 `src/types/<도메인>.types.ts`에 정의하고 서비스/훅에서 공유한다
+
 ## TypeScript 규칙
 
 - `any` 사용 금지 — `unknown` 또는 명시적 타입 사용
@@ -87,9 +145,9 @@ export function TodoItem({ id, title, completed }: TodoItemProps) {
 
 ## 스타일 규칙
 
-- Tailwind 유틸리티 클래스를 우선 사용
-- 복잡한 스타일 조합은 `cn()` 유틸 (clsx + tailwind-merge) 활용
-- 인라인 `style` 속성 사용 지양
+- Tailwind 유틸리티 클래스를 우선 사용하고, 색상·애니메이션은 위 디자인 시스템 토큰을 따른다
+- 조건부 클래스 조합은 배열 + `filter(Boolean).join(' ')` 패턴 사용 (`src/components/ui/Button.tsx` 참고)
+- 인라인 `style` 속성은 런타임에 계산되는 동적 값(좌표, 퍼센트, 사용자 지정 색 등)에만 허용 — 정적 스타일은 Tailwind로 작성
 
 ## Git 커밋 컨벤션
 
