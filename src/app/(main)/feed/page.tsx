@@ -44,7 +44,7 @@ export default function FeedPage() {
   if (isLoading) return <PageLoader />
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-[linear-gradient(180deg,#669aff_0%,#8fb4ff_45%,#eef4ff_100%)]">
+    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-[linear-gradient(180deg,#8fb4ff_0%,#b3ccff_45%,#f5f8ff_100%)]">
       <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-5 scrollbar-hidden">
         <div className="px-5 pt-7 pb-[18px]">
           <h1 className="text-[23px] font-black text-white tracking-[-0.5px]">기록</h1>

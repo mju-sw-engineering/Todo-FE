@@ -34,6 +34,27 @@ function BadgeIcon({ icon }: { icon: FeedBadge['icon'] }) {
   )
 }
 
+function MedalIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="medal-face" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffe093" />
+          <stop offset="1" stopColor="#f0b800" />
+        </linearGradient>
+      </defs>
+      <path d="M8.5 3L6 9.5L9.5 11.5L12 6z" fill="#ffdd66" />
+      <path d="M15.5 3L18 9.5L14.5 11.5L12 6z" fill="#ffe042" />
+      <circle cx="12" cy="14.5" r="6.5" fill="url(#medal-face)" />
+      <circle cx="12" cy="14.5" r="6.5" stroke="#e0a400" strokeWidth="1" />
+      <path
+        d="M12 11.2l1 2 2.2 0.3-1.6 1.5 0.4 2.2-2-1-2 1 0.4-2.2-1.6-1.5 2.2-0.3z"
+        fill="#fff3d2"
+      />
+    </svg>
+  )
+}
+
 function LockIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -69,7 +90,10 @@ export function BadgesCard({ badges }: Props) {
   return (
     <section className="mx-5 mt-3.5 bg-white rounded-[24px] border border-border p-5">
       <div className="flex items-start justify-between">
-        <h2 className="text-[16px] font-black text-ink tracking-[-0.2px]">배지</h2>
+        <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] flex items-center gap-1.5">
+          <MedalIcon />
+          배지
+        </h2>
         <span className="shrink-0 text-[12px] font-bold text-ink">
           {acquiredCount} / {badges.length}
         </span>

@@ -14,7 +14,10 @@ export function HiveShelfCard({ months, current }: Props) {
   return (
     <section className="mx-5 mt-3.5 bg-white rounded-[24px] border border-border p-5">
       <div className="flex items-start justify-between">
-        <h2 className="text-[16px] font-black text-ink tracking-[-0.2px]">벌집 보관함</h2>
+        <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] flex items-center gap-1.5">
+          <HiveIcon size={16} />
+          벌집 보관함
+        </h2>
         <span className="shrink-0 text-[12px] font-bold text-ink">완주 {completeCount}번</span>
       </div>
       <p className="text-[12px] text-muted mt-0.5">다 채운 달의 벌집이 여기 쌓여요</p>
