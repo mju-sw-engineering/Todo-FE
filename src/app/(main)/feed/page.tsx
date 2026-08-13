@@ -48,6 +48,7 @@ export default function FeedPage() {
       <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-5 scrollbar-hidden">
         <div className="px-5 pt-7 pb-[18px]">
           <h1 className="text-[23px] font-black text-white tracking-[-0.5px]">기록</h1>
+           <p className="text-[12px] text-white mt-0.5">할일 수행 기록을 확인하세요.</p>
         </div>
 
         {error && (
