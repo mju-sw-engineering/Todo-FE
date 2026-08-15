@@ -20,6 +20,9 @@ npm run dev             # 개발 서버 실행
 npm run build           # 프로덕션 빌드
 npm run lint            # ESLint 검사
 npm run lint:fix        # ESLint 자동 수정
+npm run typecheck       # TypeScript 타입 검사 (tsc --noEmit, 빌드보다 빠름)
+npm test                # Vitest 단위 테스트 1회 실행
+npm run test:watch      # Vitest watch 모드
 npm run format          # Prettier 포맷팅
 npm run cap:sync        # 웹 빌드를 iOS/Android 프로젝트에 동기화
 npm run cap:open:ios    # Xcode로 iOS 프로젝트 열기
@@ -174,6 +177,12 @@ feat(todo): 할일 추가 기능 구현
 fix(auth): 로그인 토큰 만료 처리 수정
 chore: prettier 설정 추가
 ```
+
+## 테스트
+
+- 테스트 러너는 **Vitest**, 테스트 파일은 대상 파일 옆에 `*.test.ts`로 co-locate (`src/lib/dateUtils.test.ts` 등)
+- `src/lib/`의 순수 함수와 핵심 로직은 단위 테스트 작성을 우선한다
+- 로직을 수정하면 `npm run typecheck && npm test`로 스스로 검증한 뒤 완료로 간주한다 (CI에서도 lint → typecheck → test → build 순으로 실행됨)
 
 ## 코드 품질
 
