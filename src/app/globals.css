@@ -25,6 +25,10 @@
   --color-coolGray-20: #f0f5fb;
   --color-coolGray-50: #a3abbe;
   --color-coolGray-80: #3e3f48;
+  --color-sun: #ffd76a;
+  --color-sun-glow: #fff3be;
+  --color-meadow: #b8dda0;
+  --color-meadow-dark: #79b978;
 
   /* Semantic aliases used throughout the app, now sourced from the palette above */
   --color-primary: var(--color-primary-50);
@@ -226,6 +230,167 @@ select {
   }
 }
 
+/* ── 로그인 씬 벌 캐릭터 — 부위(id 그룹)별 리그 애니메이션 ──
+   구조 설명·수정 가이드는 LoginBeeScene.tsx 상단 주석과
+   public/images/bee/login/login-bee-character.svg 상단 주석 참고.
+   transform-origin(%)은 SVG의 data-pivot 관절 좌표를 각 그룹 bbox 기준 %로 환산한 값 —
+   SVG에서 파츠 모양(bbox)이 바뀌면 여기 %도 다시 계산해야 한다.
+   속도 조절: 날개짓 주기 --login-bee-flap(기본 0.85s, 비행 중 0.3s),
+   다리 스윙 0.6s, 팔 흔들기 1.5s — 각 animation 선언의 duration 을 바꾸면 된다. */
+/* 다리·날개가 회전하며 viewBox 밖으로 나가도 잘리지 않게 한다 (svg 기본값은 hidden) */
+.login-bee svg {
+  overflow: visible;
+}
+.login-bee #wing-left {
+  transform-box: fill-box;
+  transform-origin: 96% 95%;
+  animation: login-bee-flap-left var(--login-bee-flap, 0.85s) ease-in-out infinite;
+}
+.login-bee #wing-right {
+  transform-box: fill-box;
+  transform-origin: 16% 93%;
+  animation: login-bee-flap-right var(--login-bee-flap, 0.85s) ease-in-out infinite;
+}
+/* 비행 중에는 날개를 빠르게 젓고 다리가 바람에 흔들린다 */
+.login-bee.is-flying {
+  --login-bee-flap: 0.3s;
+}
+.login-bee.is-flying #leg-back,
+.login-bee.is-flying #leg-front {
+  transform-box: fill-box;
+  animation: login-bee-leg-swing 0.6s ease-in-out infinite;
+}
+.login-bee.is-flying #leg-back {
+  transform-origin: 83% 10%;
+}
+.login-bee.is-flying #leg-front {
+  transform-origin: 76% 29%;
+  animation-direction: reverse;
+}
+/* 팔 회전은 어깨 이음새 패치 범위인 ±15deg 이내로 유지할 것 */
+.login-bee.is-waving #arm-wave {
+  transform-box: fill-box;
+  transform-origin: 0% 95%;
+  animation: login-bee-arm-wave 1.5s ease-in-out infinite;
+}
+/* 순항(비행) 포즈 — 팔·다리·더듬이가 항력에 뒤로 쳐지는 연출.
+   기준 시안: login-bee-flight-pose-preview.svg. 전신 24deg 기울기는 컨테이너(framer)가 담당.
+   origin %는 각 파츠 bbox 기준으로 환산한 data-pivot 관절 좌표 */
+.login-bee.is-cruise #arm-wave {
+  display: none;
+}
+.login-bee.is-cruise #arm-left-rest {
+  display: inline;
+}
+.login-bee.is-cruise #antenna-left {
+  transform-box: fill-box;
+  transform-origin: 37% 97%;
+  transform: rotate(-14deg);
+}
+.login-bee.is-cruise #antenna-right {
+  transform-box: fill-box;
+  transform-origin: 11% 95%;
+  transform: rotate(-20deg);
+}
+.login-bee.is-cruise #leg-back {
+  transform-box: fill-box;
+  transform-origin: 81% 11%;
+  transform: rotate(8deg);
+}
+.login-bee.is-cruise #leg-front {
+  transform-box: fill-box;
+  transform-origin: 76% 29%;
+  transform: rotate(10deg);
+}
+/* 순항 중 날개짓은 시안의 기본 각(-12/14deg)을 중심으로 퍼덕인다 */
+.login-bee.is-cruise #wing-left {
+  animation-name: login-bee-flap-left-cruise;
+}
+.login-bee.is-cruise #wing-right {
+  animation-name: login-bee-flap-right-cruise;
+}
+/* 동료 벌 구분용 액세서리 토글 */
+.login-bee.with-ribbon #acc-ribbon,
+.login-bee.with-sprout #acc-sprout {
+  display: inline;
+}
+
+/* 표정 전환 — SVG의 display 프레젠테이션 속성을 CSS로 덮어써 파츠만 교체한다 */
+.login-bee.is-eyes-closed #eye-left,
+.login-bee.is-eyes-closed #eye-right {
+  display: none;
+}
+.login-bee.is-eyes-closed #eyelids {
+  display: inline;
+}
+.login-bee.is-surprised #mouth-open {
+  display: none;
+}
+.login-bee.is-surprised #mouth-surprised {
+  display: inline;
+}
+@keyframes login-bee-flap-left {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(9deg);
+  }
+}
+@keyframes login-bee-flap-right {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-9deg);
+  }
+}
+/* 다리 가장자리가 배와 겹치는 깊이(~8u)를 넘지 않도록 3deg 이내 유지 */
+@keyframes login-bee-leg-swing {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes login-bee-arm-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-14deg);
+  }
+  50% {
+    transform: rotate(-4deg);
+  }
+  75% {
+    transform: rotate(-14deg);
+  }
+}
+@keyframes login-bee-flap-left-cruise {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+}
+@keyframes login-bee-flap-right-cruise {
+  0%,
+  100% {
+    transform: rotate(14deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
 /* "오늘" 표시 — 리듬 막대·벌집 칸에서 공용으로 쓰는 은은한 깜빡임 */
 .today-pulse {
   animation: today-pulse 1.8s ease-in-out infinite;
@@ -245,7 +410,14 @@ select {
   .bee-bob,
   .bee-wing-left,
   .bee-wing-right,
-  .today-pulse {
+  .today-pulse,
+  .login-bee #wing-left,
+  .login-bee #wing-right,
+  .login-bee.is-cruise #wing-left,
+  .login-bee.is-cruise #wing-right,
+  .login-bee.is-flying #leg-back,
+  .login-bee.is-flying #leg-front,
+  .login-bee.is-waving #arm-wave {
     animation: none;
   }
 }

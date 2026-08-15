@@ -1,0 +1,476 @@
+'use client'
+
+import { motion, useReducedMotion, type AnimationDefinition, type Variants } from 'framer-motion'
+import { useEffect, useState, type CSSProperties } from 'react'
+import { LOGIN_BEE_SVG } from './loginBeeSvg'
+
+// ─── 로그인 벌 씬 (3마리 편대) 수정 가이드 ──────────────────────────────────
+// 서사: 혼자 날던 리더에게 동료 둘이 합류해 같은 방향으로 함께 순항한다.
+// 벌은 전부 같은 리그형 SVG 한 장을 재사용하고, 순항 포즈(24° 기울기 + 처진 파츠)는
+// globals.css의 .login-bee.is-cruise 가, 개성은 액세서리 클래스(.with-ribbon/.with-sprout)가 담당.
+//
+// 무엇을 고치려면 어디를:
+// - 사이클 타이밍(혼자 1.6s → 합류 → 순항 → 8.6s 퇴장 → 10s 재시작): LoginBeeScene 의 run() 타이머
+// - 편대 위치·크기: 아래 <LoginBee className> 의 left/top/w 값
+// - 합류 궤적·통통 튀는 정도: LoginBee 의 enter variant (spring stiffness/damping)
+// - 둥실거림 주기·깊이: 각 <LoginBee bobDuration/bobDepth> (셋을 다르게 해야 살아 보임)
+// - 날개짓 속도: <LoginBee flapDuration> (작은 벌일수록 빠르게)
+// - 순항 포즈·액세서리·표정 파츠: globals.css .login-bee 섹션
+// - 캐릭터 모양: public/images/bee/login/login-bee-character.svg 수정 후
+//   `node scripts/generate-login-bee-svg.mjs` (SVG 상단 주석 참고)
+// ───────────────────────────────────────────────────────────────────────────
+type ScenePhase = 'solo' | 'joining' | 'cruise' | 'depart'
+
+// 배경(언덕·구름)과 같은 오른쪽→왼쪽으로 흘러야 벌이 오른쪽으로 나는 것처럼 보인다
+const SPEED_LINES = [
+  { className: 'right-[-18%] top-[18%] w-20', delay: 0 },
+  { className: 'right-[-32%] top-[31%] w-12', delay: 0.24 },
+  { className: 'right-[-12%] top-[47%] w-28', delay: 0.48 },
+  { className: 'right-[-26%] top-[64%] w-16', delay: 0.12 },
+  { className: 'right-[-20%] top-[78%] w-10', delay: 0.66 },
+] as const
+
+// 잔디 한 묶음 = 곡선 풀잎 3장 (아래 GRASS_BLADES 경로). flip으로 좌우 변화를 준다
+const GRASS_TUFTS = [
+  { className: 'left-[3%] h-4 w-6', flip: false },
+  { className: 'left-[11%] h-5 w-8', flip: true },
+  { className: 'left-[19%] h-3.5 w-5', flip: false },
+  { className: 'left-[28%] h-5 w-8', flip: false },
+  { className: 'left-[37%] h-4 w-6', flip: true },
+  { className: 'left-[51%] h-5 w-8', flip: false },
+  { className: 'left-[62%] h-3.5 w-5', flip: true },
+  { className: 'left-[73%] h-5 w-8', flip: false },
+  { className: 'left-[83%] h-4 w-6', flip: true },
+  { className: 'left-[92%] h-5 w-8', flip: false },
+] as const
+
+const GRASS_BLADES = [
+  'M3 18 C4 12 2 7 0.5 4 C5 8 7 13 7.5 18 Z',
+  'M11 18 C12 10 12 5 10.5 0 C15 6 15.5 12 15 18 Z',
+  'M20 18 C22 13 25 9 27.5 7 C24.5 12 23 15 22.5 18 Z',
+] as const
+
+const CRUISE_TILT = 24
+
+interface LoginBeeProps {
+  /* 위치·크기·z-index 를 담당하는 래퍼 클래스 */
+  className: string
+  accessory?: 'ribbon' | 'sprout'
+  /* 날개짓 주기 (작은 벌일수록 빠르게) */
+  flapDuration: string
+  /* 둥실거림 주기·깊이 — 셋이 서로 달라야 복제처럼 안 보인다 */
+  bobDuration: number
+  bobDepth: number
+  /* 합류 진입 시작 오프셋과 지연 (리더 포함 — 사이클마다 재진입) */
+  enterFrom?: { x: number; y: number }
+  enterDelay?: number
+  /* 퇴장 시차 — 리더가 먼저, 동료들이 따라 나간다 */
+  departDelay?: number
+  departing: boolean
+  visible: boolean
+  reduce: boolean
+}
+
+function LoginBee({
+  className,
+  accessory,
+  flapDuration,
+  bobDuration,
+  bobDepth,
+  enterFrom,
+  enterDelay = 0,
+  departDelay = 0,
+  departing,
+  visible,
+  reduce,
+}: LoginBeeProps) {
+  const [arrived, setArrived] = useState(false)
+  const [eyesClosed, setEyesClosed] = useState(false)
+  const [startled, setStartled] = useState(false)
+
+  // 자리 잡은 뒤 2.6~5.6초 간격 랜덤 깜빡임 (벌마다 독립 타이머)
+  useEffect(() => {
+    if (reduce || !visible || !arrived) {
+      return
+    }
+    let blinkTimer: number | undefined
+    let openTimer: number | undefined
+    const schedule = () => {
+      blinkTimer = window.setTimeout(
+        () => {
+          setEyesClosed(true)
+          openTimer = window.setTimeout(() => {
+            setEyesClosed(false)
+            schedule()
+          }, 140)
+        },
+        2600 + Math.random() * 3000
+      )
+    }
+    schedule()
+    return () => {
+      window.clearTimeout(blinkTimer)
+      window.clearTimeout(openTimer)
+    }
+  }, [reduce, visible, arrived])
+
+  // 탭하면 그 벌만 깜짝 놀라 몸을 세웠다가 다시 기울며 복귀
+  function handleTap() {
+    if (reduce || departing || !arrived || startled) {
+      return
+    }
+    setStartled(true)
+  }
+
+  function handleComplete(definition: AnimationDefinition) {
+    if (definition === 'enter') {
+      setArrived(true)
+    }
+    if (definition === 'startled') {
+      setStartled(false)
+    }
+  }
+
+  const variants: Variants = {
+    hidden: {
+      opacity: 0,
+      x: enterFrom?.x ?? 0,
+      y: enterFrom?.y ?? 0,
+      rotate: CRUISE_TILT + 8,
+      scale: 0.9,
+      transition: { duration: 0 },
+    },
+    // 합류: 스프링 오버슈트로 "따라잡아서 자리 잡는" 느낌을 준다
+    enter: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      rotate: CRUISE_TILT,
+      scale: 1,
+      transition: {
+        delay: enterDelay,
+        type: 'spring',
+        stiffness: 64,
+        damping: 11,
+        mass: 0.9,
+        opacity: { delay: enterDelay, duration: 0.35 },
+      },
+    },
+    hover: {
+      opacity: 1,
+      x: 0,
+      y: [0, -bobDepth, 0],
+      rotate: CRUISE_TILT,
+      scale: 1,
+      transition: { y: { duration: bobDuration, repeat: Infinity, ease: 'easeInOut' } },
+    },
+    startled: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      scale: [1, 1.07, 1],
+      rotate: [CRUISE_TILT, 7, CRUISE_TILT - 3, CRUISE_TILT],
+      transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+    },
+    // 퇴장: 몸을 더 숙이며 오른쪽으로 가속해 화면 밖으로
+    depart: {
+      opacity: 1,
+      x: 640,
+      y: -36,
+      rotate: CRUISE_TILT + 5,
+      scale: 1,
+      transition: { delay: departDelay, duration: 0.85, ease: [0.55, 0, 0.85, 0.55] },
+    },
+  }
+
+  const animate = reduce
+    ? { opacity: 1, rotate: CRUISE_TILT }
+    : departing
+      ? 'depart'
+      : !visible
+        ? 'hidden'
+        : startled
+          ? 'startled'
+          : arrived
+            ? 'hover'
+            : 'enter'
+
+  const beeClassName = [
+    'login-bee is-cruise',
+    accessory === 'ribbon' ? 'with-ribbon' : '',
+    accessory === 'sprout' ? 'with-sprout' : '',
+    eyesClosed ? 'is-eyes-closed' : '',
+    startled ? 'is-surprised' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  return (
+    <div className={className}>
+      <motion.div
+        className="pointer-events-auto relative transform-gpu cursor-pointer will-change-transform"
+        initial={reduce ? false : 'hidden'}
+        animate={animate}
+        variants={variants}
+        onAnimationComplete={handleComplete}
+        onClick={handleTap}
+      >
+        {startled && (
+          <span className="animate-emoji-pop absolute -top-3 left-[64%] z-10 rotate-6 font-jua text-2xl text-ink select-none">
+            !
+          </span>
+        )}
+        <div
+          className={beeClassName}
+          style={{ '--login-bee-flap': flapDuration } as CSSProperties}
+          dangerouslySetInnerHTML={{ __html: LOGIN_BEE_SVG }}
+        />
+      </motion.div>
+    </div>
+  )
+}
+
+interface BeeShadowProps {
+  className: string
+  targetOpacity: number
+  breatheDuration: number
+  visible: boolean
+  reduce: boolean
+}
+
+function BeeShadow({ className, targetOpacity, breatheDuration, visible, reduce }: BeeShadowProps) {
+  return (
+    <div className={className}>
+      <motion.div
+        className="h-3 rounded-[50%] bg-static-black/30 blur-md"
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={
+          reduce
+            ? { opacity: targetOpacity, scale: 1 }
+            : visible
+              ? { opacity: targetOpacity, scale: [1, 0.92, 1] }
+              : { opacity: 0, scale: 0.6 }
+        }
+        transition={
+          visible && !reduce
+            ? {
+                opacity: { duration: 0.6, ease: 'easeOut' },
+                scale: { duration: breatheDuration, repeat: Infinity, ease: 'easeInOut' },
+              }
+            : { duration: 0.3 }
+        }
+      />
+    </div>
+  )
+}
+
+export function LoginBeeScene() {
+  const shouldReduceMotion = useReducedMotion()
+  const reduce = !!shouldReduceMotion
+  const [phase, setPhase] = useState<ScenePhase>('solo')
+
+  // 사이클: 혼자(1.6s) → 합류 → 순항(~8.6s) → 다같이 퇴장 → 리더 재등장 (무한 루프)
+  const [cycle, setCycle] = useState(0)
+  useEffect(() => {
+    if (reduce) {
+      return
+    }
+    const timers: number[] = []
+    const run = () => {
+      timers.push(
+        window.setTimeout(() => setPhase('joining'), 1600),
+        window.setTimeout(() => setPhase('cruise'), 3200),
+        window.setTimeout(() => setPhase('depart'), 8600),
+        window.setTimeout(() => {
+          setPhase('solo')
+          setCycle((count) => count + 1)
+          run()
+        }, 10000)
+      )
+    }
+    run()
+    return () => timers.forEach((timer) => window.clearTimeout(timer))
+  }, [reduce])
+
+  const cruising = reduce || phase === 'cruise'
+  const rushing = !cruising
+  const departing = !reduce && phase === 'depart'
+  const friendsVisible = reduce || phase !== 'solo'
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* 해는 배경 패럴랙스와 대비되도록 고정해 둔다 */}
+      <div className="absolute right-[-10%] top-[4%] h-44 w-44 rounded-full bg-sun-glow/45 opacity-60 blur-2xl" />
+      <div className="absolute right-[8%] top-[10%] h-24 w-24 rounded-full bg-sun/80 shadow-[0_0_48px_var(--color-sun-glow)]" />
+
+      {/* 원경의 작은 뭉게구름 — 아주 느리게 흘러 깊이를 만든다 */}
+      <motion.div
+        className="absolute left-[9%] top-[5%]"
+        animate={reduce ? undefined : { x: [0, -14, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <div className="ml-4 h-3 w-9 rounded-full bg-static-white/55 blur-[2px]" />
+        <div className="-mt-1.5 h-4 w-16 rounded-full bg-static-white/55 blur-[2px]" />
+      </motion.div>
+      <motion.div
+        className="absolute left-[34%] top-[11%]"
+        animate={reduce ? undefined : { x: [0, 10, 0] }}
+        transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <div className="ml-3 h-2.5 w-6 rounded-full bg-static-white/45 blur-[2px]" />
+        <div className="-mt-1 h-3 w-11 rounded-full bg-static-white/45 blur-[2px]" />
+      </motion.div>
+
+      {/* 굽이치는 초원 능선 2겹 — 편대가 완성되면 흐름이 잦아든다 */}
+      <motion.div
+        className="absolute bottom-0 left-[-18%] h-28 w-[140%] transform-gpu will-change-transform"
+        initial={{ x: 0 }}
+        animate={{ x: rushing ? -44 : -52 }}
+        transition={
+          rushing ? { duration: 4.6, ease: 'linear' } : { duration: 0.9, ease: [0.16, 1, 0.3, 1] }
+        }
+      >
+        <svg viewBox="0 0 600 100" preserveAspectRatio="none" className="h-full w-full">
+          <path
+            d="M0 100 L0 58 Q80 26 170 40 Q260 54 350 32 Q460 8 600 36 L600 100 Z"
+            className="fill-meadow/55"
+          />
+        </svg>
+      </motion.div>
+      <motion.div
+        className="absolute bottom-0 left-[-20%] h-[76px] w-[145%] transform-gpu will-change-transform"
+        initial={{ x: 0 }}
+        animate={{ x: rushing ? -72 : -84 }}
+        transition={
+          rushing ? { duration: 4.6, ease: 'linear' } : { duration: 0.9, ease: [0.16, 1, 0.3, 1] }
+        }
+      >
+        <svg viewBox="0 0 600 76" preserveAspectRatio="none" className="h-full w-full">
+          <path
+            d="M0 76 L0 44 Q110 62 230 48 Q350 32 460 50 Q535 60 600 46 L600 76 Z"
+            className="fill-meadow-dark/38"
+          />
+        </svg>
+      </motion.div>
+
+      <div className="absolute inset-x-0 bottom-0 h-12 opacity-60">
+        {GRASS_TUFTS.map((tuft) => (
+          <svg
+            key={tuft.className}
+            viewBox="0 0 28 18"
+            className={[
+              'absolute bottom-0 fill-meadow-dark',
+              tuft.className,
+              tuft.flip ? 'scale-x-[-1]' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {GRASS_BLADES.map((d) => (
+              <path key={d} d={d} />
+            ))}
+          </svg>
+        ))}
+      </div>
+
+      <motion.div
+        className="absolute left-[88%] top-[16%] h-24 w-52 rounded-full bg-static-white/55 blur-2xl transform-gpu will-change-transform"
+        initial={{ x: 0, opacity: 0.2 }}
+        animate={{ x: rushing ? -330 : -380, opacity: rushing ? 0.5 : 0.28 }}
+        transition={
+          rushing ? { duration: 4.6, ease: 'linear' } : { duration: 0.9, ease: [0.16, 1, 0.3, 1] }
+        }
+      />
+
+      {/* 스피드라인 — 편대 완성 후에도 느리게 흘러 "함께 나아가는 중"을 유지한다 */}
+      {SPEED_LINES.map((line) => (
+        <motion.span
+          key={`${line.className}-${line.delay}`}
+          className={`absolute h-1 rounded-full bg-primary/25 transform-gpu will-change-transform ${line.className}`}
+          initial={{ x: 80, opacity: 0 }}
+          animate={
+            reduce
+              ? { opacity: 0 }
+              : { x: [80, -520], opacity: rushing ? [0, 0.58, 0.5, 0] : [0, 0.26, 0.22, 0] }
+          }
+          transition={
+            reduce
+              ? undefined
+              : {
+                  duration: rushing ? 0.95 : 2.6,
+                  delay: line.delay,
+                  repeat: Infinity,
+                  ease: 'linear',
+                }
+          }
+        />
+      ))}
+
+      {/* 그림자 — 벌 크기·위치에 맞춰 초원 위에 얕게 깔린다 */}
+      <BeeShadow
+        className="absolute left-[20%] top-[76%] w-9 -translate-x-1/2"
+        targetOpacity={0.2}
+        breatheDuration={3.8}
+        visible={cruising && !departing}
+        reduce={reduce}
+      />
+      <BeeShadow
+        className="absolute left-[22%] top-[80%] w-8 -translate-x-1/2"
+        targetOpacity={0.18}
+        breatheDuration={5.1}
+        visible={cruising && !departing}
+        reduce={reduce}
+      />
+      <BeeShadow
+        className="absolute left-[56%] top-[72%] w-16 -translate-x-1/2"
+        targetOpacity={0.32}
+        breatheDuration={4.4}
+        visible={!departing && phase !== 'solo'}
+        reduce={reduce}
+      />
+
+      {/* 편대: 리더(앞) + 리본·새싹 동료(뒤 삼각 대형). 크기·날개속도·둥실 주기를 다르게 */}
+      <LoginBee
+        key={`ribbon-${cycle}`}
+        className="absolute left-[20%] top-[22%] z-10 w-[min(24vw,96px)] -translate-x-1/2 -translate-y-1/2"
+        accessory="ribbon"
+        flapDuration={rushing ? '0.26s' : '0.4s'}
+        bobDuration={3.8}
+        bobDepth={5}
+        enterFrom={{ x: -150, y: -36 }}
+        enterDelay={0}
+        departDelay={0.16}
+        departing={departing}
+        visible={friendsVisible}
+        reduce={reduce}
+      />
+      <LoginBee
+        key={`sprout-${cycle}`}
+        className="absolute left-[22%] top-[64%] z-20 w-[min(21vw,84px)] -translate-x-1/2 -translate-y-1/2"
+        accessory="sprout"
+        flapDuration={rushing ? '0.24s' : '0.36s'}
+        bobDuration={5.1}
+        bobDepth={4}
+        enterFrom={{ x: -140, y: 70 }}
+        enterDelay={0.55}
+        departDelay={0.3}
+        departing={departing}
+        visible={friendsVisible}
+        reduce={reduce}
+      />
+      <LoginBee
+        key={`leader-${cycle}`}
+        className="absolute left-[56%] top-[43%] z-30 w-[min(42vw,165px)] -translate-x-1/2 -translate-y-1/2"
+        flapDuration={rushing ? '0.3s' : '0.48s'}
+        bobDuration={4.4}
+        bobDepth={6}
+        enterFrom={{ x: -280, y: 24 }}
+        enterDelay={0}
+        departDelay={0}
+        departing={departing}
+        visible
+        reduce={reduce}
+      />
+    </div>
+  )
+}
