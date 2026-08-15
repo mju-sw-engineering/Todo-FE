@@ -275,7 +275,7 @@ select {
 }
 /* 순항(비행) 포즈 — 팔·다리·더듬이가 항력에 뒤로 쳐지는 연출.
    기준 시안: login-bee-flight-pose-preview.svg. 전신 24deg 기울기는 컨테이너(framer)가 담당.
-   pivot 좌표를 그대로 쓰는 translate-chain이라 bbox 재계산이 필요 없다 */
+   origin %는 각 파츠 bbox 기준으로 환산한 data-pivot 관절 좌표 */
 .login-bee.is-cruise #arm-wave {
   display: none;
 }
@@ -283,16 +283,36 @@ select {
   display: inline;
 }
 .login-bee.is-cruise #antenna-left {
-  transform: translate(574px, 334px) rotate(-14deg) translate(-574px, -334px);
+  transform-box: fill-box;
+  transform-origin: 37% 97%;
+  transform: rotate(-14deg);
 }
 .login-bee.is-cruise #antenna-right {
-  transform: translate(787px, 342px) rotate(-20deg) translate(-787px, -342px);
+  transform-box: fill-box;
+  transform-origin: 11% 95%;
+  transform: rotate(-20deg);
 }
 .login-bee.is-cruise #leg-back {
-  transform: translate(352px, 803px) rotate(8deg) translate(-352px, -803px);
+  transform-box: fill-box;
+  transform-origin: 81% 11%;
+  transform: rotate(8deg);
 }
 .login-bee.is-cruise #leg-front {
-  transform: translate(414px, 932px) rotate(10deg) translate(-414px, -932px);
+  transform-box: fill-box;
+  transform-origin: 76% 29%;
+  transform: rotate(10deg);
+}
+/* 순항 중 날개짓은 시안의 기본 각(-12/14deg)을 중심으로 퍼덕인다 */
+.login-bee.is-cruise #wing-left {
+  animation-name: login-bee-flap-left-cruise;
+}
+.login-bee.is-cruise #wing-right {
+  animation-name: login-bee-flap-right-cruise;
+}
+/* 동료 벌 구분용 액세서리 토글 */
+.login-bee.with-ribbon #acc-ribbon,
+.login-bee.with-sprout #acc-sprout {
+  display: inline;
 }
 
 /* 표정 전환 — SVG의 display 프레젠테이션 속성을 CSS로 덮어써 파츠만 교체한다 */
@@ -352,6 +372,24 @@ select {
     transform: rotate(-14deg);
   }
 }
+@keyframes login-bee-flap-left-cruise {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+}
+@keyframes login-bee-flap-right-cruise {
+  0%,
+  100% {
+    transform: rotate(14deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
 
 /* "오늘" 표시 — 리듬 막대·벌집 칸에서 공용으로 쓰는 은은한 깜빡임 */
 .today-pulse {
@@ -375,6 +413,8 @@ select {
   .today-pulse,
   .login-bee #wing-left,
   .login-bee #wing-right,
+  .login-bee.is-cruise #wing-left,
+  .login-bee.is-cruise #wing-right,
   .login-bee.is-flying #leg-back,
   .login-bee.is-flying #leg-front,
   .login-bee.is-waving #arm-wave {
