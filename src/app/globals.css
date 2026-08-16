@@ -4,25 +4,25 @@
   --font-sans: var(--font-pretendard), -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* ── dnd-13th-9-frontend design system palette ── */
-  --color-primary-50: #669aff;
-  --color-primary-55: #4b8bff;
+  --color-primary-50: #6699ff;
+  --color-primary-55: #4d7fe6;
   --color-secondary-50: #ff7a29;
   --color-secondary-10: #ffe3c4;
   --color-static-black: #000000;
   --color-static-white: #ffffff;
   --color-status-red: #ff6648;
   --color-neutral-20: #f7f7f7;
-  --color-neutral-30: #f4f4f4;
-  --color-neutral-40: #e9e9ec;
+  --color-neutral-30: #f3f5f8;
+  --color-neutral-40: #e8eaf0;
   --color-neutral-50: #d3d3d3;
   --color-neutral-60: #ababab;
-  --color-neutral-70: #818181;
+  --color-neutral-70: #737986;
   --color-neutral-80: #707070;
   --color-neutral-90: #555555;
   --color-neutral-100: #333333;
-  --color-neutral-110: #111111;
+  --color-neutral-110: #171b26;
   --color-neutral-120: #010101;
-  --color-coolGray-20: #f0f5fb;
+  --color-coolGray-20: #eaf1ff;
   --color-coolGray-50: #a3abbe;
   --color-coolGray-80: #3e3f48;
   --color-sun: #ffd76a;
@@ -30,10 +30,16 @@
   --color-meadow: #b8dda0;
   --color-meadow-dark: #79b978;
 
+  /* 두비두비 브랜드 포인트 컬러 — 완료·성취·벌집 등 강조에만 쓴다 (60:30:10 중 10%) */
+  --color-point-50: #ffe042;
+  --color-point-10: #fff5c7;
+
   /* Semantic aliases used throughout the app, now sourced from the palette above */
   --color-primary: var(--color-primary-50);
   --color-primary-hover: var(--color-primary-55);
   --color-primary-light: var(--color-coolGray-20);
+  --color-point: var(--color-point-50);
+  --color-point-light: var(--color-point-10);
   --color-surface: var(--color-neutral-20);
   --color-border: var(--color-neutral-40);
   --color-ink: var(--color-neutral-110);
