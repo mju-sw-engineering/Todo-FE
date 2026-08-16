@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getHistoryTodos, getTeamTodoReport } from '@/services/todoService'
+import { getAllActiveTodos, getTeamTodoReport, getTodoDetail } from '@/services/todoService'
 import { pad } from '@/lib/dateUtils'
-import type { Todo } from '@/types/todo.types'
+import type { Todo, TodoDetail } from '@/types/todo.types'
 
 export type TeamTodoTabType = 'all' | 'incomplete' | 'complete'
 
@@ -20,6 +20,7 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
   const [isLoading, setIsLoading] = useState(true)
   const [tab, setTab] = useState<TeamTodoTabType>('all')
   const [showToast, setShowToast] = useState(initialShowToast)
+  const [todoDetails, setTodoDetails] = useState<Record<number, TodoDetail>>({})
 
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(todayStr)
@@ -41,7 +42,7 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
     async function load() {
       setIsLoading(true)
       try {
-        const data = await getHistoryTodos(teamId, selectedDate, token!)
+        const data = await getAllActiveTodos(teamId, token!)
         setDisplayTodos(data)
       } catch {
         setDisplayTodos([])
@@ -50,7 +51,23 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
       }
     }
     load()
-  }, [selectedDate, teamId, token])
+  }, [teamId, token])
+
+  useEffect(() => {
+    if (!token || displayTodos.length === 0) return
+    let cancelled = false
+    Promise.allSettled(displayTodos.map((t) => getTodoDetail(t.todoId, token))).then((results) => {
+      if (cancelled) return
+      const map: Record<number, TodoDetail> = {}
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled') map[displayTodos[i].todoId] = r.value
+      })
+      setTodoDetails(map)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [displayTodos, token])
 
   useEffect(() => {
     if (!calendarOpen || !token || !teamId) return
@@ -116,6 +133,7 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
     dailyCounts,
     isToday,
     filteredTodos,
+    todoDetails,
     completeCount,
     incompleteCount,
     handleSelectDate,

@@ -22,6 +22,14 @@ export interface Todo {
 
 export type TodayTodoListResponse = Todo[] | null
 
+export type TodoActiveStatusFilter = 'PENDING' | 'DONE'
+
+export interface TodoActivePageResponse {
+  todos: Todo[]
+  hasNext: boolean
+  nextCursor: string | null
+}
+
 export interface CreateTodoTaskRequest {
   title: string
   description?: string

@@ -7,6 +7,8 @@ import type {
   ReactionType,
   SubmitTodoRequest,
   Todo,
+  TodoActivePageResponse,
+  TodoActiveStatusFilter,
   TodoDetail,
   TodoPeriodReportResponse,
   TodoWorkItemAssignee,
@@ -90,6 +92,33 @@ export async function reassignTodoWorkItem(
   invalidateCache('todo:')
   invalidateCache('todos:')
   return result
+}
+
+export async function getActiveTodos(
+  teamId: number,
+  token: string,
+  params?: { status?: TodoActiveStatusFilter; cursor?: string; size?: number }
+): Promise<TodoActivePageResponse> {
+  const query = new URLSearchParams()
+  if (params?.status) query.set('status', params.status)
+  if (params?.cursor) query.set('cursor', params.cursor)
+  if (params?.size) query.set('size', String(params.size))
+  const qs = query.toString()
+  return getJson<TodoActivePageResponse>(
+    `/api/teams/${teamId}/todos/active${qs ? `?${qs}` : ''}`,
+    token
+  )
+}
+
+export async function getAllActiveTodos(teamId: number, token: string): Promise<Todo[]> {
+  const todos: Todo[] = []
+  let cursor: string | undefined
+  do {
+    const page = await getActiveTodos(teamId, token, { cursor, size: 50 })
+    todos.push(...page.todos)
+    cursor = page.hasNext ? (page.nextCursor ?? undefined) : undefined
+  } while (cursor)
+  return todos
 }
 
 export async function getHistoryTodos(

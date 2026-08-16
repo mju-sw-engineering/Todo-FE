@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { getHistoryTodos, getTeamTodoReport } from '@/services/todoService'
+import { getAllActiveTodos, getTeamTodoReport } from '@/services/todoService'
 import { pad } from '@/lib/dateUtils'
 import type { TeamListItem } from '@/types/team.types'
 import type { TodoWithTeam } from '@/types/todo.types'
@@ -20,6 +20,7 @@ export function useHomeTodos(token: string | null, teamList: TeamListItem[]) {
   const [historyTodos, setHistoryTodos] = useState<TodoWithTeam[] | null>(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [historyError, setHistoryError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     if (!calendarOpen || !token || teamList.length === 0) return
@@ -47,13 +48,13 @@ export function useHomeTodos(token: string | null, teamList: TeamListItem[]) {
   useEffect(() => {
     if (!token || teamList.length === 0) return
 
-    async function loadHistory() {
+    async function loadActiveTodos() {
       setHistoryLoading(true)
       setHistoryError(null)
       try {
         const results = await Promise.allSettled(
           teamList.map((team) =>
-            getHistoryTodos(team.teamId, selectedDate, token!).then((todos) =>
+            getAllActiveTodos(team.teamId, token!).then((todos) =>
               todos
                 .filter((t) => t.myWorkSummary.totalCount > 0)
                 .map(
@@ -78,12 +79,16 @@ export function useHomeTodos(token: string | null, teamList: TeamListItem[]) {
         setHistoryLoading(false)
       }
     }
-    loadHistory()
-  }, [selectedDate, teamList, token])
+    loadActiveTodos()
+  }, [teamList, token, reloadKey])
 
   function handleSelectDate(date: string) {
     if (date === selectedDate) return
     setSelectedDate(date)
+  }
+
+  function reload() {
+    setReloadKey((k) => k + 1)
   }
 
   function handlePrevMonth() {
@@ -121,6 +126,7 @@ export function useHomeTodos(token: string | null, teamList: TeamListItem[]) {
     handleSelectDate,
     handlePrevMonth,
     handleNextMonth,
+    reload,
     isToday: selectedDate === todayStr,
   }
 }
