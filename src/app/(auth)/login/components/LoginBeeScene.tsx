@@ -300,8 +300,6 @@ export function LoginBeeScene() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       {/* 해는 배경 패럴랙스와 대비되도록 고정해 둔다 */}
-      <div className="absolute right-[-10%] top-[4%] h-44 w-44 rounded-full bg-sun-glow/45 opacity-60 blur-2xl" />
-      <div className="absolute right-[8%] top-[10%] h-24 w-24 rounded-full bg-sun/80 shadow-[0_0_48px_var(--color-sun-glow)]" />
 
       {/* 원경의 작은 뭉게구름 — 아주 느리게 흘러 깊이를 만든다 */}
       <motion.div
@@ -312,66 +310,8 @@ export function LoginBeeScene() {
         <div className="ml-4 h-3 w-9 rounded-full bg-static-white/55 blur-[2px]" />
         <div className="-mt-1.5 h-4 w-16 rounded-full bg-static-white/55 blur-[2px]" />
       </motion.div>
-      <motion.div
-        className="absolute left-[34%] top-[11%]"
-        animate={reduce ? undefined : { x: [0, 10, 0] }}
-        transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="ml-3 h-2.5 w-6 rounded-full bg-static-white/45 blur-[2px]" />
-        <div className="-mt-1 h-3 w-11 rounded-full bg-static-white/45 blur-[2px]" />
-      </motion.div>
 
       {/* 굽이치는 초원 능선 2겹 — 편대가 완성되면 흐름이 잦아든다 */}
-      <motion.div
-        className="absolute bottom-0 left-[-18%] h-28 w-[140%] transform-gpu will-change-transform"
-        initial={{ x: 0 }}
-        animate={{ x: rushing ? -44 : -52 }}
-        transition={
-          rushing ? { duration: 4.6, ease: 'linear' } : { duration: 0.9, ease: [0.16, 1, 0.3, 1] }
-        }
-      >
-        <svg viewBox="0 0 600 100" preserveAspectRatio="none" className="h-full w-full">
-          <path
-            d="M0 100 L0 58 Q80 26 170 40 Q260 54 350 32 Q460 8 600 36 L600 100 Z"
-            className="fill-meadow/55"
-          />
-        </svg>
-      </motion.div>
-      <motion.div
-        className="absolute bottom-0 left-[-20%] h-[76px] w-[145%] transform-gpu will-change-transform"
-        initial={{ x: 0 }}
-        animate={{ x: rushing ? -72 : -84 }}
-        transition={
-          rushing ? { duration: 4.6, ease: 'linear' } : { duration: 0.9, ease: [0.16, 1, 0.3, 1] }
-        }
-      >
-        <svg viewBox="0 0 600 76" preserveAspectRatio="none" className="h-full w-full">
-          <path
-            d="M0 76 L0 44 Q110 62 230 48 Q350 32 460 50 Q535 60 600 46 L600 76 Z"
-            className="fill-meadow-dark/38"
-          />
-        </svg>
-      </motion.div>
-
-      <div className="absolute inset-x-0 bottom-0 h-12 opacity-60">
-        {GRASS_TUFTS.map((tuft) => (
-          <svg
-            key={tuft.className}
-            viewBox="0 0 28 18"
-            className={[
-              'absolute bottom-0 fill-meadow-dark',
-              tuft.className,
-              tuft.flip ? 'scale-x-[-1]' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            {GRASS_BLADES.map((d) => (
-              <path key={d} d={d} />
-            ))}
-          </svg>
-        ))}
-      </div>
 
       <motion.div
         className="absolute left-[88%] top-[16%] h-24 w-52 rounded-full bg-static-white/55 blur-2xl transform-gpu will-change-transform"
@@ -432,7 +372,7 @@ export function LoginBeeScene() {
       {/* 편대: 리더(앞) + 리본·새싹 동료(뒤 삼각 대형). 크기·날개속도·둥실 주기를 다르게 */}
       <LoginBee
         key={`ribbon-${cycle}`}
-        className="absolute left-[20%] top-[22%] z-10 w-[min(24vw,96px)] -translate-x-1/2 -translate-y-1/2"
+        className="absolute left-[20%] top-[22%] z-10 w-[min(50vw,100px)] -translate-x-1/2 -translate-y-1/2"
         accessory="ribbon"
         flapDuration={rushing ? '0.26s' : '0.4s'}
         bobDuration={3.8}

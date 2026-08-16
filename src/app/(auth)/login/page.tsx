@@ -58,15 +58,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-gradient-to-b from-primary-light via-surface to-primary animate-fade-up">
+    <div
+      className="flex flex-1 flex-col overflow-hidden animate-fade-up"
+      style={{
+        background: 'radial-gradient(circle at 50% 40%, #eaf1ff 0%, #669aff 55%, #2f4fb0 100%)',
+      }}
+    >
       {/* 타이틀 + 로그인 벌 인트로 */}
-      <div className="flex-1 relative px-6 pb-10 flex flex-col justify-end overflow-hidden">
+      <div className="flex-1 relative px-6 pb-10 flex flex-col justify-end items-end text-right overflow-hidden">
         <LoginBeeScene />
 
         <h1 className="relative text-[40px] font-jua text-ink tracking-tight leading-none">
           두비두비
         </h1>
-        <p className="relative text-[13px] text-muted font-medium mt-2">팀과 함께 완성하는 하루</p>
+        <p className="relative text-[13px] text-white font-medium mt-2">팀과 함께 완성하는 하루</p>
       </div>
 
       {/* 폼 바텀 시트 */}
