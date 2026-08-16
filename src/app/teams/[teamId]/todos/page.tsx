@@ -8,7 +8,6 @@ import { useAuth } from '@/store/authStore'
 import { TeamTodoCard } from './components/TeamTodoCard'
 import { TeamHiveGrowthCard } from '@/app/teams/[teamId]/components/TeamHiveGrowthCard'
 import { BackButton } from '@/components/ui/BackButton'
-import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
 import type { TeamTodoTabType } from '@/hooks/useTeamTodos'
 
@@ -47,6 +46,7 @@ function TodoListContent() {
     setTab,
     showToast,
     filteredTodos,
+    todoDetails,
     completeCount,
     incompleteCount,
   } = useTeamTodos(teamId, token, searchParams.get('created') === '1')
@@ -131,7 +131,7 @@ function TodoListContent() {
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${tab === key ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${tab === key ? 'bg-primary text-white' : 'bg-neutral-30 text-muted hover:bg-neutral-40'}`}
               >
                 {label} {count}
               </button>
@@ -152,34 +152,26 @@ function TodoListContent() {
                 <rect x="4" y="3" width="16" height="18" rx="2" />
                 <path strokeLinecap="round" d="M8 8h8M8 12h8M8 16h5" />
               </svg>
-              <p className="text-[15px] font-bold text-gray-900">오늘 할 일이 없어요</p>
-              <p className="text-[13px] text-gray-400 mt-1">팀의 첫 번째 할 일을 추가해보세요</p>
+              <p className="text-[15px] font-bold text-gray-900">아직 진행 중인 할 일이 없어요</p>
+              <p className="text-[13px] text-gray-400 mt-1">
+                새 할 일이 등록되면 여기서 진행 현황을 볼 수 있어요
+              </p>
             </div>
           ) : filteredTodos.length === 0 ? (
             <div className="flex items-center justify-center py-20">
               <p className="text-[14px] text-gray-400">해당하는 할 일이 없어요</p>
             </div>
           ) : (
-            filteredTodos.map((todo, idx) => (
+            filteredTodos.map((todo) => (
               <TeamTodoCard
                 key={todo.todoId}
                 todo={todo}
-                colorIndex={idx}
+                detail={todoDetails[todo.todoId]}
                 onClick={() => router.push(`/teams/${teamId}/todos/${todo.todoId}`)}
               />
             ))
           )}
         </div>
-      </div>
-
-      <div className="shrink-0 px-5 py-4 border-t border-gray-100">
-        <Button
-          size="lg"
-          className="rounded-[18px] font-bold active:scale-[0.98]"
-          onClick={() => router.push(`/teams/${teamId}/todos/new`)}
-        >
-          + 할 일 추가
-        </Button>
       </div>
 
       {showToast && (
