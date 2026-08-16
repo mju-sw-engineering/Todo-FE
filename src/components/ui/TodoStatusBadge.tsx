@@ -3,7 +3,7 @@ import type { TodoStatus } from '@/types/todo.types'
 export function TodoStatusBadge({ status }: { status: TodoStatus }) {
   if (status === 'IN_PROGRESS') {
     return (
-      <span className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+      <span className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-primary-light text-primary">
         <span className="relative flex w-1.5 h-1.5 shrink-0">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
           <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-primary" />

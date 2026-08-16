@@ -191,7 +191,7 @@ function TodoDetailContent() {
                   transform: 'translateX(-50%)',
                 }}
               >
-                <div className="whitespace-nowrap rounded-[10px] border border-border/60 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-700 shadow-sm">
+                <div className="whitespace-nowrap rounded-[10px] bg-primary-light px-2.5 py-1.5 text-[11px] font-semibold text-primary shadow-sm">
                   {getProgressMessage(achieved, total, todoId)}
                 </div>
               </motion.div>

@@ -136,7 +136,10 @@ export function ChatBot({ token, teamId: teamIdProp, teams }: ChatBotProps) {
         <button
           onClick={handleOpen}
           className={`fixed ${teamIdProp !== undefined ? 'bottom-30' : 'bottom-19'} right-5 z-40 w-14 h-14 rounded-full shadow-[0_4px_22px_rgba(14,21,80,0.32)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95 overflow-hidden`}
-          style={{ background: 'linear-gradient(135deg,#2C3EA8 0%,#1A2778 100%)' }}
+          style={{
+            background: 'linear-gradient(135deg,#2C3EA8 0%,#1A2778 100%)',
+            border: '2.5px solid #FFE042',
+          }}
           aria-label="AI 챗봇 열기"
         >
           <AiIcon size={22} />

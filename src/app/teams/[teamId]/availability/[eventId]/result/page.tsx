@@ -20,12 +20,12 @@ function fullDateLabel(date: string): string {
   return `${m}월 ${d}일 (${WEEKDAY_SHORT[dow]})`
 }
 
-function heatClassName(count: number, total: number) {
-  if (count <= 0) return 'bg-gray-50 border-border'
-  if (count === total) return 'bg-primary border-primary'
-  if (count >= 3) return 'bg-primary/70 border-primary/70'
-  if (count === 2) return 'bg-primary/40 border-primary/40'
-  return 'bg-primary/15 border-primary/15'
+function slotStyle(count: number, isActive: boolean): React.CSSProperties {
+  if (isActive)
+    return { background: 'var(--color-primary)', borderColor: 'var(--color-primary-hover)' }
+  if (count > 0)
+    return { background: 'var(--color-primary-light)', borderColor: 'var(--color-primary-light)' }
+  return { background: '#F8F9FB', borderColor: '#F8F9FB' }
 }
 
 function buildTimeSlots(startHour: number, endHour: number): string[] {
@@ -92,25 +92,6 @@ export default function AvailabilityResultPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-4">
-        {poll.bestSlot && (
-          <div className="mx-5 mb-3 rounded-2xl bg-primary/10 px-4 py-3.5 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center text-[19px] shrink-0">
-              🎉
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10.5px] font-bold text-primary tracking-wide">
-                가장 많이 가능한 시간
-              </p>
-              <p className="text-[15px] font-black text-ink mt-0.5 truncate">
-                {fullDateLabel(poll.bestSlot.date)} {poll.bestSlot.hour}:00
-              </p>
-              <p className="text-[12px] text-muted mt-0.5">
-                {poll.bestSlot.count}/{poll.totalMemberCount}명 가능
-              </p>
-            </div>
-          </div>
-        )}
-
         <AvailabilityGridShell
           dateOptions={poll.dateOptions}
           timeSlots={timeSlots}
@@ -122,10 +103,8 @@ export default function AvailabilityResultPage() {
               <button
                 type="button"
                 onClick={() => setActiveSlot(slot ?? { date, hour, count: 0, members: [] })}
-                className={`w-full h-full rounded-[4px] border transition-all duration-100 relative ${heatClassName(
-                  slot?.count ?? 0,
-                  poll.totalMemberCount
-                )} ${isActive ? 'ring-2 ring-primary ring-offset-1' : ''}`}
+                className="w-full h-full rounded-[4px] border-2 transition-all duration-100 relative"
+                style={slotStyle(slot?.count ?? 0, isActive)}
               />
             )
           }}
@@ -133,7 +112,7 @@ export default function AvailabilityResultPage() {
 
         <div className="flex items-center gap-3 flex-wrap px-5 py-3 text-[10px] font-semibold text-muted">
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm inline-block bg-primary/15" />
+            <span className="w-3 h-3 rounded-sm inline-block bg-primary-light" />
             응답 적음
           </span>
           <span className="flex items-center gap-1.5">
@@ -156,8 +135,13 @@ export default function AvailabilityResultPage() {
             {activeSlot ? (
               <>
                 <p className="text-[12.5px] font-bold text-ink">
-                  {fullDateLabel(activeSlot.date)} {activeSlot.hour}:00 · {activeSlot.count}/
-                  {poll.totalMemberCount}명 가능
+                  {fullDateLabel(activeSlot.date)} {activeSlot.hour}:00 ·{' '}
+                  <span
+                    className="rounded px-1 py-0.5 -mx-1"
+                    style={{ background: 'rgba(255,224,66,0.45)' }}
+                  >
+                    {activeSlot.count}/{poll.totalMemberCount}명 가능
+                  </span>
                 </p>
                 <p className="text-[11px] text-muted mt-0.5 truncate">
                   {activeSlot.members.length > 0
