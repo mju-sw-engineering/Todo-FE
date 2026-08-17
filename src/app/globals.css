@@ -249,12 +249,12 @@ select {
 }
 .login-bee #wing-left {
   transform-box: fill-box;
-  transform-origin: 96% 95%;
+  transform-origin: 82% 86%;
   animation: login-bee-flap-left var(--login-bee-flap, 0.85s) ease-in-out infinite;
 }
 .login-bee #wing-right {
   transform-box: fill-box;
-  transform-origin: 16% 93%;
+  transform-origin: 30% 88%;
   animation: login-bee-flap-right var(--login-bee-flap, 0.85s) ease-in-out infinite;
 }
 /* 비행 중에는 날개를 빠르게 젓고 다리가 바람에 흔들린다 */
