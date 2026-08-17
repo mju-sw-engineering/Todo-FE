@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { BeeCharacter, expressionForProgress } from '@/components/bee/BeeCharacter'
+import { BeePose } from '@/components/bee/BeePose'
 import { MyTodoCard } from './components/MyTodoCard'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { getTeams } from '@/services/teamService'
@@ -195,7 +196,7 @@ export default function HomePage() {
 
       {!historyLoading && !historyError && displayTodos.length > 0 && completionPct === 100 && (
         <div className="mx-4 mb-3 shrink-0 rounded-2xl px-4 py-2.5 flex items-center gap-3 bg-[linear-gradient(135deg,#eef4ff_0%,#dbe9ff_100%)]">
-          <BeeCharacter expression="proud" size={56} flip />
+          <BeePose pose="cheer" size={62} />
           <div>
             <p className="text-[13.5px] font-bold text-ink">오늘 할 일을 모두 끝냈어요</p>
             <p className="text-[11px] text-gray-500 font-medium mt-0.5">
@@ -242,11 +243,8 @@ export default function HomePage() {
           </div>
         ) : displayTodos.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2 py-20">
-            <div className="relative mb-1">
-              <span className="absolute -top-2 -right-7 text-[14px] font-jua text-[#b7c3d8] tracking-[0.2em] select-none">
-                z z
-              </span>
-              <BeeCharacter expression="proud" size={120} />
+            <div className="mb-1">
+              <BeePose pose="search" size={130} />
             </div>
             <p className="text-[16px] font-jua text-gray-900">오늘 할 일이 없어요</p>
             <p className="text-[13px] text-gray-400">팀에서 할 일을 추가해보세요</p>

@@ -9,6 +9,7 @@ import { getTeamById } from '@/services/teamService'
 import { getTodoWorkItemSubmission } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
+import { BeePose } from '@/components/bee/BeePose'
 import { MemberCertCard } from './components/MemberCertCard'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -309,6 +310,7 @@ function TodoDetailContent() {
             onClick={() => setShowToast(false)}
           >
             <div className="rounded-3xl bg-white px-8 py-6 text-center shadow-xl">
+              <BeePose pose="flower" size={104} className="mx-auto mb-1" />
               <p className="text-[22px] font-black text-gray-900">인증 완료!</p>
               <p className="mt-1.5 text-[13px] text-gray-500">인증샷이 업로드됐어요</p>
               <button
