@@ -9,6 +9,8 @@ import type { PresignedUploadRequest } from '@/types/file.types'
 interface UsePresignedUploadOptions {
   type: PresignedUploadRequest['type']
   token?: string
+  /** 로그인 전 회원가입 단계에서만 쓴다. 자세한 배경은 `PresignedUploadRequest.signupToken` 참조. */
+  signupToken?: string
 }
 
 interface UsePresignedUploadReturn {
@@ -20,6 +22,7 @@ interface UsePresignedUploadReturn {
 export function usePresignedUpload({
   type,
   token,
+  signupToken,
 }: UsePresignedUploadOptions): UsePresignedUploadReturn {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +33,13 @@ export function usePresignedUpload({
     try {
       const uploadFile = await compressImageFile(file)
       const { uploadUrl, objectKey } = await getPresignedUploadUrl(
-        { type, fileName: uploadFile.name, contentType: uploadFile.type },
+        {
+          type,
+          fileName: uploadFile.name,
+          contentType: uploadFile.type,
+          fileSize: uploadFile.size,
+          signupToken,
+        },
         token
       )
       await uploadFileToStorage(uploadUrl, uploadFile)

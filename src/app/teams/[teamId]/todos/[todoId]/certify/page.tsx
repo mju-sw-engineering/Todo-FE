@@ -50,7 +50,12 @@ function CertifyContent() {
       async () => {
         const uploadFile = await compressImageFile(file)
         const { uploadUrl, objectKey } = await getPresignedUploadUrl(
-          { type: 'PROOF', fileName: uploadFile.name, contentType: uploadFile.type },
+          {
+            type: 'PROOF',
+            fileName: uploadFile.name,
+            contentType: uploadFile.type,
+            fileSize: uploadFile.size,
+          },
           token
         )
         await uploadFileToStorage(uploadUrl, uploadFile)
