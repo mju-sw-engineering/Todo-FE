@@ -35,7 +35,10 @@ export default function AppleSetupPage() {
   })
 
   const { isLoading, error, setError, run } = useAsyncTask()
-  const { upload, isUploading } = usePresignedUpload({ type: 'PROFILE' })
+  const { upload, isUploading } = usePresignedUpload({
+    type: 'PROFILE',
+    signupToken: setupToken ?? undefined,
+  })
 
   useEffect(() => {
     const setup = readAppleSetup()
@@ -73,7 +76,13 @@ export default function AppleSetupPage() {
       async () => {
         let profileImageKey: string | null = null
         if (profileImage) {
-          profileImageKey = await upload(profileImage)
+          // 사진은 선택 항목이라 업로드 실패로 가입을 막지 않는다. setup token은 5분이라
+          // 여기서 되돌려 보내면 처음부터 다시 해야 하는데, 그럴 만한 이유가 아니다.
+          try {
+            profileImageKey = await upload(profileImage)
+          } catch {
+            profileImageKey = null
+          }
         }
 
         let accessToken: string

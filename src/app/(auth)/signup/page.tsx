@@ -56,7 +56,10 @@ export default function SignupPage() {
   const apple = useAppleSignIn()
   const sendTask = useAsyncTask()
   const verifyTask = useAsyncTask()
-  const { upload, isUploading } = usePresignedUpload({ type: 'PROFILE' })
+  const { upload, isUploading } = usePresignedUpload({
+    type: 'PROFILE',
+    signupToken: emailVerificationToken,
+  })
 
   useEffect(() => {
     if (emailStatus !== 'sent') return
@@ -128,7 +131,14 @@ export default function SignupPage() {
       async () => {
         let profileImageKey: string | null = null
         if (profileImage) {
-          profileImageKey = await upload(profileImage)
+          // 프로필 사진은 선택 항목이다. 업로드가 실패했다고 가입까지 막으면
+          // 스토리지 장애나 일시적인 네트워크 오류로 계정 생성 자체가 불가능해진다.
+          // 사진 없이 가입시키고 마이페이지에서 다시 올리게 둔다.
+          try {
+            profileImageKey = await upload(profileImage)
+          } catch {
+            profileImageKey = null
+          }
         }
         await signup({
           email,
