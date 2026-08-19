@@ -7,6 +7,7 @@ import { BeeCharacter, expressionForProgress } from '@/components/bee/BeeCharact
 import { BeePose } from '@/components/bee/BeePose'
 import { MyTodoCard } from './components/MyTodoCard'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { BottomSheet } from '@/components/ui/BottomSheet'
 import { getTeams } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import { useHomeTodos } from '@/hooks/useHomeTodos'
@@ -273,7 +274,7 @@ export default function HomePage() {
       <button
         onClick={handleCreateClick}
         aria-label="할 일 추가"
-        className="fixed bottom-16 right-5 z-40 w-14 h-14 rounded-full bg-primary text-white shadow-[0_4px_22px_rgba(102,153,255,0.4)] flex items-center justify-center active:scale-95 transition-all hover:bg-primary-hover"
+        className="fixed bottom-8 right-5 z-40 w-14 h-14 rounded-full bg-primary text-white shadow-[0_4px_22px_rgba(102,153,255,0.4)] flex items-center justify-center active:scale-95 transition-all hover:bg-primary-hover"
       >
         <svg
           width="22"
@@ -288,42 +289,34 @@ export default function HomePage() {
       </button>
 
       {teamPickerOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/35"
-          onClick={() => setTeamPickerOpen(false)}
-        >
-          <div
-            className="w-full max-w-97.5 rounded-t-3xl bg-white px-6 pt-6 pb-9"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-[17px] font-bold text-ink">어느 팀에 추가할까요?</h2>
-            <p className="mt-1 text-[12px] text-muted">할 일을 만들 팀을 선택해주세요.</p>
-            <div className="my-5 max-h-72 flex flex-col gap-2 overflow-y-auto">
-              {teamList.map((team) => (
-                <button
-                  key={team.teamId}
-                  onClick={() => router.push(`/teams/${team.teamId}/todos/new`)}
-                  className="w-full flex items-center gap-3 rounded-[14px] border border-gray-300 px-4 py-3 text-left hover:border-primary transition-colors"
-                >
-                  {team.teamImageUrl ? (
-                    <span className="w-8 h-8 rounded-full overflow-hidden shrink-0 relative">
-                      <Image
-                        src={team.teamImageUrl}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </span>
-                  ) : (
-                    <BlobAvatar seed={team.teamName} size={32} />
-                  )}
-                  <span className="text-[14px] font-semibold text-ink">{team.teamName}</span>
-                </button>
-              ))}
-            </div>
+        <BottomSheet onClose={() => setTeamPickerOpen(false)}>
+          <h2 className="text-[17px] font-bold text-ink">어느 팀에 추가할까요?</h2>
+          <p className="mt-1 text-[12px] text-muted">할 일을 만들 팀을 선택해주세요.</p>
+          <div className="my-5 max-h-72 flex flex-col gap-2 overflow-y-auto">
+            {teamList.map((team) => (
+              <button
+                key={team.teamId}
+                onClick={() => router.push(`/teams/${team.teamId}/todos/new`)}
+                className="w-full flex items-center gap-3 rounded-[14px] border border-gray-300 px-4 py-3 text-left hover:border-primary transition-colors"
+              >
+                {team.teamImageUrl ? (
+                  <span className="w-8 h-8 rounded-full overflow-hidden shrink-0 relative">
+                    <Image
+                      src={team.teamImageUrl}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </span>
+                ) : (
+                  <BlobAvatar seed={team.teamName} size={32} />
+                )}
+                <span className="text-[14px] font-semibold text-ink">{team.teamName}</span>
+              </button>
+            ))}
           </div>
-        </div>
+        </BottomSheet>
       )}
     </div>
   )
