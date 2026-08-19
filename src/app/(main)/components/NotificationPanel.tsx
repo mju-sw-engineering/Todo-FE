@@ -3,6 +3,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
+import {
+  FiAlertTriangle,
+  FiAward,
+  FiCalendar,
+  FiCheckCircle,
+  FiClock,
+  FiHeart,
+  FiLock,
+  FiMessageCircle,
+  FiPlusSquare,
+  FiShield,
+  FiUpload,
+  FiUserMinus,
+  FiUserPlus,
+  FiUserX,
+} from 'react-icons/fi'
+import type { IconType } from 'react-icons'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useAuth } from '@/store/authStore'
 import { StickerEmoji } from '@/components/chat/StickerEmoji'
@@ -10,7 +27,7 @@ import { STICKER_TYPES, STICKER_PREFIX, parseStandaloneSticker } from '@/lib/sti
 import { formatRelativeTime } from '@/lib/dateUtils'
 import { getTeams } from '@/services/teamService'
 import { getHistoryTodos } from '@/services/todoService'
-import type { AppNotification } from '@/types/notification.types'
+import type { AppNotification, NotificationType } from '@/types/notification.types'
 import type { StickerType } from '@/lib/sticker'
 
 // ─── Title / content parsing ──────────────────────────────────────────────────
@@ -90,20 +107,43 @@ function NotificationContent({ content }: { content: string }) {
   )
 }
 
-// ─── Default profile avatar ────────────────────────────────────────────────────
+// ─── Notification type → icon / tone ───────────────────────────────────────────
 
-function DefaultAvatar() {
+type NotificationTone = 'primary' | 'secondary' | 'red' | 'neutral'
+
+const TONE_CLASSES: Record<NotificationTone, string> = {
+  primary: 'bg-primary/10 text-primary',
+  secondary: 'bg-secondary-50/10 text-secondary-50',
+  red: 'bg-status-red/10 text-status-red',
+  neutral: 'bg-neutral-30 text-neutral-80',
+}
+
+const NOTIFICATION_META: Record<NotificationType, { Icon: IconType; tone: NotificationTone }> = {
+  CHAT_MESSAGE: { Icon: FiMessageCircle, tone: 'primary' },
+  TODO_CREATED: { Icon: FiPlusSquare, tone: 'primary' },
+  TODO_ASSIGNED: { Icon: FiUserPlus, tone: 'primary' },
+  TODO_UNASSIGNED: { Icon: FiUserX, tone: 'neutral' },
+  TODO_SUBMITTED: { Icon: FiUpload, tone: 'primary' },
+  TODO_DEADLINE_APPROACHING: { Icon: FiClock, tone: 'secondary' },
+  TODO_WORK_ITEM_EXPIRED: { Icon: FiAlertTriangle, tone: 'red' },
+  TODO_REACTION_ADDED: { Icon: FiHeart, tone: 'primary' },
+  TODO_ALL_COMPLETED: { Icon: FiCheckCircle, tone: 'primary' },
+  TEAM_MEMBER_JOINED: { Icon: FiUserPlus, tone: 'secondary' },
+  TEAM_MEMBER_LEFT: { Icon: FiUserMinus, tone: 'neutral' },
+  TEAM_MEMBER_REMOVED: { Icon: FiUserX, tone: 'red' },
+  TEAM_LEADER_CHANGED: { Icon: FiAward, tone: 'secondary' },
+  NEW_DEVICE_LOGIN: { Icon: FiShield, tone: 'red' },
+  PASSWORD_CHANGED: { Icon: FiLock, tone: 'red' },
+  AVAILABILITY_POLL_CREATED: { Icon: FiCalendar, tone: 'secondary' },
+}
+
+function NotificationIcon({ type }: { type: NotificationType }) {
+  const { Icon, tone } = NOTIFICATION_META[type]
   return (
-    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-      <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-        <circle cx="8.5" cy="5.5" r="3" fill="#9CA3AF" />
-        <path
-          d="M2 15c0-3.6 2.9-5.5 6.5-5.5S15 11.4 15 15"
-          stroke="#9CA3AF"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-      </svg>
+    <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${TONE_CLASSES[tone]}`}
+    >
+      <Icon size={15} />
     </div>
   )
 }
@@ -131,7 +171,7 @@ function NotificationItem({
       }}
       className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors hover:bg-gray-50 ${notification.isRead ? 'opacity-50' : ''}`}
     >
-      <DefaultAvatar />
+      <NotificationIcon type={notification.type} />
       <div className="flex-1 min-w-0">
         {sender && <p className="text-[12px] font-semibold text-ink truncate">{sender}</p>}
         <p className="text-[13px] text-gray-600 leading-snug">
@@ -174,15 +214,7 @@ export function NotificationBell() {
     setPanelStyle({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
   }, [isOpen])
 
-  async function openNotification(notification: AppNotification) {
-    setIsOpen(false)
-    if (
-      !token ||
-      !['TODO_CREATED', 'TODO_ASSIGNED', 'TODO_UNASSIGNED'].includes(notification.type)
-    ) {
-      return
-    }
-
+  async function openTodoNotification(notification: AppNotification, token: string) {
     try {
       const { teams } = await getTeams(token)
       const now = new Date()
@@ -201,6 +233,41 @@ export function NotificationBell() {
       router.push(owner ? `/teams/${owner.teamId}/todos/${notification.referenceId}` : '/teams')
     } catch {
       router.push('/teams')
+    }
+  }
+
+  async function openNotification(notification: AppNotification) {
+    setIsOpen(false)
+    if (!token) return
+
+    switch (notification.type) {
+      case 'TODO_CREATED':
+      case 'TODO_ASSIGNED':
+      case 'TODO_UNASSIGNED':
+      case 'TODO_SUBMITTED':
+      case 'TODO_DEADLINE_APPROACHING':
+      case 'TODO_WORK_ITEM_EXPIRED':
+      case 'TODO_REACTION_ADDED':
+      case 'TODO_ALL_COMPLETED':
+        // referenceId가 투두 ID라, 어느 팀 소속인지 팀들을 뒤져야 한다
+        await openTodoNotification(notification, token)
+        return
+      case 'CHAT_MESSAGE':
+        router.push(`/teams/${notification.referenceId}/chat`)
+        return
+      case 'TEAM_MEMBER_JOINED':
+      case 'TEAM_MEMBER_LEFT':
+      case 'TEAM_MEMBER_REMOVED':
+      case 'TEAM_LEADER_CHANGED':
+        router.push(`/teams/${notification.referenceId}`)
+        return
+      case 'AVAILABILITY_POLL_CREATED':
+        router.push(`/teams/${notification.referenceId}/availability`)
+        return
+      case 'NEW_DEVICE_LOGIN':
+      case 'PASSWORD_CHANGED':
+        router.push('/mypage')
+        return
     }
   }
 
