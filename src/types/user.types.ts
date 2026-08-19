@@ -15,3 +15,9 @@ export interface MyInfoResponse {
   provider: AuthProvider
   teams: MyTeam[]
 }
+
+export interface UpdatePasswordRequest {
+  currentPassword: string
+  newPassword: string
+  newPasswordConfirm: string
+}

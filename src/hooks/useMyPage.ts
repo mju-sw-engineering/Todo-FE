@@ -3,21 +3,20 @@ import { useRouter } from 'next/navigation'
 import { reauthenticate, reauthenticateWithApple } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
 import { ApiError } from '@/lib/apiClient'
+import { getErrorMessage } from '@/lib/apiError'
 import { AppleSignInCancelledError, requestAppleCredential } from '@/lib/appleAuth'
+import { usePresignedUpload } from '@/hooks/usePresignedUpload'
 import {
   deleteAccount,
   getMyInfo,
-  leaveTeam,
   logoutApi,
   updateNickname,
+  updatePassword,
+  updateProfileImage,
 } from '@/services/userService'
-import type { MyInfoResponse, MyTeam } from '@/types/user.types'
+import type { MyInfoResponse } from '@/types/user.types'
 
-export type MyPageConfirmState =
-  | { type: 'logout' }
-  | { type: 'deleteAccount' }
-  | { type: 'leaveTeam'; team: MyTeam }
-  | null
+export type MyPageConfirmState = { type: 'logout' } | { type: 'deleteAccount' } | null
 
 type DeleteAccountPhase = 'reauth' | 'withdrawal'
 
@@ -55,11 +54,18 @@ export function useMyPage() {
   const [nicknameInput, setNicknameInput] = useState('')
   const [savingNickname, setSavingNickname] = useState(false)
 
-  const [leavingTeamId, setLeavingTeamId] = useState<number | null>(null)
   const [confirm, setConfirm] = useState<MyPageConfirmState>(null)
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null)
   const [deletingAccount, setDeletingAccount] = useState(false)
+
+  const { upload: uploadProfileImage, isUploading: uploadingProfileImage } = usePresignedUpload({
+    type: 'PROFILE',
+    token: token ?? undefined,
+  })
+
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
 
   // 애플 계정은 비밀번호가 없어 탈퇴 재인증 방식이 다르다.
   //
@@ -112,19 +118,40 @@ export function useMyPage() {
     }
   }
 
-  async function handleLeaveTeam(team: MyTeam) {
-    setLeavingTeamId(team.teamId)
-    setConfirm(null)
+  async function handleProfileImageChange(file: File) {
+    if (!token) return
     try {
-      await leaveTeam(team.teamId, token!)
-      setMyInfo((prev) =>
-        prev ? { ...prev, teams: prev.teams.filter((t) => t.teamId !== team.teamId) } : prev
-      )
-      showToast('그룹에서 나왔습니다.')
+      const profileImageKey = await uploadProfileImage(file)
+      const updated = await updateProfileImage(profileImageKey, token)
+      setMyInfo(updated)
+      updateUser({ profileImageUrl: updated.profileImageUrl })
+      showToast('프로필 사진이 변경되었습니다.')
     } catch (err) {
-      showToast(err instanceof Error ? err.message : '그룹 나가기에 실패했습니다.')
+      showToast(err instanceof Error ? err.message : '프로필 사진 변경에 실패했습니다.')
+    }
+  }
+
+  async function handleChangePassword(
+    currentPassword: string,
+    newPassword: string,
+    newPasswordConfirm: string
+  ): Promise<boolean> {
+    if (!token) return false
+    setPasswordError(null)
+    if (newPassword !== newPasswordConfirm) {
+      setPasswordError('새 비밀번호가 일치하지 않습니다.')
+      return false
+    }
+    setChangingPassword(true)
+    try {
+      await updatePassword({ currentPassword, newPassword, newPasswordConfirm }, token)
+      showToast('비밀번호가 변경되었습니다.')
+      return true
+    } catch (err) {
+      setPasswordError(getErrorMessage(err, '비밀번호 변경에 실패했습니다.'))
+      return false
     } finally {
-      setLeavingTeamId(null)
+      setChangingPassword(false)
     }
   }
 
@@ -218,7 +245,6 @@ export function useMyPage() {
     nicknameInput,
     setNicknameInput,
     savingNickname,
-    leavingTeamId,
     confirm,
     setConfirm,
     deletePassword,
@@ -227,8 +253,13 @@ export function useMyPage() {
     deletingAccount,
     isAppleAccount,
     providerKnown,
+    uploadingProfileImage,
+    changingPassword,
+    passwordError,
+    setPasswordError,
     handleSaveNickname,
-    handleLeaveTeam,
+    handleProfileImageChange,
+    handleChangePassword,
     handleLogout,
     openDeleteAccountConfirm,
     closeDeleteAccountConfirm,
