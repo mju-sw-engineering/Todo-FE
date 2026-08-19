@@ -8,6 +8,8 @@ import type {
   EmailVerificationSendRequest,
   EmailVerificationVerifyRequest,
   EmailVerificationVerifyResponse,
+  FindIdRequest,
+  FindIdResponse,
   LoginRequest,
   LoginResponse,
   MyProfileResponse,
@@ -47,6 +49,11 @@ export async function verifyEmailCode(
 
 export async function signup(request: SignupRequest): Promise<SignupResponse> {
   return postJson<SignupResponse>('/api/auth/signup', request)
+}
+
+/** 이메일 인증 토큰으로 이메일 소유를 확인하고 가입된 로그인 아이디를 반환한다. LOCAL 계정만 가능 */
+export async function findId(request: FindIdRequest): Promise<FindIdResponse> {
+  return postJson<FindIdResponse>('/api/auth/find-id', request)
 }
 
 export async function getMyProfile(token: string): Promise<MyProfileResponse> {

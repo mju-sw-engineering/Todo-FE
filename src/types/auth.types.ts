@@ -35,6 +35,15 @@ export interface EmailVerificationVerifyResponse {
   emailVerificationToken: string
 }
 
+export interface FindIdRequest {
+  email: string
+  emailVerificationToken: string
+}
+
+export interface FindIdResponse {
+  loginId: string
+}
+
 export interface LoginResponse {
   accessToken: string
 }
