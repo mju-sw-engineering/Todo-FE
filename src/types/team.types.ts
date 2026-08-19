@@ -23,6 +23,13 @@ export interface JoinTeamResponse {
   teamId: number
 }
 
+export interface InviteLinkResponse {
+  /** 공유용 초대 링크 */
+  inviteLink: string
+  /** 만료 시각 (발급 후 7일) */
+  expiresAt: string
+}
+
 /** 팀 벌집 성장 — 레벨 문턱값은 0/30/100/300 */
 export interface TeamHiveResponse {
   /** 1~4 */

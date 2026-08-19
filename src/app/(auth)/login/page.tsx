@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useState } from 'react'
 import { AppleLoginButton } from '@/components/ui/AppleLoginButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -14,7 +14,17 @@ import { useAuth } from '@/store/authStore'
 import { LoginBeeScene } from './components/LoginBeeScene'
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  )
+}
+
+function LoginPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextPath = searchParams.get('next')
   const { setAuth } = useAuth()
 
   const [loginId, setLoginId] = useState('')
@@ -51,7 +61,8 @@ export default function LoginPage() {
           profileImageUrl: profile.profileImageUrl,
           userId: profile.userId,
         })
-        router.push('/')
+        // 외부 도메인으로 리다이렉트되지 않도록 상대 경로만 허용한다
+        router.push(nextPath?.startsWith('/') ? nextPath : '/')
       },
       { fallback: '로그인 중 오류가 발생했습니다.' }
     )
@@ -120,6 +131,13 @@ export default function LoginPage() {
             >
               {isLoading ? '로그인 중...' : '로그인'}
             </Button>
+
+            <Link
+              href="/find-id"
+              className="text-center text-[13px] text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            >
+              아이디를 잊으셨나요?
+            </Link>
           </form>
         )}
 

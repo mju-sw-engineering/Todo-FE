@@ -3,6 +3,7 @@ import { cachedRequest, invalidateCache } from '@/lib/requestCache'
 import type {
   CreateTeamRequest,
   CreateTeamResponse,
+  InviteLinkResponse,
   JoinTeamRequest,
   JoinTeamResponse,
   TeamDetailResponse,
@@ -42,6 +43,19 @@ export async function joinTeam(request: JoinTeamRequest, token: string): Promise
   return result
 }
 
+export async function joinTeamByInviteLink(
+  linkToken: string,
+  token: string
+): Promise<JoinTeamResponse> {
+  const result = await postJson<JoinTeamResponse>(
+    '/api/teams/invite-link/join',
+    { token: linkToken },
+    token
+  )
+  invalidateCache('teams')
+  return result
+}
+
 export async function removeMember(
   teamId: number,
   targetUserId: number,
@@ -57,10 +71,10 @@ export async function leaveTeam(teamId: number, token: string): Promise<void> {
   invalidateCache(`team:${teamId}`)
 }
 
-export async function inviteByEmail(
+/** 유효한 링크가 있으면 그대로, 없거나 만료됐으면 새로 발급(7일)해서 반환한다 */
+export async function getOrCreateInviteLink(
   teamId: number,
-  emails: string[],
   token: string
-): Promise<void> {
-  await postJson<void>(`/api/teams/${teamId}/invitations`, { emails }, token)
+): Promise<InviteLinkResponse> {
+  return postJson<InviteLinkResponse>(`/api/teams/${teamId}/invite-link`, {}, token)
 }

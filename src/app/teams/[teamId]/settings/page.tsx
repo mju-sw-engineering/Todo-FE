@@ -85,14 +85,7 @@ export default function TeamSettingsPage() {
 
         <FeedVisibilityCard isLeader={myRole === 'LEADER'} />
 
-        {token && (
-          <TeamInviteSection
-            teamId={teamId}
-            token={token}
-            inviteCode={team.inviteCode}
-            onToast={showToast}
-          />
-        )}
+        {token && <TeamInviteSection teamId={teamId} token={token} onToast={showToast} />}
 
         <Button
           variant="danger"
