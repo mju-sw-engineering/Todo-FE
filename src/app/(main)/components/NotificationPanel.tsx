@@ -25,8 +25,6 @@ import { useAuth } from '@/store/authStore'
 import { StickerEmoji } from '@/components/chat/StickerEmoji'
 import { STICKER_TYPES, STICKER_PREFIX, parseStandaloneSticker } from '@/lib/sticker'
 import { formatRelativeTime } from '@/lib/dateUtils'
-import { getTeams } from '@/services/teamService'
-import { getHistoryTodos } from '@/services/todoService'
 import type { AppNotification, NotificationType } from '@/types/notification.types'
 import type { StickerType } from '@/lib/sticker'
 
@@ -214,58 +212,30 @@ export function NotificationBell() {
     setPanelStyle({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
   }, [isOpen])
 
-  async function openTodoNotification(notification: AppNotification, token: string) {
-    try {
-      const { teams } = await getTeams(token)
-      const now = new Date()
-      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
-        now.getDate()
-      ).padStart(2, '0')}`
-      const todoLists = await Promise.all(
-        teams.map(async (team) => ({
-          teamId: team.teamId,
-          todos: await getHistoryTodos(team.teamId, today, token),
-        }))
-      )
-      const owner = todoLists.find(({ todos }) =>
-        todos.some((todo) => todo.todoId === notification.referenceId)
-      )
-      router.push(owner ? `/teams/${owner.teamId}/todos/${notification.referenceId}` : '/teams')
-    } catch {
-      router.push('/teams')
-    }
-  }
-
-  async function openNotification(notification: AppNotification) {
+  function openNotification(notification: AppNotification) {
     setIsOpen(false)
-    if (!token) return
 
-    switch (notification.type) {
-      case 'TODO_CREATED':
-      case 'TODO_ASSIGNED':
-      case 'TODO_UNASSIGNED':
-      case 'TODO_SUBMITTED':
-      case 'TODO_DEADLINE_APPROACHING':
-      case 'TODO_WORK_ITEM_EXPIRED':
-      case 'TODO_REACTION_ADDED':
-      case 'TODO_ALL_COMPLETED':
-        // referenceId가 투두 ID라, 어느 팀 소속인지 팀들을 뒤져야 한다
-        await openTodoNotification(notification, token)
+    const { referenceType, referenceId, teamId } = notification
+
+    // 백필 시점에 대상(투두·투표·팀)이 이미 삭제된 과거 알림은 teamId가 null이다.
+    // 이동해봤자 404/403이라 알림 표시로만 끝낸다.
+    switch (referenceType) {
+      case 'TODO':
+        if (teamId && referenceId) router.push(`/teams/${teamId}/todos/${referenceId}`)
         return
-      case 'CHAT_MESSAGE':
-        router.push(`/teams/${notification.referenceId}/chat`)
+      case 'CHAT':
+        if (teamId) router.push(`/teams/${teamId}/chat`)
         return
-      case 'TEAM_MEMBER_JOINED':
-      case 'TEAM_MEMBER_LEFT':
-      case 'TEAM_MEMBER_REMOVED':
-      case 'TEAM_LEADER_CHANGED':
-        router.push(`/teams/${notification.referenceId}`)
+      case 'TEAM':
+        // 강퇴 알림은 수신 시점에 이미 팀 소속이 아니라 팀 페이지 진입 시 403이 난다
+        if (notification.type === 'TEAM_MEMBER_REMOVED') return
+        if (teamId) router.push(`/teams/${teamId}`)
         return
-      case 'AVAILABILITY_POLL_CREATED':
-        router.push(`/teams/${notification.referenceId}/availability`)
+      case 'AVAILABILITY_POLL':
+        if (teamId && referenceId) router.push(`/teams/${teamId}/availability/${referenceId}`)
+        else if (teamId) router.push(`/teams/${teamId}/availability`)
         return
-      case 'NEW_DEVICE_LOGIN':
-      case 'PASSWORD_CHANGED':
+      case 'NONE':
         router.push('/mypage')
         return
     }
