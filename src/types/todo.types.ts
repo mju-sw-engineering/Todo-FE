@@ -3,6 +3,20 @@ export type TodoMode = 'DIRECT' | 'TASK'
 export type WorkItemStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAIL'
 export type ReactionType = 'LIKE' | 'HEART' | 'SURPRISED' | 'DISLIKE' | 'ANGRY'
 
+export type SubmissionKind = 'IMAGE' | 'DOCUMENT' | null
+
+export type AiAnalysisStatus = 'PENDING' | 'DONE' | 'FAILED'
+export type AiAnalysisVerdict = 'VERIFIED' | 'MISMATCH' | 'UNCERTAIN'
+
+export interface AiAnalysis {
+  status: AiAnalysisStatus
+  verdict: AiAnalysisVerdict | null
+  /** 팀 전체에 공개되는 한 줄 요약 */
+  summary: string | null
+  /** 제출자 본인에게만 내려옴. 그 외에는 항상 null */
+  mismatchReason: string | null
+}
+
 export interface MyWorkSummary {
   totalCount: number
   successCount: number
@@ -71,6 +85,8 @@ export interface TodoWorkItemBase {
   reactions: ReactionCounts
   myReaction: ReactionType | null
   unassigned: boolean
+  /** 판정 대상이 아닌 제출(hwp 등)이면 null */
+  aiAnalysis: AiAnalysis | null
 }
 
 export type TodoDirectAssignee = TodoWorkItemBase
@@ -99,6 +115,8 @@ export interface TodoDetail {
 
 export interface SubmitTodoRequest {
   proofImageKey: string
+  /** 원본 파일명, 255자 이하. 오브젝트 키는 UUID라 사람이 못 알아본다 */
+  proofFileName?: string
 }
 
 export interface ReactRequest {
@@ -109,9 +127,16 @@ export interface TodoWorkItemSubmission {
   workItemId: number
   assigneeId: number | null
   submittedAt: string
+  /** null이면 메타데이터 도입 이전 제출분 — 종류를 단정하지 말 것 */
+  kind: SubmissionKind
+  fileName: string
+  contentType: string
   originalUrl: string
-  thumbnailUrl: string
+  /** 이미지 제출에만 존재. 문서는 null */
+  thumbnailUrl: string | null
   expiresAt: string
+  /** 판정 대상이 아니면 null */
+  aiAnalysis: AiAnalysis | null
 }
 
 export interface TodoWorkItemAssignee {
