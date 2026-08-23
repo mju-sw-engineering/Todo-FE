@@ -15,6 +15,8 @@ export interface PresignedUploadRequest {
    * 쓰는 곳에서 동시에 가입해도 서로 한도를 잡아먹지 않는다.
    */
   signupToken?: string
+  /** PROOF 타입에만 필수 — 인증 파일이 속할 투두 ID */
+  todoId?: number
 }
 
 export interface PresignedUploadResponse {
