@@ -126,6 +126,7 @@ const NOTIFICATION_META: Record<NotificationType, { Icon: IconType; tone: Notifi
   TODO_WORK_ITEM_EXPIRED: { Icon: FiAlertTriangle, tone: 'red' },
   TODO_REACTION_ADDED: { Icon: FiHeart, tone: 'primary' },
   TODO_ALL_COMPLETED: { Icon: FiCheckCircle, tone: 'primary' },
+  AI_PROOF_MISMATCH: { Icon: FiAlertTriangle, tone: 'red' },
   TEAM_MEMBER_JOINED: { Icon: FiUserPlus, tone: 'secondary' },
   TEAM_MEMBER_LEFT: { Icon: FiUserMinus, tone: 'neutral' },
   TEAM_MEMBER_REMOVED: { Icon: FiUserX, tone: 'red' },
@@ -221,6 +222,12 @@ export function NotificationBell() {
     // 이동해봤자 404/403이라 알림 표시로만 끝낸다.
     switch (referenceType) {
       case 'TODO':
+        // AI_PROOF_MISMATCH는 referenceId가 todoId가 아니라 workItemId라 투두 상세로
+        // 바로 이동할 수 없다. 팀 화면까지만 이동한다.
+        if (notification.type === 'AI_PROOF_MISMATCH') {
+          if (teamId) router.push(`/teams/${teamId}`)
+          return
+        }
         if (teamId && referenceId) router.push(`/teams/${teamId}/todos/${referenceId}`)
         return
       case 'CHAT':
