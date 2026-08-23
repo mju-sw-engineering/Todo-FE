@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { FiFile } from 'react-icons/fi'
 import { parseAchievementCount, formatDeadline } from '@/lib/formatters'
 import { useTodoDetail } from '@/hooks/useTodoDetail'
 import { getTeamById } from '@/services/teamService'
@@ -14,7 +15,7 @@ import { MemberCertCard } from './components/MemberCertCard'
 import { Button } from '@/components/ui/Button'
 import { PageLoader } from '@/components/ui/PageLoader'
 import type { TeamMember } from '@/types/team.types'
-import type { TodoWorkItem } from '@/types/todo.types'
+import type { TodoWorkItem, TodoWorkItemSubmission } from '@/types/todo.types'
 
 const PROGRESS_MESSAGES = {
   none: ['아직 완료된 항목이 없어요', '첫 완료를 기다리고 있어요'],
@@ -45,13 +46,17 @@ function TodoDetailContent() {
   const teamId = Number(params.teamId)
   const todoId = Number(params.todoId)
   const { token, user } = useAuth()
-  const { todo, isLoading, error, handleReact, handleReassign } = useTodoDetail(todoId, token)
+  const { todo, isLoading, error, handleReact, handleReassign } = useTodoDetail(
+    todoId,
+    teamId,
+    token
+  )
 
   const [members, setMembers] = useState<TeamMember[]>([])
   const [reassignTarget, setReassignTarget] = useState<TodoWorkItem | null>(null)
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<number | null>(null)
   const [isReassigning, setIsReassigning] = useState(false)
-  const [originalUrl, setOriginalUrl] = useState<string | null>(null)
+  const [submission, setSubmission] = useState<TodoWorkItemSubmission | null>(null)
   const [isImageLoading, setIsImageLoading] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
@@ -112,10 +117,10 @@ function TodoDetailContent() {
     setIsImageLoading(true)
     setActionError(null)
     try {
-      const submission = await getTodoWorkItemSubmission(workItemId, token)
-      setOriginalUrl(submission.originalUrl)
+      const result = await getTodoWorkItemSubmission(workItemId, token)
+      setSubmission(result)
     } catch {
-      setActionError('원본 이미지를 불러오지 못했습니다.')
+      setActionError('인증 파일을 불러오지 못했습니다.')
     } finally {
       setIsImageLoading(false)
     }
@@ -277,25 +282,45 @@ function TodoDetailContent() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {(originalUrl || isImageLoading) && (
+        {(submission || isImageLoading) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-5"
-            onClick={() => setOriginalUrl(null)}
+            onClick={() => setSubmission(null)}
           >
             {isImageLoading ? (
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            ) : (
+            ) : submission &&
+              (submission.kind === 'IMAGE' ||
+                (submission.kind === null && submission.contentType?.startsWith('image/'))) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={originalUrl!}
+                src={submission.originalUrl}
                 alt="인증샷 원본"
                 className="max-h-full max-w-full rounded-2xl object-contain"
                 onClick={(event) => event.stopPropagation()}
               />
-            )}
+            ) : submission ? (
+              <div
+                className="flex w-full max-w-80 flex-col items-center gap-4 rounded-2xl bg-white px-6 py-8"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <FiFile size={32} className="text-muted" />
+                <p className="wrap-break-word text-center text-[14px] font-semibold text-ink">
+                  {submission.fileName}
+                </p>
+                <a
+                  href={submission.originalUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full rounded-[14px] bg-primary py-3 text-center text-[14px] font-semibold text-white transition-colors hover:bg-primary-hover"
+                >
+                  다운로드
+                </a>
+              </div>
+            ) : null}
           </motion.div>
         )}
       </AnimatePresence>

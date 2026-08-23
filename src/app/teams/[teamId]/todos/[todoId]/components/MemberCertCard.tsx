@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FiClock, FiHeart, FiImage, FiUserPlus } from 'react-icons/fi'
+import { FiClock, FiFile, FiHeart, FiUserPlus } from 'react-icons/fi'
 import { MemberAvatar } from '@/components/ui/MemberAvatar'
 import { ReactionEmoji } from '@/components/ui/ReactionEmoji'
 import { formatDeadline } from '@/lib/formatters'
@@ -119,12 +119,14 @@ export function MemberCertCard({
             </span>
           </button>
         ) : isCompleted ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-linear-to-br from-gray-100 to-gray-200">
-            <FiImage size={28} className="text-gray-400" />
-            <span className="text-[11px] font-semibold text-gray-500">
-              보관된 인증 이미지가 없어요
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={onViewSubmission}
+            className="absolute inset-0 flex w-full flex-col items-center justify-center gap-2 bg-linear-to-br from-gray-100 to-gray-200"
+          >
+            <FiFile size={28} className="text-gray-400" />
+            <span className="text-[11px] font-semibold text-gray-500">인증 파일 보기</span>
+          </button>
         ) : canCertify ? (
           <button
             type="button"
@@ -217,6 +219,27 @@ export function MemberCertCard({
           </div>
         )}
       </div>
+
+      {workItem.aiAnalysis?.status === 'DONE' &&
+        (workItem.aiAnalysis.summary || workItem.aiAnalysis.mismatchReason) && (
+          <div className="px-4 py-3">
+            {workItem.aiAnalysis.verdict === 'VERIFIED' && (
+              <span className="mb-1.5 inline-flex items-center rounded-full bg-primary-light px-2.5 py-1 text-[11px] font-semibold text-primary">
+                AI 확인됨
+              </span>
+            )}
+            {workItem.aiAnalysis.summary && (
+              <p className="text-[12px] leading-relaxed text-muted wrap-break-word">
+                {workItem.aiAnalysis.summary}
+              </p>
+            )}
+            {workItem.aiAnalysis.mismatchReason && (
+              <p className="mt-1 text-[12px] leading-relaxed text-status-red wrap-break-word">
+                {workItem.aiAnalysis.mismatchReason}
+              </p>
+            )}
+          </div>
+        )}
     </article>
   )
 }
