@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { BeeCharacter } from '@/components/bee/BeeCharacter'
+import { BeePose } from '@/components/bee/BeePose'
 import { ConsentAgreements, type ConsentState } from '@/components/ConsentAgreements'
 import { ProfileImagePicker } from '@/components/ProfileImagePicker'
 import { AppleLoginButton } from '@/components/ui/AppleLoginButton'
@@ -182,7 +182,7 @@ export default function SignupPage() {
           <div className="relative mb-3">
             <HiveIcon size={96} />
             <div className="absolute -left-16 top-8 bee-bob">
-              <BeeCharacter expression="cheer" size={58} flip />
+              <BeePose pose="cheer" size={58} flip decorative />
             </div>
           </div>
           <p className="relative text-[22px] font-jua text-ink px-8 text-center break-keep">
@@ -213,7 +213,7 @@ export default function SignupPage() {
           <h1 className="text-[18px] font-bold text-gray-900 tracking-tight">회원가입</h1>
         </div>
         <div className="flex items-center gap-1 mt-2">
-          <BeeCharacter expression="happy" size={60} flip />
+          <BeePose pose="flower" size={60} flip decorative />
           <span className="bg-[#faf4e4] rounded-xl rounded-bl-[4px] px-3 py-1.5 text-[13px] font-jua text-[#57430f]">
             반가워요! 같이 꿀 모아요
           </span>

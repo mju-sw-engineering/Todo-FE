@@ -1,10 +1,44 @@
-import Image from 'next/image'
 import { HiveIcon } from '@/components/ui/HiveIcon'
 import type { FeedBadge } from '@/types/feed.types'
 
+/**
+ * 배지 칸(60px 금색 메달) 전용 벌 아이콘. 같은 캐릭터지만 팔다리·기울기를 뺀
+ * 정면 아이콘이라 30px대에서도 벌로 읽힌다. 일러스트가 필요한 자리는 BeePose를 쓴다.
+ */
+function BeeIcon() {
+  return (
+    <svg viewBox="0 0 48 48" width="34" aria-hidden="true">
+      <g fill="none" stroke="#000000" strokeWidth="2.6" strokeLinecap="round">
+        <path d="M19.5 9.5C18 6.5 16 5 14 4.5" />
+        <path d="M28.5 9.5C30 6.5 32 5 34 4.5" />
+      </g>
+      <circle cx="13.4" cy="4.2" r="2.5" />
+      <circle cx="34.6" cy="4.2" r="2.5" />
+      <g fill="#EAF6FB" stroke="#CDEAF6" strokeWidth="1.2">
+        <ellipse cx="12" cy="27" rx="9.5" ry="6" transform="rotate(-22 12 27)" />
+        <ellipse cx="36" cy="27" rx="9.5" ry="6" transform="rotate(22 36 27)" />
+      </g>
+      <ellipse cx="24" cy="33.5" rx="11.5" ry="9.5" fill="#FFE042" />
+      <rect x="14.8" y="28" width="18.4" height="4.4" rx="2.2" />
+      <rect x="15.8" y="35.6" width="16.4" height="4.4" rx="2.2" />
+      <circle cx="24" cy="19" r="11.5" fill="#FFE042" />
+      <ellipse cx="19.5" cy="18.5" rx="2.3" ry="3" />
+      <ellipse cx="28.5" cy="18.5" rx="2.3" ry="3" />
+      <ellipse cx="24" cy="22.2" rx="1.9" ry="1.4" fill="#E38B2F" />
+      <path
+        d="M20.6 25.4Q24 28.4 27.4 25.4"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 function BadgeIcon({ icon }: { icon: FeedBadge['icon'] }) {
   if (icon === 'bee') {
-    return <Image src="/images/bee/happy.svg" alt="" width={36} height={32} />
+    return <BeeIcon />
   }
   if (icon === 'hive') {
     return <HiveIcon size={32} />

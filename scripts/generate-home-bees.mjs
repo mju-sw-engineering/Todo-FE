@@ -99,13 +99,24 @@ const cheerFace = `<path d="M545 552 Q588 498 631 550" stroke="${INK}" stroke-wi
     <path d="M628 626 Q690 616 752 630 Q748 706 690 710 Q634 706 628 626 Z" fill="#74140F"/>
     <path d="M652 678 Q690 664 728 680 Q718 706 690 708 Q662 704 652 678 Z" fill="#F75B57"/>`
 
+// viewBox는 기울인 뒤의 실제 바운딩박스 + 여백 16이다. 임의로 좁히면 BeePose가
+// viewBox 비율 그대로 렌더하므로 여백 없이 더듬이·다리가 잘린다.
 const POSES = [
+  {
+    file: 'bee-plain.svg',
+    title: '두비두비 꿀벌 — 기본',
+    desc: '소품 없이 기본 자세로 서 있는 일러스트 (작은 아이콘 자리용)',
+    tilt: 0,
+    viewBox: '196 117 869 913',
+    drop: [],
+    overlay: '',
+  },
   {
     file: 'bee-cheer.svg',
     title: '두비두비 꿀벌 — 모두 완료',
     desc: '할 일을 모두 끝냈을 때 쓰는 환호 일러스트',
     tilt: -32,
-    viewBox: '128 122 878 983',
+    viewBox: '146 94 844 1050',
     // 웃는 눈·크게 웃는 입으로 갈아끼우므로 기본 눈·입은 들어낸다
     drop: ['eye-left', 'eye-right', 'mouth-open'],
     overlay: `${cheerFace}\n    ${confetti}`,
@@ -115,7 +126,7 @@ const POSES = [
     title: '두비두비 꿀벌 — 할 일 없음',
     desc: '할 일이 하나도 없는 빈 상태에서 쓰는 살펴보는 일러스트',
     tilt: -12,
-    viewBox: '150 158 940 888',
+    viewBox: '170 125 903 964',
     drop: [],
     overlay: magnifier,
   },
@@ -124,7 +135,7 @@ const POSES = [
     title: '두비두비 꿀벌 — 제출 완료',
     desc: '할 일을 제출했을 때 쓰는 꽃 든 일러스트',
     tilt: -4,
-    viewBox: '172 180 1004 806',
+    viewBox: '189 122 972 929',
     drop: [],
     overlay: flower,
   },
