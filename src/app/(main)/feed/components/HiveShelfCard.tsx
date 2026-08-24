@@ -12,7 +12,7 @@ export function HiveShelfCard({ months, current }: Props) {
   const completeCount = months.filter((m) => m.filledDays >= m.totalDays).length
 
   return (
-    <section className="mx-5 mt-3.5 bg-white rounded-[24px] border border-border p-5">
+    <section className="mx-5 mt-4 bg-white rounded-[24px] border border-border p-5">
       <div className="flex items-start justify-between">
         <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] flex items-center gap-1.5">
           <HiveIcon size={16} />

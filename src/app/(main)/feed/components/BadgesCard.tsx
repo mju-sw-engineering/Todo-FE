@@ -88,7 +88,7 @@ export function BadgesCard({ badges }: Props) {
   const acquiredCount = badges.filter((b) => b.acquired).length
 
   return (
-    <section className="mx-5 mt-3.5 bg-white rounded-[24px] border border-border p-5">
+    <section className="mx-5 mt-4 bg-white rounded-[24px] border border-border p-5">
       <div className="flex items-start justify-between">
         <h2 className="text-[16px] font-black text-ink tracking-[-0.2px] flex items-center gap-1.5">
           <MedalIcon />
@@ -100,9 +100,9 @@ export function BadgesCard({ badges }: Props) {
       </div>
       <p className="text-[12px] text-muted mt-0.5">꾸준함의 순간들을 모아요</p>
 
-      <div className="grid grid-cols-3 gap-x-3 gap-y-5 mt-4">
+      <div className="flex gap-4 mt-4 overflow-x-auto scrollbar-hidden snap-x snap-mandatory -mx-5 px-5">
         {badges.map((badge) => (
-          <div key={badge.id} className="flex flex-col items-center gap-2">
+          <div key={badge.id} className="flex flex-col items-center gap-2 shrink-0 w-18 snap-start">
             {badge.acquired ? (
               <span
                 className="relative w-15 h-15 rounded-full flex items-center justify-center overflow-hidden shadow-[0_6px_14px_-4px_rgba(224,164,0,0.55)]"

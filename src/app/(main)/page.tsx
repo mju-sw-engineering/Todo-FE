@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { BeeCharacter, expressionForProgress } from '@/components/bee/BeeCharacter'
 import { BeePose } from '@/components/bee/BeePose'
 import { MyTodoCard } from './components/MyTodoCard'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
@@ -14,15 +13,6 @@ import { useHomeTodos } from '@/hooks/useHomeTodos'
 import { Spinner } from '@/components/ui/Spinner'
 import type { TeamListItem } from '@/types/team.types'
 import { isMyWorkComplete } from '@/types/todo.types'
-
-function getCompletionMessage(pct: number, total: number): string {
-  if (total === 0) return '할 일을 추가해봐요!'
-  if (pct === 100) return '모두 완료! 완벽해요!'
-  if (pct >= 75) return '거의 다 왔어요!'
-  if (pct >= 50) return '반 이상 했어요!'
-  if (pct >= 25) return '조금씩 해봐요!'
-  return '시작이 반이에요!'
-}
 
 type TabType = 'all' | 'incomplete' | 'complete'
 
@@ -68,7 +58,6 @@ export default function HomePage() {
   const remainingCount = teamScopedTodos.length - completeCount
   const completionPct =
     teamScopedTodos.length > 0 ? Math.round((completeCount / teamScopedTodos.length) * 100) : 0
-  const speechMsg = getCompletionMessage(completionPct, teamScopedTodos.length)
 
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
   const filteredTodos = teamScopedTodos
@@ -142,7 +131,7 @@ export default function HomePage() {
                 {teamMenuOpen && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setTeamMenuOpen(false)} />
-                    <div className="absolute left-0 top-full mt-1.5 w-40 max-h-64 overflow-y-auto bg-white rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-1.5 z-20">
+                    <div className="absolute left-0 top-full mt-1.5 w-40 max-h-64 overflow-y-auto bg-white rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border border-gray-100 z-20">
                       <button
                         onClick={() => {
                           setSelectedTeamId('all')
@@ -178,20 +167,6 @@ export default function HomePage() {
               </div>
             )}
           </div>
-
-          {displayTodos.length > 0 && (
-            <div className="absolute top-2 right-3 flex flex-col items-center">
-              <div className="bee-bob">
-                <BeeCharacter
-                  expression={expressionForProgress(completionPct, displayTodos.length)}
-                  size={104}
-                />
-              </div>
-              <div className="bg-white rounded-xl px-2.5 py-1 shadow-sm border border-gray-100 -mt-1 z-10">
-                <p className="text-[11px] font-jua text-gray-700 whitespace-nowrap">{speechMsg}</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -247,7 +222,7 @@ export default function HomePage() {
             <div className="mb-1">
               <BeePose pose="search" size={130} />
             </div>
-            <p className="text-[16px] font-jua text-gray-900">오늘 할 일이 없어요</p>
+            <p className="text-[16px] font-jua text-gray-900">오늘은 남은 일이 없어요</p>
             <p className="text-[13px] text-gray-400">팀에서 할 일을 추가해보세요</p>
             <button
               onClick={() => router.push('/teams')}
@@ -258,7 +233,7 @@ export default function HomePage() {
           </div>
         ) : filteredTodos.length === 0 ? (
           <div className="flex items-center justify-center py-20">
-            <p className="text-[14px] text-gray-400">해당하는 할 일이 없어요</p>
+            <p className="text-[14px] text-gray-400">해당하는 남은 일이 없어요</p>
           </div>
         ) : (
           filteredTodos.map((todo) => (
@@ -297,7 +272,7 @@ export default function HomePage() {
               <button
                 key={team.teamId}
                 onClick={() => router.push(`/teams/${team.teamId}/todos/new`)}
-                className="w-full flex items-center gap-3 rounded-[14px] border border-gray-300 px-4 py-3 text-left hover:border-primary transition-colors"
+                className="w-full flex items-center gap-3 rounded-[14px] border border-border px-4 py-3 text-left hover:border-neutral-50 transition-colors"
               >
                 {team.teamImageUrl ? (
                   <span className="w-8 h-8 rounded-full overflow-hidden shrink-0 relative">

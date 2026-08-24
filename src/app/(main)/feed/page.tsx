@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { TeamRhythmCard } from './components/TeamRhythmCard'
-import { MonthlyHiveCard } from './components/MonthlyHiveCard'
+import { HeroCard } from './components/HeroCard'
+import { TeamSummaryCard } from './components/TeamSummaryCard'
+import { HivePreviewCard } from './components/HivePreviewCard'
 import { HiveShelfCard } from './components/HiveShelfCard'
 import { BadgesCard } from './components/BadgesCard'
+import { TeamRhythmPreviewCard } from './components/TeamRhythmPreviewCard'
 import { MOCK_BADGES } from './components/mockFeedData'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { getBadges, getHiveArchive, getMonthlyHive, getTeamRhythms } from '@/services/feedService'
@@ -45,10 +47,10 @@ export default function FeedPage() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-[linear-gradient(180deg,#8fb4ff_0%,#b3ccff_45%,#f5f8ff_100%)]">
-      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-5 scrollbar-hidden">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-6 scrollbar-hidden">
         <div className="px-5 pt-7 pb-[18px]">
           <h1 className="text-[23px] font-black text-white tracking-[-0.5px]">기록</h1>
-           <p className="text-[12px] text-white mt-0.5">할일 수행 기록을 확인하세요.</p>
+          <p className="text-[12px] text-white/85 mt-0.5">팀과 함께 쌓아가는 꾸준함의 꿀</p>
         </div>
 
         {error && (
@@ -57,9 +59,11 @@ export default function FeedPage() {
           </p>
         )}
 
-        <TeamRhythmCard teams={teamRhythms} />
-        {monthlyHive && <MonthlyHiveCard hive={monthlyHive} />}
+        <HeroCard />
+        {monthlyHive && <TeamSummaryCard hive={monthlyHive} team={teamRhythms[0]} />}
+        {monthlyHive && <HivePreviewCard hive={monthlyHive} />}
         {monthlyHive && <HiveShelfCard months={hiveArchive} current={monthlyHive} />}
+        <TeamRhythmPreviewCard teams={teamRhythms} />
         <BadgesCard badges={badges} />
       </div>
     </div>
