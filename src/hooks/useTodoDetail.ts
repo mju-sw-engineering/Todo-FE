@@ -22,11 +22,14 @@ export function useTodoDetail(todoId: number, teamId: number, token: string | nu
   const [todo, setTodo] = useState<TodoDetail | null>(null)
   const { isLoading, error, run } = useAsyncTask(true)
 
-  const refreshTodo = useCallback(async () => {
-    if (!token || !todoId) return
-    const response = await getTodoDetail(todoId, token)
-    setTodo(response)
-  }, [token, todoId])
+  const refreshTodo = useCallback(
+    async (options?: { force?: boolean }) => {
+      if (!token || !todoId) return
+      const response = await getTodoDetail(todoId, token, options)
+      setTodo(response)
+    },
+    [token, todoId]
+  )
 
   useEffect(() => {
     if (!token || !todoId) return
@@ -46,7 +49,9 @@ export function useTodoDetail(todoId: number, teamId: number, token: string | nu
         client.subscribe(`/topic/teams/${teamId}/proof-analyses`, (frame) => {
           try {
             const data = JSON.parse(frame.body) as ProofAnalysisEvent
-            if (data.todoId === todoId) refreshTodo()
+            // 판정은 제출 직후 요청 캐시 TTL 안에 끝나는 일이 잦다. 캐시를 타면
+            // 판정 전 응답이 그대로 돌아오므로 이 경로만 강제 재조회한다.
+            if (data.todoId === todoId) refreshTodo({ force: true })
           } catch {
             // 잘못된 프레임은 무시
           }
