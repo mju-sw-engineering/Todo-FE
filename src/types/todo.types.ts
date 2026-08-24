@@ -24,13 +24,30 @@ export interface MyWorkSummary {
   inProgressCount: number
 }
 
+/**
+ * 목록 응답에 실려오는 담당자 요약. 미배정 WorkItem은 BE에서 제외되므로 여기 없다.
+ *
+ * status는 한 사람이 맡은 WorkItem들을 종합한 값이다 —
+ * 하나라도 진행 중이면 IN_PROGRESS, 아니면 하나라도 실패 시 FAIL, 전부 성공일 때만 SUCCESS.
+ */
+export interface TodoParticipant {
+  userId: number
+  nickname: string
+  profileImageUrl: string | null
+  status: WorkItemStatus
+  successCount: number
+  totalCount: number
+}
+
 export interface Todo {
   todoId: number
   mode: TodoMode
   title: string
+  description: string | null
   deadline: string
   status: TodoStatus
   achievementCount: string
+  participants: TodoParticipant[]
   myWorkSummary: MyWorkSummary
 }
 
@@ -152,6 +169,13 @@ export interface DailyTodoStat {
   successCount: number
   failCount: number
   inProgressCount: number
+  achievementRate: number | null
+}
+
+/** 캘린더·주간 스트립이 날짜 하나를 그리는 데 필요한 최소 정보 */
+export interface DayStat {
+  total: number
+  /** 아직 지나지 않은 날은 BE가 null을 준다 — 성공률 색 대신 '예정' 표시로 쓴다 */
   achievementRate: number | null
 }
 

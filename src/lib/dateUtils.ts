@@ -30,8 +30,53 @@ export const MONTHS_EN = [
 
 export const DAYS_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 
+export const DAYS_SHORT_KO = ['일', '월', '화', '수', '목', '금', '토']
+
 export function pad(n: number): string {
   return String(n).padStart(2, '0')
+}
+
+/** Date -> 'YYYY-MM-DD' (로컬 기준). API의 date 파라미터가 이 형식이다. */
+export function toDateString(d: Date): string {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+export function todayString(): string {
+  return toDateString(new Date())
+}
+
+/** 'YYYY-MM-DD' -> 로컬 자정 Date. new Date(str)는 UTC로 파싱돼 하루 밀릴 수 있어 쓰지 않는다. */
+export function parseDateString(date: string): Date {
+  const [y, m, d] = date.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+export function addDays(date: string, days: number): string {
+  const d = parseDateString(date)
+  d.setDate(d.getDate() + days)
+  return toDateString(d)
+}
+
+/** 해당 날짜가 속한 주의 월요일. 주간 스트립이 월~일이라 일요일은 이전 주로 본다. */
+export function startOfWeekMonday(date: string): string {
+  const d = parseDateString(date)
+  const dow = d.getDay()
+  d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1))
+  return toDateString(d)
+}
+
+/** 마감까지 남은 시간. 이미 지났으면 null이라 호출부에서 '지남'과 구분된다. */
+export function formatRemaining(iso: string, now: number = Date.now()): string | null {
+  const diff = new Date(iso).getTime() - now
+  if (isNaN(diff) || diff <= 0) return null
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins}분 남음`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) {
+    const rest = mins % 60
+    return rest === 0 ? `${hours}시간 남음` : `${hours}시간 ${rest}분 남음`
+  }
+  return `${Math.floor(hours / 24)}일 남음`
 }
 
 export function formatISOTime(iso: string): string {
