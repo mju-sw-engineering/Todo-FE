@@ -31,10 +31,7 @@ interface TypingPayload {
   memberId?: number
 }
 
-// NOTE: mirrors useTodoChat.ts but scoped to a team instead of a single todo. The STOMP
-// destinations here (/topic/teams/{teamId}, /app/teams/{teamId}/chat) are not yet implemented
-// on the backend (only /topic/todos/{todoId} exists today) — this is frontend groundwork
-// ahead of the backend, so it will not actually connect/send until the backend adds it.
+// NOTE: mirrors useTodoChat.ts but scoped to a team instead of a single todo.
 export function useTeamChat(teamId: number, token: string | null) {
   const queryClient = useQueryClient()
   const { user } = useAuth()

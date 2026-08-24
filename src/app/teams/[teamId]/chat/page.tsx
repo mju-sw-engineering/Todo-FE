@@ -6,10 +6,14 @@ import { useTeamChat } from '@/hooks/useTeamChat'
 import { getTeamById } from '@/services/teamService'
 import { useChatInput } from '@/hooks/useChatInput'
 import { useAuth } from '@/store/authStore'
+import { CHAT_COMMAND_LABEL, parseChatCommand } from '@/lib/chatCommand'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { CommandChip } from '@/components/chat/CommandChip'
+import { CommandResultSheet } from '@/components/chat/CommandResultSheet'
 import { MessageBubble } from '@/components/chat/MessageBubble'
 import { StickerPicker } from '@/components/chat/StickerPicker'
 import { Spinner } from '@/components/ui/Spinner'
+import type { ChatCommand } from '@/types/chat.types'
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('ko-KR', {
@@ -54,6 +58,10 @@ export default function TeamChatPage() {
   } = useTeamChat(teamId, token)
 
   const [showPicker, setShowPicker] = useState(false)
+  const [openCommand, setOpenCommand] = useState<{
+    messageId: number
+    command: ChatCommand
+  } | null>(null)
 
   const {
     editableRef,
@@ -143,6 +151,7 @@ export default function TeamChatPage() {
                   : user?.userId != null
                     ? msg.senderId === user.userId
                     : msg.senderNickname === (user?.nickname ?? user?.loginId)
+              const command = parseChatCommand(msg.content)
               return (
                 <div
                   key={`${msg.messageId}-${idx}`}
@@ -171,7 +180,16 @@ export default function TeamChatPage() {
                           {formatTime(msg.createdAt)}
                         </span>
                       )}
-                      <MessageBubble content={msg.content} isMine={isMine} />
+                      {command ? (
+                        <CommandChip
+                          label={CHAT_COMMAND_LABEL[command]}
+                          isMine={isMine}
+                          pending={msg.messageId < 0}
+                          onTap={() => setOpenCommand({ messageId: msg.messageId, command })}
+                        />
+                      ) : (
+                        <MessageBubble content={msg.content} isMine={isMine} />
+                      )}
                       {!isMine && (
                         <span className="text-[10px] text-muted shrink-0 mb-0.5">
                           {formatTime(msg.createdAt)}
@@ -249,6 +267,17 @@ export default function TeamChatPage() {
           </button>
         </div>
       </div>
+
+      {openCommand && token && (
+        <CommandResultSheet
+          teamId={teamId}
+          messageId={openCommand.messageId}
+          command={openCommand.command}
+          label={CHAT_COMMAND_LABEL[openCommand.command]}
+          token={token}
+          onClose={() => setOpenCommand(null)}
+        />
+      )}
     </div>
   )
 }

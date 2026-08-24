@@ -1,5 +1,11 @@
-import { getJson, patchJson } from '@/lib/apiClient'
-import type { ChatRequest, ChatResponse, TeamChatMessagesResponse } from '@/types/chat.types'
+import { getJson, patchJson, postJson } from '@/lib/apiClient'
+import type {
+  ChatCommand,
+  ChatCommandResult,
+  ChatRequest,
+  ChatResponse,
+  TeamChatMessagesResponse,
+} from '@/types/chat.types'
 
 const AI_BASE_URL = 'https://ai.todo.bluerack.org'
 
@@ -21,9 +27,6 @@ export async function sendChatMessage(request: ChatRequest, token: string): Prom
   return data.reply
 }
 
-// NOTE: mirrors the todo-chat REST contract (/api/todos/{todoId}/chat/*), which is confirmed
-// to exist on the backend. The equivalent /api/teams/{teamId}/chat/* endpoints do NOT exist
-// yet (checked via the live Swagger spec) — this is frontend groundwork ahead of the backend.
 export async function getTeamChatMessages(
   teamId: number,
   token: string,
@@ -49,4 +52,36 @@ export async function getTeamUnreadChatCount(teamId: number, token: string): Pro
     token
   )
   return res.unreadCount
+}
+
+/**
+ * 채팅 메시지의 명령어 실행 결과를 조회한다. 개인용 명령어는 실행자 본인만 조회
+ * 가능(그 외 403), 명령어가 아니거나 등록된 핸들러가 없으면 404를 던진다.
+ */
+export async function getChatCommandResult<C extends ChatCommand>(
+  teamId: number,
+  messageId: number,
+  token: string
+): Promise<ChatCommandResult<C>> {
+  return getJson<ChatCommandResult<C>>(
+    `/api/teams/${teamId}/chat/messages/${messageId}/command-result`,
+    token
+  )
+}
+
+/**
+ * /할일추천 카드의 [등록] 버튼. 서버가 실행 행을 잠그고 처리하므로 동시 클릭 시
+ * 두 번째 요청은 409로 떨어진다 — 호출부에서 "이미 등록됨"으로 처리할 것.
+ */
+export async function registerTodoRecommendationItem(
+  teamId: number,
+  messageId: number,
+  index: number,
+  token: string
+): Promise<void> {
+  return postJson<void>(
+    `/api/teams/${teamId}/chat/messages/${messageId}/todo-recommendation/items/${index}/register`,
+    {},
+    token
+  )
 }
