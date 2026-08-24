@@ -125,13 +125,20 @@ export async function getAllActiveTodos(teamId: number, token: string): Promise<
   return todos
 }
 
-export async function getHistoryTodos(
-  teamId: number,
-  date: string,
-  token: string
-): Promise<Todo[]> {
-  const data = await getJson<Todo[] | null>(`/api/teams/${teamId}/todos?date=${date}`, token)
-  return data ?? []
+/**
+ * 해당 날짜에 마감이 걸린 팀 전체 할 일. BE가 deadline 오름차순으로 주므로
+ * 받은 순서가 곧 마감 임박순이다 — 클라이언트에서 다시 정렬하지 않는다.
+ * 결과가 없으면 `data: null`이 오기 때문에 빈 배열로 정규화한다.
+ *
+ * 날짜를 앞뒤로 넘겨보는 화면이라 날짜별로 캐시한다.
+ */
+export async function getTodosByDate(teamId: number, date: string, token: string): Promise<Todo[]> {
+  return cachedRequest(
+    `todos:${teamId}:date:${date}`,
+    () =>
+      getJson<Todo[] | null>(`/api/teams/${teamId}/todos?date=${date}`, token).then((d) => d ?? []),
+    30_000
+  )
 }
 
 export async function getTeamTodoReport(
@@ -140,8 +147,14 @@ export async function getTeamTodoReport(
   endDate: string,
   token: string
 ): Promise<TodoPeriodReportResponse> {
-  return getJson<TodoPeriodReportResponse>(
-    `/api/teams/${teamId}/todos/report?startDate=${startDate}&endDate=${endDate}`,
-    token
+  // 달을 앞뒤로 넘기면 같은 구간을 반복해서 부르게 되므로 구간 단위로 캐시한다.
+  return cachedRequest(
+    `todos:${teamId}:report:${startDate}:${endDate}`,
+    () =>
+      getJson<TodoPeriodReportResponse>(
+        `/api/teams/${teamId}/todos/report?startDate=${startDate}&endDate=${endDate}`,
+        token
+      ),
+    30_000
   )
 }

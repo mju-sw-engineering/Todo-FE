@@ -1,51 +1,36 @@
 'use client'
 
 import { useMemo } from 'react'
+import { MONTHS_KO, DAYS_SHORT_KO, pad, todayString } from '@/lib/dateUtils'
+import { dayStatDotClass } from '@/lib/todoStats'
+import type { DayStat } from '@/types/todo.types'
 
 interface CalendarProps {
   selectedDate: string
   year: number
   month: number
-  dailyCounts: Record<string, number>
+  dayStats: Record<string, DayStat>
+  /** 마감이 미래인 할 일도 보여주는 화면이라면 앞으로의 날짜도 고를 수 있어야 한다 */
+  allowFuture?: boolean
   onSelectDate: (date: string) => void
   onPrevMonth: () => void
   onNextMonth: () => void
-}
-
-const MONTH_KO = [
-  '1월',
-  '2월',
-  '3월',
-  '4월',
-  '5월',
-  '6월',
-  '7월',
-  '8월',
-  '9월',
-  '10월',
-  '11월',
-  '12월',
-]
-const DAY_KO = ['일', '월', '화', '수', '목', '금', '토']
-
-function pad(n: number) {
-  return String(n).padStart(2, '0')
 }
 
 export function Calendar({
   selectedDate,
   year,
   month,
-  dailyCounts,
+  dayStats,
+  allowFuture = false,
   onSelectDate,
   onPrevMonth,
   onNextMonth,
 }: CalendarProps) {
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
-  const currentYM = `${today.getFullYear()}-${pad(today.getMonth() + 1)}`
+  const todayStr = todayString()
+  const currentYM = todayStr.slice(0, 7)
   const viewYM = `${year}-${pad(month)}`
-  const canGoNext = viewYM < currentYM
+  const canGoNext = allowFuture || viewYM < currentYM
 
   const cells = useMemo(() => {
     const firstDow = new Date(year, month - 1, 1).getDay()
@@ -58,11 +43,10 @@ export function Calendar({
 
   return (
     <div className="bg-white rounded-[18px] border border-border px-3 pt-2.5 pb-2">
-      {/* Month navigation */}
       <div className="flex items-center justify-between mb-2">
         <button
           onClick={onPrevMonth}
-          className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+          className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-neutral-30 transition-colors"
           aria-label="이전 달"
         >
           <svg
@@ -76,12 +60,12 @@ export function Calendar({
           </svg>
         </button>
         <span className="text-[13px] font-bold text-ink">
-          {year}년 {MONTH_KO[month - 1]}
+          {year}년 {MONTHS_KO[month - 1]}
         </span>
         <button
           onClick={onNextMonth}
           disabled={!canGoNext}
-          className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+          className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-neutral-30 transition-colors disabled:opacity-30 disabled:pointer-events-none"
           aria-label="다음 달"
         >
           <svg
@@ -96,19 +80,19 @@ export function Calendar({
         </button>
       </div>
 
-      {/* Day labels */}
       <div className="grid grid-cols-7 mb-0.5">
-        {DAY_KO.map((d, i) => (
+        {DAYS_SHORT_KO.map((d, i) => (
           <div
             key={d}
-            className={`text-center text-[10px] font-semibold py-0.5 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-muted'}`}
+            className={`text-center text-[10px] font-semibold py-0.5 ${
+              i === 0 ? 'text-status-red' : i === 6 ? 'text-primary' : 'text-muted'
+            }`}
           >
             {d}
           </div>
         ))}
       </div>
 
-      {/* Day cells */}
       <div className="grid grid-cols-7">
         {cells.map((day, i) => {
           if (!day) return <div key={`e-${i}`} className="h-9" />
@@ -116,14 +100,17 @@ export function Calendar({
           const isToday = dateStr === todayStr
           const isSelected = dateStr === selectedDate
           const isFuture = dateStr > todayStr
-          const count = dailyCounts[dateStr] ?? 0
+          const stat = dayStats[dateStr]
+          const dot = dayStatDotClass(stat, isFuture)
           const dow = new Date(year, month - 1, day).getDay()
 
           return (
             <button
               key={dateStr}
-              disabled={isFuture}
+              disabled={!allowFuture && isFuture}
               onClick={() => onSelectDate(dateStr)}
+              aria-current={isSelected ? 'date' : undefined}
+              aria-label={`${month}월 ${day}일${stat ? `, 할 일 ${stat.total}개` : ''}`}
               className="flex flex-col items-center justify-start py-0.5 gap-0 disabled:pointer-events-none"
             >
               <div
@@ -132,28 +119,24 @@ export function Calendar({
                     isSelected
                       ? 'bg-primary text-white'
                       : isToday
-                        ? 'ring-1 ring-gray-400 text-gray-900'
+                        ? 'ring-1 ring-primary text-primary'
                         : isFuture
-                          ? 'text-gray-300'
+                          ? 'text-neutral-60 hover:bg-neutral-30'
                           : dow === 0
-                            ? 'text-red-400 hover:bg-gray-100'
+                            ? 'text-status-red hover:bg-neutral-30'
                             : dow === 6
-                              ? 'text-blue-400 hover:bg-gray-100'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              ? 'text-primary hover:bg-neutral-30'
+                              : 'text-neutral-100 hover:bg-neutral-30'
                   }`}
               >
                 {day}
               </div>
               <div className="h-3 flex items-center justify-center">
-                {count > 0 && (
-                  <span
-                    className={`text-[8px] font-black leading-none tabular-nums ${
-                      isSelected ? 'text-white/70' : isFuture ? 'text-gray-200' : 'text-gray-400'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
+                <span
+                  className={`w-[5px] h-[5px] rounded-full ${
+                    isSelected ? 'bg-primary' : (dot ?? 'bg-transparent')
+                  }`}
+                />
               </div>
             </button>
           )

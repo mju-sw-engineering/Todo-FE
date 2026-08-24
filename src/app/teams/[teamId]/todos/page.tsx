@@ -2,13 +2,21 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useTeamTodos } from '@/hooks/useTeamTodos'
 import { getTeamById } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import { TeamTodoCard } from './components/TeamTodoCard'
+import { WeekStrip } from './components/WeekStrip'
+import { TeamMenuSheet } from './components/TeamMenuSheet'
+import { TeamMenuHint, markTeamMenuHintSeen } from './components/TeamMenuHint'
+import { AddTodoCard } from './components/AddTodoCard'
 import { TeamHiveGrowthCard } from '@/app/teams/[teamId]/components/TeamHiveGrowthCard'
 import { BackButton } from '@/components/ui/BackButton'
+import { Calendar } from '@/components/ui/Calendar'
 import { PageLoader } from '@/components/ui/PageLoader'
+import { Spinner } from '@/components/ui/Spinner'
+import { Button } from '@/components/ui/Button'
 import type { TeamTodoTabType } from '@/hooks/useTeamTodos'
 
 const TAB_LABELS: { key: TeamTodoTabType; label: string }[] = [
@@ -23,6 +31,9 @@ function TodoListContent() {
   const searchParams = useSearchParams()
   const teamId = Number(params.teamId)
   const { token } = useAuth()
+  const reduceMotion = useReducedMotion()
+
+  const [menuOpen, setMenuOpen] = useState(false)
 
   // 팀 홈이 된 화면이므로 어느 팀인지 항상 보여준다
   const [teamName, setTeamName] = useState('')
@@ -40,139 +51,191 @@ function TodoListContent() {
   }, [token, teamId])
 
   const {
-    displayTodos,
+    hasValidTeam,
+    todayStr,
+    selectedDate,
+    todos,
     isLoading,
     tab,
     setTab,
     showToast,
+    direction,
+    calendarOpen,
+    setCalendarOpen,
+    calendarYear,
+    calendarMonth,
+    dayStats,
+    now,
     filteredTodos,
-    todoDetails,
     completeCount,
     incompleteCount,
+    overdueCount,
+    handleSelectDate,
+    handlePrevMonth,
+    handleNextMonth,
   } = useTeamTodos(teamId, token, searchParams.get('created') === '1')
 
-  if (isLoading && displayTodos.length === 0) return <PageLoader />
+  const slideX = reduceMotion ? 0 : 24
+
+  if (!hasValidTeam) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8 bg-white">
+        <p className="text-[15px] font-bold text-ink">팀을 찾을 수 없어요</p>
+        <Button variant="outline" onClick={() => router.push('/teams')}>
+          팀 목록으로
+        </Button>
+      </div>
+    )
+  }
+
+  if (isLoading && todos.length === 0 && selectedDate === todayStr) return <PageLoader />
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-white">
-      <div className="relative shrink-0">
-        <div className="px-5 pt-4 pb-3 flex items-center gap-3 border-b border-gray-100">
+      {/* 힌트 말풍선이 헤더 밖으로 나와 아래 스크롤 영역 위에 떠야 해서 쌓임 순서를 올려둔다 */}
+      <div className="relative z-20 shrink-0 bg-white">
+        <div className="px-5 pt-4 pb-3 flex items-center gap-2 border-b border-border">
           <BackButton onClick={() => router.push('/teams')} />
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-bold text-primary tracking-wide truncate">할 일</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-[22px] font-black text-gray-900 tracking-tight leading-tight truncate">
-                {teamName}
-              </span>
-              {displayTodos.length > 0 && (
-                <span className="shrink-0 text-[12px] font-semibold text-gray-400">
-                  <span className="font-black text-gray-900">{completeCount}</span>/
-                  {displayTodos.length} 완료
-                </span>
-              )}
-            </div>
+            <span className="text-[22px] font-black text-ink tracking-tight leading-tight truncate block">
+              {teamName}
+            </span>
           </div>
-          <div className="flex flex-col gap-1 self-start shrink-0">
-            <div className="flex items-center gap-0.5">
-              <button
-                aria-label="팀원들과 가능한 시간 투표로 정하기"
-                onClick={() => router.push(`/teams/${teamId}/availability`)}
-                className="flex items-center gap-1.5 h-10 pl-2.5 pr-3 rounded-full bg-primary/10 text-primary hover:bg-primary/15 active:scale-95 transition-all"
-              >
-                <svg
-                  className="w-4.5 h-4.5 shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.9}
-                >
-                  <circle cx="12" cy="12" r="9" />
-                  <path strokeLinecap="round" d="M12 7v5l3.5 2" />
-                </svg>
-                <span className="text-[12px] font-bold whitespace-nowrap">시간 정하기</span>
-              </button>
-              <button
-                aria-label="팀 설정"
-                onClick={() => router.push(`/teams/${teamId}/settings`)}
-                className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 active:scale-95 transition-all"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.9}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10.34 4.1c.42-1.75 2.9-1.75 3.32 0a1.71 1.71 0 0 0 2.55 1.06c1.54-.94 3.3.82 2.37 2.37a1.71 1.71 0 0 0 1.05 2.54c1.76.42 1.76 2.91 0 3.33a1.71 1.71 0 0 0-1.05 2.54c.93 1.55-.83 3.31-2.37 2.37a1.71 1.71 0 0 0-2.55 1.06c-.42 1.75-2.9 1.75-3.32 0a1.71 1.71 0 0 0-2.55-1.06c-1.54.94-3.3-.82-2.37-2.37a1.71 1.71 0 0 0-1.05-2.54c-1.76-.42-1.76-2.91 0-3.33a1.71 1.71 0 0 0 1.05-2.54c-.93-1.55.83-3.31 2.37-2.37a1.71 1.71 0 0 0 2.55-1.06Z"
-                  />
-                  <circle cx="12" cy="12" r="2.6" />
-                </svg>
-              </button>
-            </div>
+          <div className="relative shrink-0">
+            <button
+              aria-label="팀 메뉴 열기"
+              aria-expanded={menuOpen}
+              onClick={() => {
+                markTeamMenuHintSeen()
+                setMenuOpen(true)
+              }}
+              className="w-10 h-10 flex items-center justify-center rounded-full text-muted hover:bg-neutral-30 active:scale-95 transition-all"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="1.7" />
+                <circle cx="12" cy="12" r="1.7" />
+                <circle cx="19" cy="12" r="1.7" />
+              </svg>
+            </button>
+            <TeamMenuHint suppressed={menuOpen} />
           </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-4 flex flex-col">
-        <TeamHiveGrowthCard teamId={teamId} token={token} />
+        <TeamHiveGrowthCard teamId={teamId} token={token} compact />
 
-        <div className="flex gap-1.5 px-5 py-3 shrink-0">
+        <WeekStrip
+          selectedDate={selectedDate}
+          todayStr={todayStr}
+          dayStats={dayStats}
+          calendarOpen={calendarOpen}
+          onSelectDate={handleSelectDate}
+          onToggleCalendar={() => setCalendarOpen(!calendarOpen)}
+        />
+
+        <AnimatePresence initial={false}>
+          {calendarOpen && (
+            <motion.div
+              key="calendar"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.4, 0, 0.2, 1] }}
+              className="overflow-hidden px-5 shrink-0"
+            >
+              <div className="pt-1 pb-2">
+                <Calendar
+                  selectedDate={selectedDate}
+                  year={calendarYear}
+                  month={calendarMonth}
+                  dayStats={dayStats}
+                  allowFuture
+                  onSelectDate={handleSelectDate}
+                  onPrevMonth={handlePrevMonth}
+                  onNextMonth={handleNextMonth}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex items-center gap-1.5 px-5 py-2.5 shrink-0">
           {TAB_LABELS.map(({ key, label }) => {
             const count =
-              key === 'all'
-                ? displayTodos.length
-                : key === 'complete'
-                  ? completeCount
-                  : incompleteCount
+              key === 'all' ? todos.length : key === 'complete' ? completeCount : incompleteCount
             return (
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${tab === key ? 'bg-primary text-white' : 'bg-neutral-30 text-muted hover:bg-neutral-40'}`}
+                className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${
+                  tab === key
+                    ? 'bg-primary text-white'
+                    : 'bg-neutral-30 text-muted hover:bg-neutral-40'
+                }`}
               >
                 {label} {count}
               </button>
             )
           })}
-        </div>
-
-        <div className="flex flex-col gap-3 px-5 pb-4">
-          {displayTodos.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-20">
-              <svg
-                className="w-10 h-10 text-gray-300 mb-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <rect x="4" y="3" width="16" height="18" rx="2" />
-                <path strokeLinecap="round" d="M8 8h8M8 12h8M8 16h5" />
-              </svg>
-              <p className="text-[15px] font-bold text-gray-900">아직 진행 중인 할 일이 없어요</p>
-              <p className="text-[13px] text-gray-400 mt-1">
-                새 할 일이 등록되면 여기서 진행 현황을 볼 수 있어요
-              </p>
-            </div>
-          ) : filteredTodos.length === 0 ? (
-            <div className="flex items-center justify-center py-20">
-              <p className="text-[14px] text-gray-400">해당하는 할 일이 없어요</p>
-            </div>
-          ) : (
-            filteredTodos.map((todo) => (
-              <TeamTodoCard
-                key={todo.todoId}
-                todo={todo}
-                detail={todoDetails[todo.todoId]}
-                onClick={() => router.push(`/teams/${teamId}/todos/${todo.todoId}`)}
-              />
-            ))
+          {overdueCount > 0 && (
+            <span className="ml-auto text-[11.5px] font-bold text-status-red bg-status-red/10 px-2.5 py-1 rounded-full whitespace-nowrap">
+              지난 마감 {overdueCount}
+            </span>
           )}
         </div>
+
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={selectedDate}
+            initial={{ opacity: 0, x: direction * slideX }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: direction * -slideX }}
+            transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.4, 0, 0.2, 1] }}
+            className="flex flex-col gap-2.5 px-5 pb-4"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Spinner />
+              </div>
+            ) : todos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center pt-16 pb-8">
+                <svg
+                  className="w-10 h-10 text-neutral-50 mb-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <rect x="4" y="3" width="16" height="18" rx="2" />
+                  <path strokeLinecap="round" d="M8 8h8M8 12h8M8 16h5" />
+                </svg>
+                <p className="text-[15px] font-bold text-ink">이 날은 마감인 할 일이 없어요</p>
+                <p className="text-[13px] text-muted mt-1">위에서 다른 날짜를 골라볼 수 있어요</p>
+                <div className="w-full mt-6">
+                  <AddTodoCard onClick={() => router.push(`/teams/${teamId}/todos/new`)} />
+                </div>
+              </div>
+            ) : filteredTodos.length === 0 ? (
+              <div className="flex items-center justify-center pt-16 pb-8">
+                <p className="text-[14px] text-muted">해당하는 할 일이 없어요</p>
+              </div>
+            ) : (
+              filteredTodos.map(({ todo, variant }) => (
+                <TeamTodoCard
+                  key={todo.todoId}
+                  todo={todo}
+                  variant={variant}
+                  now={now}
+                  onClick={() => router.push(`/teams/${teamId}/todos/${todo.todoId}`)}
+                />
+              ))
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
+
+      {menuOpen && <TeamMenuSheet teamId={teamId} onClose={() => setMenuOpen(false)} />}
 
       {showToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-ink text-white text-[13px] font-bold text-center py-3.5 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] animate-fade-up z-50">

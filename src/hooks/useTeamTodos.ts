@@ -1,34 +1,85 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getAllActiveTodos, getTeamTodoReport, getTodoDetail } from '@/services/todoService'
-import { pad } from '@/lib/dateUtils'
-import type { Todo, TodoDetail } from '@/types/todo.types'
+import { getTeamTodoReport, getTodosByDate } from '@/services/todoService'
+import { addDays, pad, startOfWeekMonday, todayString } from '@/lib/dateUtils'
+import type { DayStat, Todo } from '@/types/todo.types'
 
 export type TeamTodoTabType = 'all' | 'incomplete' | 'complete'
 
-const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, SUCCESS: 1, FAIL: 2 }
+/**
+ * 카드가 받을 표현 등급.
+ * - `done` 완료 · `overdue` 마감 지났는데 미완료
+ * - `hero` 지금 시각 기준 다음 마감 (날짜당 최대 한 장)
+ * - `upcoming` 그 뒤로 남은 것
+ */
+export type TeamTodoVariant = 'done' | 'overdue' | 'hero' | 'upcoming'
+
+export interface ClassifiedTodo {
+  todo: Todo
+  variant: TeamTodoVariant
+}
+
+/** 마감이 1분 단위라 남은 시간 표시와 hero 이동에는 이 주기면 충분하다 */
+const NOW_TICK_MS = 60_000
+
+function monthRangeCoveringWeeks(year: number, month: number): { start: string; end: string } {
+  const lastDay = new Date(year, month, 0).getDate()
+  return {
+    start: startOfWeekMonday(`${year}-${pad(month)}-01`),
+    end: addDays(startOfWeekMonday(`${year}-${pad(month)}-${pad(lastDay)}`), 6),
+  }
+}
+
+/**
+ * 같은 날짜 안에서는 BE가 이미 deadline 오름차순으로 주므로 순서를 건드리지 않는다.
+ * 지난 마감을 아래로 밀지 않는 것도 의도된 것 — 놓친 일이 먼저 보여야 한다.
+ */
+function classify(todos: Todo[], now: number): ClassifiedTodo[] {
+  let heroTaken = false
+  return todos.map((todo) => {
+    if (todo.status === 'SUCCESS') return { todo, variant: 'done' as const }
+    if (new Date(todo.deadline).getTime() <= now) return { todo, variant: 'overdue' as const }
+    if (!heroTaken) {
+      heroTaken = true
+      return { todo, variant: 'hero' as const }
+    }
+    return { todo, variant: 'upcoming' as const }
+  })
+}
 
 export function useTeamTodos(teamId: number, token: string | null, initialShowToast = false) {
   const router = useRouter()
 
-  const todayStr = useMemo(() => {
-    const d = new Date()
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-  }, [])
+  const todayStr = useMemo(() => todayString(), [])
 
-  const [displayTodos, setDisplayTodos] = useState<Todo[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [selectedDate, setSelectedDate] = useState(todayStr)
+  const [todos, setTodos] = useState<Todo[]>([])
+  // 로딩은 별도 상태가 아니라 "요청한 날짜"와 "받아온 날짜"의 차이로 본다.
+  // 이펙트 본문에서 동기적으로 setState 하지 않아 연쇄 렌더가 생기지 않는다.
+  const [loadedDate, setLoadedDate] = useState<string | null>(null)
   const [tab, setTab] = useState<TeamTodoTabType>('all')
   const [showToast, setShowToast] = useState(initialShowToast)
-  const [todoDetails, setTodoDetails] = useState<Record<number, TodoDetail>>({})
+  const [now, setNow] = useState(() => Date.now())
 
   const [calendarOpen, setCalendarOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(todayStr)
   const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear())
   const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth() + 1)
-  const [dailyCounts, setDailyCounts] = useState<Record<string, number>>({})
+  const [dayStats, setDayStats] = useState<Record<string, DayStat>>({})
+
+  /** 날짜 전환 슬라이드 방향. +1이면 미래로, -1이면 과거로 */
+  const [direction, setDirection] = useState(0)
+  const prevDateRef = useRef(selectedDate)
 
   const isToday = selectedDate === todayStr
+  // teamId가 NaN이면 조회 이펙트가 그대로 빠져나가 loadedDate가 영영 갱신되지 않는다.
+  // 로딩으로 두면 잘못된 URL에서 PageLoader가 무한히 남는다.
+  const hasValidTeam = Number.isInteger(teamId) && teamId > 0
+  const isLoading = hasValidTeam && loadedDate !== selectedDate
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), NOW_TICK_MS)
+    return () => clearInterval(id)
+  }, [])
 
   useEffect(() => {
     if (!showToast) return
@@ -37,105 +88,119 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
     return () => clearTimeout(t)
   }, [showToast, router, teamId])
 
+  // 선택한 날짜의 할 일. 캐시가 살아있으면 즉시 반환돼 날짜를 넘길 때 깜빡이지 않는다.
   useEffect(() => {
-    if (!token || !teamId) return
-    async function load() {
-      setIsLoading(true)
-      try {
-        const data = await getAllActiveTodos(teamId, token!)
-        setDisplayTodos(data)
-      } catch {
-        setDisplayTodos([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    load()
-  }, [teamId, token])
-
-  useEffect(() => {
-    if (!token || displayTodos.length === 0) return
+    if (!token || Number.isNaN(teamId)) return
     let cancelled = false
-    Promise.allSettled(displayTodos.map((t) => getTodoDetail(t.todoId, token))).then((results) => {
-      if (cancelled) return
-      const map: Record<number, TodoDetail> = {}
-      results.forEach((r, i) => {
-        if (r.status === 'fulfilled') map[displayTodos[i].todoId] = r.value
+    const requested = selectedDate
+    getTodosByDate(teamId, requested, token)
+      .then((data) => {
+        if (!cancelled) setTodos(data)
       })
-      setTodoDetails(map)
-    })
+      .catch(() => {
+        if (!cancelled) setTodos([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoadedDate(requested)
+      })
     return () => {
       cancelled = true
     }
-  }, [displayTodos, token])
+  }, [teamId, token, selectedDate])
 
+  // 주간 스트립 점과 월간 캘린더 점이 같은 데이터를 쓴다 — 달 하나를 주 단위로 넉넉히 덮어 한 번만 부른다.
   useEffect(() => {
-    if (!calendarOpen || !token || !teamId) return
-    const startDate = `${calendarYear}-${pad(calendarMonth)}-01`
-    const lastDay = new Date(calendarYear, calendarMonth, 0).getDate()
-    const endDate = `${calendarYear}-${pad(calendarMonth)}-${pad(lastDay)}`
-    getTeamTodoReport(teamId, startDate, endDate, token)
+    if (!token || Number.isNaN(teamId)) return
+    let cancelled = false
+    const { start, end } = monthRangeCoveringWeeks(calendarYear, calendarMonth)
+    getTeamTodoReport(teamId, start, end, token)
       .then((report) => {
-        const counts: Record<string, number> = {}
+        if (cancelled) return
+        const next: Record<string, DayStat> = {}
         for (const stat of report?.dailyStats ?? []) {
-          if (stat.totalTodoCount > 0) counts[stat.date] = stat.totalTodoCount
+          if (stat.totalTodoCount > 0) {
+            next[stat.date] = { total: stat.totalTodoCount, achievementRate: stat.achievementRate }
+          }
         }
-        setDailyCounts(counts)
+        // 이번 응답이 덮는 구간은 통째로 갈아끼운다. 병합만 하면 할 일이 모두 사라진 날의
+        // 옛 점이 남아, 지운 뒤 달을 다시 열어도 계속 표시된다.
+        setDayStats((prev) => {
+          const merged: Record<string, DayStat> = {}
+          for (const [date, stat] of Object.entries(prev)) {
+            if (date < start || date > end) merged[date] = stat
+          }
+          return { ...merged, ...next }
+        })
       })
       .catch(() => {})
-  }, [calendarOpen, calendarYear, calendarMonth, teamId, token])
+    return () => {
+      cancelled = true
+    }
+  }, [teamId, token, calendarYear, calendarMonth])
 
-  function handleSelectDate(date: string) {
+  const handleSelectDate = useCallback((date: string) => {
+    setDirection(date > prevDateRef.current ? 1 : -1)
+    prevDateRef.current = date
     setSelectedDate(date)
     setTab('all')
     setCalendarOpen(false)
-  }
+    // 다른 달을 고르면 통계 조회 구간도 따라간다
+    const [y, m] = date.split('-').map(Number)
+    setCalendarYear(y)
+    setCalendarMonth(m)
+  }, [])
 
-  function handlePrevMonth() {
+  const handlePrevMonth = useCallback(() => {
     if (calendarMonth === 1) {
-      setCalendarYear((y) => y - 1)
+      setCalendarYear(calendarYear - 1)
       setCalendarMonth(12)
-    } else setCalendarMonth((m) => m - 1)
-  }
+    } else {
+      setCalendarMonth(calendarMonth - 1)
+    }
+  }, [calendarMonth, calendarYear])
 
-  function handleNextMonth() {
+  const handleNextMonth = useCallback(() => {
     if (calendarMonth === 12) {
-      setCalendarYear((y) => y + 1)
+      setCalendarYear(calendarYear + 1)
       setCalendarMonth(1)
-    } else setCalendarMonth((m) => m + 1)
-  }
+    } else {
+      setCalendarMonth(calendarMonth + 1)
+    }
+  }, [calendarMonth, calendarYear])
 
-  const filteredTodos = displayTodos
-    .filter((t) => {
-      if (tab === 'complete') return t.status === 'SUCCESS'
-      if (tab === 'incomplete') return t.status !== 'SUCCESS'
-      return true
-    })
-    .sort((a, b) => (STATUS_ORDER[a.status] ?? 0) - (STATUS_ORDER[b.status] ?? 0))
+  const classified = useMemo(() => classify(todos, now), [todos, now])
 
-  const completeCount = displayTodos.filter((t) => t.status === 'SUCCESS').length
-  const incompleteCount = displayTodos.filter((t) => t.status !== 'SUCCESS').length
+  const filteredTodos = useMemo(() => {
+    if (tab === 'complete') return classified.filter((c) => c.variant === 'done')
+    if (tab === 'incomplete') return classified.filter((c) => c.variant !== 'done')
+    return classified
+  }, [classified, tab])
+
+  const completeCount = classified.filter((c) => c.variant === 'done').length
+  const overdueCount = classified.filter((c) => c.variant === 'overdue').length
+  const incompleteCount = todos.length - completeCount
 
   return {
+    hasValidTeam,
     todayStr,
-    displayTodos,
+    selectedDate,
+    todos,
     isLoading,
     tab,
     setTab,
     showToast,
+    direction,
     calendarOpen,
     setCalendarOpen,
-    selectedDate,
     calendarYear,
-    setCalendarYear,
     calendarMonth,
-    setCalendarMonth,
-    dailyCounts,
+    dayStats,
     isToday,
+    now,
     filteredTodos,
-    todoDetails,
     completeCount,
     incompleteCount,
+    overdueCount,
     handleSelectDate,
     handlePrevMonth,
     handleNextMonth,

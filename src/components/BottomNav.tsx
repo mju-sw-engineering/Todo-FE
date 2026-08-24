@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/store/authStore'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { NavCreateButton } from '@/components/NavCreateButton'
 
 function TodoIcon({ active }: { active: boolean }) {
   const c = active ? '#669aff' : '#818181'
@@ -139,6 +140,8 @@ export function BottomNav() {
           팀
         </span>
       </button>
+
+      <NavCreateButton />
 
       <button
         onClick={() => navigate('/feed')}
