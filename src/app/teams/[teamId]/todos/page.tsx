@@ -15,6 +15,8 @@ import { TeamHiveGrowthCard } from '@/app/teams/[teamId]/components/TeamHiveGrow
 import { BackButton } from '@/components/ui/BackButton'
 import { Calendar } from '@/components/ui/Calendar'
 import { PageLoader } from '@/components/ui/PageLoader'
+import { Spinner } from '@/components/ui/Spinner'
+import { Button } from '@/components/ui/Button'
 import type { TeamTodoTabType } from '@/hooks/useTeamTodos'
 
 const TAB_LABELS: { key: TeamTodoTabType; label: string }[] = [
@@ -49,6 +51,7 @@ function TodoListContent() {
   }, [token, teamId])
 
   const {
+    hasValidTeam,
     todayStr,
     selectedDate,
     todos,
@@ -73,6 +76,17 @@ function TodoListContent() {
   } = useTeamTodos(teamId, token, searchParams.get('created') === '1')
 
   const slideX = reduceMotion ? 0 : 24
+
+  if (!hasValidTeam) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8 bg-white">
+        <p className="text-[15px] font-bold text-ink">팀을 찾을 수 없어요</p>
+        <Button variant="outline" onClick={() => router.push('/teams')}>
+          팀 목록으로
+        </Button>
+      </div>
+    )
+  }
 
   if (isLoading && todos.length === 0 && selectedDate === todayStr) return <PageLoader />
 
@@ -180,7 +194,11 @@ function TodoListContent() {
             transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.4, 0, 0.2, 1] }}
             className="flex flex-col gap-2.5 px-5 pb-4"
           >
-            {todos.length === 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Spinner />
+              </div>
+            ) : todos.length === 0 ? (
               <div className="flex flex-col items-center justify-center pt-16 pb-8">
                 <svg
                   className="w-10 h-10 text-neutral-50 mb-3"

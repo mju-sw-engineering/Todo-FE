@@ -71,7 +71,10 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
   const prevDateRef = useRef(selectedDate)
 
   const isToday = selectedDate === todayStr
-  const isLoading = loadedDate !== selectedDate
+  // teamId가 NaN이면 조회 이펙트가 그대로 빠져나가 loadedDate가 영영 갱신되지 않는다.
+  // 로딩으로 두면 잘못된 URL에서 PageLoader가 무한히 남는다.
+  const hasValidTeam = Number.isInteger(teamId) && teamId > 0
+  const isLoading = hasValidTeam && loadedDate !== selectedDate
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), NOW_TICK_MS)
@@ -119,7 +122,15 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
             next[stat.date] = { total: stat.totalTodoCount, achievementRate: stat.achievementRate }
           }
         }
-        setDayStats((prev) => ({ ...prev, ...next }))
+        // 이번 응답이 덮는 구간은 통째로 갈아끼운다. 병합만 하면 할 일이 모두 사라진 날의
+        // 옛 점이 남아, 지운 뒤 달을 다시 열어도 계속 표시된다.
+        setDayStats((prev) => {
+          const merged: Record<string, DayStat> = {}
+          for (const [date, stat] of Object.entries(prev)) {
+            if (date < start || date > end) merged[date] = stat
+          }
+          return { ...merged, ...next }
+        })
       })
       .catch(() => {})
     return () => {
@@ -170,6 +181,7 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
   const incompleteCount = todos.length - completeCount
 
   return {
+    hasValidTeam,
     todayStr,
     selectedDate,
     todos,

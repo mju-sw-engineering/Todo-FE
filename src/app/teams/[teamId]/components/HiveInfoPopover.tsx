@@ -1,7 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { TeamHiveIcon } from './TeamHiveIcon'
 
 const POPOVER_WIDTH = 272
@@ -35,6 +36,17 @@ export function HiveInfoPopover({
   anchor,
   onClose,
 }: HiveInfoPopoverProps) {
+  const reduceMotion = useReducedMotion()
+
+  // 포인터로 배경을 눌러야만 닫히면 키보드 사용자는 빠져나갈 방법이 없다
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+
   const gap = 10
   const arrowSize = 6
 
@@ -56,8 +68,15 @@ export function HiveInfoPopover({
         initial={{ opacity: 0, scale: 0.88, y: opensDown ? -6 : 6 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.88, y: opensDown ? -6 : 6 }}
-        transition={{ type: 'spring', damping: 22, stiffness: 420, mass: 0.5 }}
+        transition={
+          reduceMotion
+            ? { duration: 0 }
+            : { type: 'spring', damping: 22, stiffness: 420, mass: 0.5 }
+        }
         style={{ top, bottom, left, width: POPOVER_WIDTH }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="벌집 성장 단계"
         className="fixed z-50 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.13)] border border-border p-3.5"
       >
         {opensDown && (

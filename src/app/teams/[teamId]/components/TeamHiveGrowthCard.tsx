@@ -1,7 +1,7 @@
 'use client'
 
 import { createPortal } from 'react-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { getTeamHive } from '@/services/teamService'
 import { TeamHiveIcon } from './TeamHiveIcon'
@@ -45,6 +45,7 @@ interface Props {
  * compact여도 레벨업 감지·축하 연출은 그대로 동작한다 — 보상 순간을 잃지 않는 게 중요하다.
  */
 export function TeamHiveGrowthCard({ teamId, token, compact = false }: Props) {
+  const reduceMotion = useReducedMotion()
   const [hive, setHive] = useState<TeamHiveResponse | null>(null)
   const [celebrate, setCelebrate] = useState(false)
   // 한 줄 버전은 '모은 기록 수' 같은 정보를 못 담으므로 눌러서 펼쳐 볼 수 있게 한다
@@ -93,7 +94,7 @@ export function TeamHiveGrowthCard({ teamId, token, compact = false }: Props) {
               className="h-full rounded-full bg-primary"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
+              transition={reduceMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' }}
             />
           </div>
           <span className="shrink-0 text-[10.5px] font-semibold text-muted">
@@ -135,7 +136,7 @@ export function TeamHiveGrowthCard({ teamId, token, compact = false }: Props) {
                 className="h-full rounded-full bg-primary"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' }}
               />
             </div>
           </div>
@@ -168,14 +169,16 @@ export function TeamHiveGrowthCard({ teamId, token, compact = false }: Props) {
               className="w-full max-w-xs rounded-[24px] bg-white border border-border px-6 pt-8 pb-6 text-center"
               initial={{ scale: 0.7, y: 24 }}
               animate={{ scale: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+              transition={
+                reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 22 }
+              }
               onClick={(e) => e.stopPropagation()}
             >
               <motion.div
                 className="flex justify-center"
                 initial={{ scale: 0.5 }}
-                animate={{ scale: [0.5, 1.15, 1] }}
-                transition={{ duration: 0.6, times: [0, 0.7, 1] }}
+                animate={{ scale: reduceMotion ? 1 : [0.5, 1.15, 1] }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.6, times: [0, 0.7, 1] }}
               >
                 <TeamHiveIcon level={level} size={96} />
               </motion.div>

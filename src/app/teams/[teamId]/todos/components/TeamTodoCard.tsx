@@ -20,7 +20,7 @@ interface TeamTodoCardProps {
   onClick: () => void
 }
 
-const CARD_BG = '#ffffff'
+const CARD_BG = 'var(--color-static-white)'
 const HERO_BG = 'var(--color-primary)'
 const CHECK_COLOR = 'var(--color-point)'
 
@@ -31,24 +31,24 @@ const STATUS_LABEL: Record<WorkItemStatus, string> = {
 }
 
 function badgeColor(status: WorkItemStatus, onHero: boolean): string {
-  if (status === 'SUCCESS') return onHero ? '#ffffff' : 'var(--color-primary)'
+  if (status === 'SUCCESS') return onHero ? 'var(--color-static-white)' : 'var(--color-primary)'
   if (status === 'FAIL') return 'var(--color-status-red)'
-  return onHero ? 'rgba(255,255,255,0.45)' : 'var(--color-neutral-50)'
+  return onHero
+    ? 'color-mix(in srgb, var(--color-static-white) 45%, transparent)'
+    : 'var(--color-neutral-50)'
 }
 
-function ParticipantAvatars({
-  participants,
-  size,
-  onHero,
-}: {
+interface ParticipantAvatarsProps {
   participants: TodoParticipant[]
   size: number
   onHero: boolean
-}) {
+}
+
+function ParticipantAvatars({ participants, size, onHero }: ParticipantAvatarsProps) {
   if (participants.length === 0) return null
 
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden -mx-0.5 px-0.5">
+    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden -mx-0.5 px-0.5 -my-0.5 py-0.5">
       {participants.map((p) => {
         const counts = p.totalCount > 1 ? ` (${p.successCount}/${p.totalCount})` : ''
         return (
