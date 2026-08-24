@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { BeeCharacter } from '@/components/bee/BeeCharacter'
+import { BeePose } from '@/components/bee/BeePose'
 import { ConsentAgreements, type ConsentState } from '@/components/ConsentAgreements'
 import { ProfileImagePicker } from '@/components/ProfileImagePicker'
 import { Button } from '@/components/ui/Button'
@@ -134,7 +134,7 @@ export default function AppleSetupPage() {
   return (
     <div className="flex-1 flex flex-col px-6 pt-12 pb-10 animate-fade-up">
       <div className="flex justify-center">
-        <BeeCharacter expression="cheer" size={88} />
+        <BeePose pose="cheer" size={88} decorative />
       </div>
 
       <h1 className="text-[24px] font-jua text-gray-900 text-center mt-4 leading-snug">

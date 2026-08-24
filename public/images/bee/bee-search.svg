@@ -3,9 +3,9 @@
   두비두비 꿀벌 — 할 일 없음
 
   자동 생성 파일 — 직접 수정하지 말고 scripts/generate-home-bees.mjs 를 고쳐 다시 생성할 것.
-  원본 캐릭터: public/images/bee/login/login-bee-character.svg
+  원본 캐릭터: public/images/bee/login-bee-character.svg
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="150 158 940 888" fill="none" shape-rendering="geometricPrecision">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="170 125 903 964" fill="none" shape-rendering="geometricPrecision">
   <title>두비두비 꿀벌 — 할 일 없음</title>
   <desc>할 일이 하나도 없는 빈 상태에서 쓰는 살펴보는 일러스트</desc>
   <g id="search-bee-character" transform="rotate(-12 650 620)" stroke-linejoin="round" stroke-linecap="round">
