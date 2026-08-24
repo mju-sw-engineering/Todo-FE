@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { BottomNav } from '@/components/BottomNav'
-import { LogoMark } from '@/components/ui/LogoBlob'
+import { LogoMark } from '@/components/ui/LogoMark'
 import { NotificationBell } from './components/NotificationPanel'
 import { useAuth } from '@/store/authStore'
 
