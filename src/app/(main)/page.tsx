@@ -1,12 +1,9 @@
 'use client'
 
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { BeePose } from '@/components/bee/BeePose'
 import { MyTodoCard } from './components/MyTodoCard'
-import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import { BottomSheet } from '@/components/ui/BottomSheet'
 import { getTeams } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import { useHomeTodos } from '@/hooks/useHomeTodos'
@@ -25,7 +22,6 @@ export default function HomePage() {
   const [tab, setTab] = useState<TabType>('all')
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'all'>('all')
   const [teamMenuOpen, setTeamMenuOpen] = useState(false)
-  const [teamPickerOpen, setTeamPickerOpen] = useState(false)
 
   const { historyTodos, historyLoading, historyError, reload } = useHomeTodos(token, teamList)
 
@@ -77,18 +73,6 @@ export default function HomePage() {
     },
     { key: 'complete', label: '완료', count: completeCount },
   ]
-
-  function handleCreateClick() {
-    if (teamList.length === 0) {
-      router.push('/teams')
-      return
-    }
-    if (selectedTeamId === 'all') {
-      setTeamPickerOpen(true)
-    } else {
-      router.push(`/teams/${selectedTeamId}/todos/new`)
-    }
-  }
 
   if (isLoading) {
     return (
@@ -245,54 +229,6 @@ export default function HomePage() {
           ))
         )}
       </div>
-
-      <button
-        onClick={handleCreateClick}
-        aria-label="할 일 추가"
-        className="fixed bottom-8 right-5 z-40 w-14 h-14 rounded-full bg-primary text-white shadow-[0_4px_22px_rgba(102,153,255,0.4)] flex items-center justify-center active:scale-95 transition-all hover:bg-primary-hover"
-      >
-        <svg
-          width="22"
-          height="22"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.5}
-        >
-          <path strokeLinecap="round" d="M12 5v14M5 12h14" />
-        </svg>
-      </button>
-
-      {teamPickerOpen && (
-        <BottomSheet onClose={() => setTeamPickerOpen(false)}>
-          <h2 className="text-[17px] font-bold text-ink">어느 팀에 추가할까요?</h2>
-          <p className="mt-1 text-[12px] text-muted">할 일을 만들 팀을 선택해주세요.</p>
-          <div className="my-5 max-h-72 flex flex-col gap-2 overflow-y-auto">
-            {teamList.map((team) => (
-              <button
-                key={team.teamId}
-                onClick={() => router.push(`/teams/${team.teamId}/todos/new`)}
-                className="w-full flex items-center gap-3 rounded-[14px] border border-border px-4 py-3 text-left hover:border-neutral-50 transition-colors"
-              >
-                {team.teamImageUrl ? (
-                  <span className="w-8 h-8 rounded-full overflow-hidden shrink-0 relative">
-                    <Image
-                      src={team.teamImageUrl}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </span>
-                ) : (
-                  <BlobAvatar seed={team.teamName} size={32} />
-                )}
-                <span className="text-[14px] font-semibold text-ink">{team.teamName}</span>
-              </button>
-            ))}
-          </div>
-        </BottomSheet>
-      )}
     </div>
   )
 }
