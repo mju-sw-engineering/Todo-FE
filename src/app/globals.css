@@ -238,7 +238,7 @@ select {
 
 /* ── 로그인 씬 벌 캐릭터 — 부위(id 그룹)별 리그 애니메이션 ──
    구조 설명·수정 가이드는 LoginBeeScene.tsx 상단 주석과
-   public/images/bee/login/login-bee-character.svg 상단 주석 참고.
+   public/images/bee/login-bee-character.svg 상단 주석 참고.
    transform-origin(%)은 SVG의 data-pivot 관절 좌표를 각 그룹 bbox 기준 %로 환산한 값 —
    SVG에서 파츠 모양(bbox)이 바뀌면 여기 %도 다시 계산해야 한다.
    속도 조절: 날개짓 주기 --login-bee-flap(기본 0.85s, 비행 중 0.3s),

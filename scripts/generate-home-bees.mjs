@@ -2,7 +2,7 @@
 //
 // 사용법: node scripts/generate-home-bees.mjs
 //
-// 원본은 public/images/bee/login/login-bee-character.svg 한 장이고, 여기서 얼굴 파츠와
+// 원본은 public/images/bee/login-bee-character.svg 한 장이고, 여기서 얼굴 파츠와
 // 몸을 그대로 물려받는다. 그래서 로그인 벌을 고치면 이 스크립트만 다시 돌리면 되고,
 // 세 일러스트가 "다른 벌"이 될 일이 없다.
 //
@@ -15,7 +15,7 @@
 // 손잡이를 손에 닿게만 두면 얹어놓은 것처럼 보이고, 길게 관통시키면 팔 위에 얹힌 막대로 보인다.
 import { readFileSync, writeFileSync } from 'node:fs'
 
-const SRC = 'public/images/bee/login/login-bee-character.svg'
+const SRC = 'public/images/bee/login-bee-character.svg'
 const OUT_DIR = 'public/images/bee'
 
 const HANDLE = '#E38B2F' // 소품 손잡이·테두리 (검은 팔과 대비되도록 코 색을 쓴다)
@@ -159,7 +159,7 @@ for (const pose of POSES) {
   const prefix = pose.file.replace('.svg', '').replace('bee-', '')
   svg = svg.replace(/id="([^"]+)"/g, `id="${prefix}-$1"`)
 
-  const header = `<?xml version="1.0" encoding="UTF-8"?>\n<!--\n  ${pose.title}\n\n  자동 생성 파일 — 직접 수정하지 말고 scripts/generate-home-bees.mjs 를 고쳐 다시 생성할 것.\n  원본 캐릭터: public/images/bee/login/login-bee-character.svg\n-->\n`
+  const header = `<?xml version="1.0" encoding="UTF-8"?>\n<!--\n  ${pose.title}\n\n  자동 생성 파일 — 직접 수정하지 말고 scripts/generate-home-bees.mjs 를 고쳐 다시 생성할 것.\n  원본 캐릭터: public/images/bee/login-bee-character.svg\n-->\n`
   svg = header + svg.replace(/^<\?xml[^>]*\?>\n?/, '')
 
   writeFileSync(`${OUT_DIR}/${pose.file}`, svg)

@@ -1,4 +1,4 @@
-// 자동 생성 파일 — 직접 수정 금지. 원본: public/images/bee/login/login-bee-character.svg
+// 자동 생성 파일 — 직접 수정 금지. 원본: public/images/bee/login-bee-character.svg
 // 재생성: node scripts/generate-login-bee-svg.mjs
 // 날개·팔·눈·입은 id 기반 그룹이며, 부위별 애니메이션은 globals.css의 .login-bee 규칙이 담당한다.
 export const LOGIN_BEE_SVG = `<svg width="100%" xmlns="http://www.w3.org/2000/svg" viewBox="187 114 893 921" fill="none" shape-rendering="geometricPrecision">

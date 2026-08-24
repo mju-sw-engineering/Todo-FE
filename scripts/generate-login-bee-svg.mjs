@@ -8,7 +8,7 @@
 // 템플릿 리터럴로 감싸 export. 모양 수정은 항상 원본 SVG에서 하고 이 스크립트로 동기화할 것.
 import { readFileSync, writeFileSync } from 'node:fs'
 
-const SRC = 'public/images/bee/login/login-bee-character.svg'
+const SRC = 'public/images/bee/login-bee-character.svg'
 const OUT = 'src/app/(auth)/login/components/loginBeeSvg.ts'
 
 let svg = readFileSync(SRC, 'utf8')
