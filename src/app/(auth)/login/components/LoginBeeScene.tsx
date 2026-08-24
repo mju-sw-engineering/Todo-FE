@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion, type AnimationDefinition, type Variants } from 'framer-motion'
+import Image from 'next/image'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { LOGIN_BEE_SVG } from './loginBeeSvg'
 
@@ -16,7 +17,7 @@ import { LOGIN_BEE_SVG } from './loginBeeSvg'
 // - 둥실거림 주기·깊이: 각 <LoginBee bobDuration/bobDepth> (셋을 다르게 해야 살아 보임)
 // - 날개짓 속도: <LoginBee flapDuration> (작은 벌일수록 빠르게)
 // - 순항 포즈·액세서리·표정 파츠: globals.css .login-bee 섹션
-// - 캐릭터 모양: public/images/bee/login/login-bee-character.svg 수정 후
+// - 캐릭터 모양: public/images/bee/login-bee-character.svg 수정 후
 //   `node scripts/generate-login-bee-svg.mjs` (SVG 상단 주석 참고)
 // ───────────────────────────────────────────────────────────────────────────
 type ScenePhase = 'solo' | 'joining' | 'cruise' | 'depart'
@@ -299,6 +300,16 @@ export function LoginBeeScene() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* 랜딩 감성의 앰비언트 장식 — 항상 은은하게 자체 재생된다 */}
+      <Image
+        src="/images/decor/translate.svg"
+        alt=""
+        width={96}
+        height={96}
+        unoptimized
+        className="absolute left-[-6%] bottom-[6%] w-24 opacity-40"
+      />
+
       {/* 해는 배경 패럴랙스와 대비되도록 고정해 둔다 */}
 
       {/* 원경의 작은 뭉게구름 — 아주 느리게 흘러 깊이를 만든다 */}
@@ -368,6 +379,37 @@ export function LoginBeeScene() {
         visible={!departing && phase !== 'solo'}
         reduce={reduce}
       />
+
+      {/* 말풍선 — 순항 중 리더 곁에서만 잠깐 인사를 건넨다 (합류/퇴장 중엔 숨음) */}
+      <motion.div
+        className="absolute left-[74%] top-[19%] z-40 -translate-x-1/2 -translate-y-1/2"
+        initial={{ opacity: 0, scale: 0.5, y: 8 }}
+        animate={
+          reduce
+            ? { opacity: 1, scale: 1, y: 0 }
+            : cruising
+              ? { opacity: 1, scale: 1, y: [0, -5, 0] }
+              : { opacity: 0, scale: 0.5, y: 8 }
+        }
+        transition={
+          reduce
+            ? { duration: 0.3 }
+            : cruising
+              ? {
+                  opacity: { duration: 0.35, delay: 0.35 },
+                  scale: { type: 'spring', stiffness: 260, damping: 15, delay: 0.35 },
+                  y: { duration: 3.4, repeat: Infinity, ease: 'easeInOut', delay: 0.7 },
+                }
+              : { duration: 0.25 }
+        }
+      >
+        <div className="relative rounded-2xl bg-white px-3.5 py-2 shadow-[0_6px_18px_rgba(30,50,110,0.22)]">
+          <p className="whitespace-nowrap font-jua text-[13px] text-ink">
+            우리 같이 할일을 해봐요?
+          </p>
+          <span className="absolute -bottom-1.5 left-8 h-3 w-3 rotate-45 bg-white" />
+        </div>
+      </motion.div>
 
       {/* 편대: 리더(앞) + 리본·새싹 동료(뒤 삼각 대형). 크기·날개속도·둥실 주기를 다르게 */}
       <LoginBee
