@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import Image from 'next/image'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { FiFile } from 'react-icons/fi'
@@ -331,17 +332,24 @@ function TodoDetailContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/65"
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/65 px-6 py-10"
             onClick={() => setShowToast(false)}
           >
-            <div className="rounded-3xl bg-white px-8 py-6 text-center shadow-xl">
-              <BeePose pose="flower" size={104} className="mx-auto mb-1" />
-              <p className="text-[22px] font-black text-gray-900">인증 완료!</p>
-              <p className="mt-1.5 text-[13px] text-gray-500">인증샷이 업로드됐어요</p>
+            <Image
+              src="/images/decor/confetti.svg"
+              alt=""
+              fill
+              unoptimized
+              className="pointer-events-none object-cover"
+            />
+            <div className="relative my-auto w-full max-w-sm shrink-0 rounded-[32px] bg-white px-10 py-10 text-center shadow-xl">
+              <BeePose pose="flower" size={144} className="mx-auto mb-2" />
+              <p className="text-[28px] font-black text-gray-900">인증 완료!</p>
+              <p className="mt-2 text-[15px] text-gray-500">인증샷이 업로드됐어요</p>
               <button
                 type="button"
                 onClick={() => setShowToast(false)}
-                className="mt-4 w-full rounded-2xl bg-primary py-2.5 text-[14px] font-bold text-white"
+                className="mt-6 w-full rounded-2xl bg-primary py-3.5 text-[16px] font-bold text-white"
               >
                 확인
               </button>
