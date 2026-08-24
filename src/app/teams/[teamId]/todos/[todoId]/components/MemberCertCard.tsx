@@ -61,6 +61,13 @@ export function MemberCertCard({
     count: workItem.reactions?.[type] ?? 0,
   })).filter((reaction) => reaction.count > 0)
   const totalCount = activeReactions.reduce((sum, reaction) => sum + reaction.count, 0)
+  const analysis = workItem.aiAnalysis
+  // FAILED는 아무것도 그리지 않는다. 판정이 못 붙었을 뿐 제출은 유효한데,
+  // 실패를 표시하면 제출자가 자기 잘못으로 오해한다.
+  const isAnalyzing = analysis?.status === 'PENDING'
+  const isVerified = analysis?.status === 'DONE' && analysis.verdict === 'VERIFIED'
+  const showAnalysis =
+    isVerified || (analysis?.status === 'DONE' && (analysis.summary || analysis.mismatchReason))
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(Date.now()), 30_000)
@@ -220,26 +227,33 @@ export function MemberCertCard({
         )}
       </div>
 
-      {workItem.aiAnalysis?.status === 'DONE' &&
-        (workItem.aiAnalysis.summary || workItem.aiAnalysis.mismatchReason) && (
-          <div className="px-4 py-3">
-            {workItem.aiAnalysis.verdict === 'VERIFIED' && (
-              <span className="mb-1.5 inline-flex items-center rounded-full bg-primary-light px-2.5 py-1 text-[11px] font-semibold text-primary">
-                AI 확인됨
-              </span>
-            )}
-            {workItem.aiAnalysis.summary && (
-              <p className="text-[12px] leading-relaxed text-muted wrap-break-word">
-                {workItem.aiAnalysis.summary}
-              </p>
-            )}
-            {workItem.aiAnalysis.mismatchReason && (
-              <p className="mt-1 text-[12px] leading-relaxed text-status-red wrap-break-word">
-                {workItem.aiAnalysis.mismatchReason}
-              </p>
-            )}
-          </div>
-        )}
+      {isAnalyzing && (
+        <div className="px-4 py-3">
+          <span className="inline-flex items-center rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-muted">
+            AI 확인 중
+          </span>
+        </div>
+      )}
+
+      {analysis && showAnalysis && (
+        <div className="px-4 py-3">
+          {isVerified && (
+            <span className="mb-1.5 inline-flex items-center rounded-full bg-primary-light px-2.5 py-1 text-[11px] font-semibold text-primary">
+              AI 확인됨
+            </span>
+          )}
+          {analysis.summary && (
+            <p className="text-[12px] leading-relaxed text-muted wrap-break-word">
+              {analysis.summary}
+            </p>
+          )}
+          {analysis.mismatchReason && (
+            <p className="mt-1 text-[12px] leading-relaxed text-status-red wrap-break-word">
+              {analysis.mismatchReason}
+            </p>
+          )}
+        </div>
+      )}
     </article>
   )
 }

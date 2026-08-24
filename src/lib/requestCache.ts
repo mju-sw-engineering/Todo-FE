@@ -10,6 +10,15 @@ export function invalidateCache(prefix: string): void {
   }
 }
 
+/**
+ * 키 하나만 정확히 버린다. 접두사 무효화는 `todo:1`이 `todo:12`까지 지우므로,
+ * 특정 항목이 바뀐 걸 아는 경로에서는 이쪽을 쓴다.
+ */
+export function invalidateCacheKey(key: string): void {
+  store.delete(key)
+  inflight.delete(key)
+}
+
 export function clearAllCache(): void {
   store.clear()
   inflight.clear()

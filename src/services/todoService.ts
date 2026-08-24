@@ -1,5 +1,5 @@
 import { getJson, patchJson, postJson } from '@/lib/apiClient'
-import { cachedRequest, invalidateCache } from '@/lib/requestCache'
+import { cachedRequest, invalidateCache, invalidateCacheKey } from '@/lib/requestCache'
 import type {
   CreateTodoRequest,
   CreateTodoResponse,
@@ -24,12 +24,16 @@ export async function getTodayTodos(teamId: number, token: string): Promise<Todo
   )
 }
 
-export async function getTodoDetail(todoId: number, token: string): Promise<TodoDetail> {
-  return cachedRequest(
-    `todo:${todoId}`,
-    () => getJson<TodoDetail>(`/api/todos/${todoId}`, token),
-    15_000
-  )
+export async function getTodoDetail(
+  todoId: number,
+  token: string,
+  options?: { force?: boolean }
+): Promise<TodoDetail> {
+  const key = `todo:${todoId}`
+  // AI 판정 푸시처럼 "방금 값이 바뀌었다"는 신호를 받은 경로는 캐시를 건너뛰어야 한다.
+  // TTL 안에 재조회하면 판정 전 응답이 그대로 돌아와 뱃지가 영영 붙지 않는다.
+  if (options?.force) invalidateCacheKey(key)
+  return cachedRequest(key, () => getJson<TodoDetail>(`/api/todos/${todoId}`, token), 15_000)
 }
 
 export async function createTodo(
