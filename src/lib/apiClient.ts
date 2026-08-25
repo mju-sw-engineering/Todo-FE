@@ -237,3 +237,49 @@ export async function putFile(url: string, file: File): Promise<void> {
     throw new ApiError('파일 업로드에 실패했습니다.', response.status)
   }
 }
+
+/**
+ * putFile과 같은 presigned PUT이지만 진행률 콜백과 중단을 지원한다.
+ * fetch는 업로드 진행 이벤트가 없어 XHR을 쓴다. 파일 선택 즉시 백그라운드로 올리는
+ * 인증 파일 업로드처럼, 진행 표시와 "다른 파일 선택 시 이전 업로드 중단"이 필요한 곳에 쓴다.
+ */
+export function putFileWithProgress(
+  url: string,
+  file: File,
+  options?: { onProgress?: (percent: number) => void; signal?: AbortSignal }
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+
+    const abort = () => xhr.abort()
+    options?.signal?.addEventListener('abort', abort, { once: true })
+    const cleanup = () => options?.signal?.removeEventListener('abort', abort)
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && options?.onProgress) {
+        options.onProgress(Math.round((event.loaded / event.total) * 100))
+      }
+    }
+    xhr.onload = () => {
+      cleanup()
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve()
+      } else {
+        reject(new ApiError('파일 업로드에 실패했습니다.', xhr.status))
+      }
+    }
+    xhr.onerror = () => {
+      cleanup()
+      reject(new ApiError('파일 업로드에 실패했습니다.', 0))
+    }
+    xhr.onabort = () => {
+      cleanup()
+      reject(new DOMException('업로드가 중단되었습니다.', 'AbortError'))
+    }
+
+    xhr.open('PUT', url)
+    // putFile과 같은 이유로 Authorization·credentials를 붙이지 않는다 (서명 깨짐 방지).
+    xhr.setRequestHeader('Content-Type', file.type)
+    xhr.send(file)
+  })
+}
