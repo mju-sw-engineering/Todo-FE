@@ -1,8 +1,8 @@
 'use client'
 
 import { AnimatePresence } from 'framer-motion'
-import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useState } from 'react'
 import { useNewTodo } from '@/hooks/useNewTodo'
 import { useAuth } from '@/store/authStore'
 import { DeadlinePicker } from './components/DeadlinePicker'
@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Spinner } from '@/components/ui/Spinner'
 import { MemberAvatar } from '@/components/ui/MemberAvatar'
+import { PageLoader } from '@/components/ui/PageLoader'
 import { DAYS_KO } from '@/lib/dateUtils'
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -47,9 +48,10 @@ function formatDeadlineShort(date: Date): string {
   return `${dayInitial} ${hours}:${minutes}`
 }
 
-export default function TodoNewPage() {
+function TodoNewContent() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const teamId = Number(params.teamId)
   const { token } = useAuth()
 
@@ -72,7 +74,7 @@ export default function TodoNewPage() {
     setMemberCustomDeadline,
     isLoading,
     handleSubmit,
-  } = useNewTodo(teamId, token)
+  } = useNewTodo(teamId, token, searchParams.get('date'))
 
   const anyExpanded = members.some(
     (member) => !memberDrafts[member.userId]?.excluded && memberDrafts[member.userId]?.expanded
@@ -113,8 +115,17 @@ export default function TodoNewPage() {
               commonDeadline ? 'border-primary bg-white' : 'border-border bg-white'
             }`}
           >
-            <span className="w-9 h-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-[17px]">
-              ⏰
+            <span className="w-9 h-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <svg
+                className="w-4.5 h-4.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <circle cx="12" cy="13" r="8" />
+                <path strokeLinecap="round" d="M12 9v4l2.5 1.5M9 3h6M5.5 6.5L4 5m14.5 1.5L20 5" />
+              </svg>
             </span>
             <span className="flex-1 min-w-0">
               <span
@@ -324,5 +335,13 @@ export default function TodoNewPage() {
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+export default function TodoNewPage() {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <TodoNewContent />
+    </Suspense>
   )
 }

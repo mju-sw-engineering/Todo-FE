@@ -3,13 +3,22 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import Image from 'next/image'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { FiFile } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { parseAchievementCount, formatDeadline } from '@/lib/formatters'
+import { getErrorMessage } from '@/lib/apiError'
+import { compressImageFile } from '@/lib/imageCompression'
+import {
+  PROOF_FILE_ACCEPT,
+  getProofUploadContentType,
+  isProofImageFile,
+  validateProofFile,
+} from '@/lib/proofFile'
 import { useTodoDetail } from '@/hooks/useTodoDetail'
 import { getTeamById } from '@/services/teamService'
-import { getTodoWorkItemSubmission } from '@/services/todoService'
+import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
+import { getTodoWorkItemSubmission, submitTodo, submitTodoWorkItem } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
 import { BeePose } from '@/components/bee/BeePose'
@@ -48,7 +57,7 @@ function TodoDetailContent() {
   const teamId = Number(params.teamId)
   const todoId = Number(params.todoId)
   const { token, user } = useAuth()
-  const { todo, isLoading, error, handleReact, handleReassign } = useTodoDetail(
+  const { todo, isLoading, error, refreshTodo, handleReact, handleReassign } = useTodoDetail(
     todoId,
     teamId,
     token
@@ -62,6 +71,10 @@ function TodoDetailContent() {
   const [isImageLoading, setIsImageLoading] = useState(false)
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
   const [showBubble, setShowBubble] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [certifyTarget, setCertifyTarget] = useState<TodoWorkItem | null>(null)
+  const [certifyingId, setCertifyingId] = useState<number | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setShowBubble(true), 650)
@@ -103,14 +116,52 @@ function TodoDetailContent() {
   const workItems: TodoWorkItem[] =
     todo.mode === 'TASK' ? (todo.tasks ?? []) : (todo.directAssignees ?? [])
 
-  function navigateToCertify(workItem: TodoWorkItem) {
-    const itemTitle = 'title' in workItem ? workItem.title : todo!.title
-    const query = new URLSearchParams({
-      title: itemTitle,
-      mode: todo!.mode,
-      workItemId: String(workItem.workItemId),
-    })
-    router.push(`/teams/${teamId}/todos/${todoId}/certify?${query}`)
+  function triggerCertify(workItem: TodoWorkItem) {
+    setCertifyTarget(workItem)
+    fileInputRef.current?.click()
+  }
+
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    const target = certifyTarget
+    if (!file || !target || !token) return
+
+    const validationError = validateProofFile(file)
+    if (validationError) {
+      toast.error(validationError)
+      return
+    }
+
+    setCertifyingId(target.workItemId)
+    try {
+      const originalFileName = file.name
+      const uploadFile = isProofImageFile(file) ? await compressImageFile(file) : file
+      const { uploadUrl, objectKey } = await getPresignedUploadUrl(
+        {
+          type: 'PROOF',
+          fileName: uploadFile.name,
+          contentType: getProofUploadContentType(uploadFile),
+          fileSize: uploadFile.size,
+          todoId,
+        },
+        token
+      )
+      await uploadFileToStorage(uploadUrl, uploadFile)
+      const request = { proofImageKey: objectKey, proofFileName: originalFileName }
+      if (todo!.mode === 'TASK') {
+        await submitTodoWorkItem(target.workItemId, request, token)
+      } else {
+        await submitTodo(todoId, request, token)
+      }
+      await refreshTodo({ force: true })
+      setShowToast(true)
+    } catch (err) {
+      toast.error(getErrorMessage(err, '인증샷 업로드에 실패했습니다. 다시 시도해주세요.'))
+    } finally {
+      setCertifyingId(null)
+      setCertifyTarget(null)
+    }
   }
 
   async function openSubmission(workItemId: number) {
@@ -159,12 +210,12 @@ function TodoDetailContent() {
           <span>{formatDeadline(todo.deadline)} 최종 마감</span>
           <span>·</span>
           <span>{todo.creatorNickname}</span>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+          <span className="rounded-full bg-neutral-30 px-2 py-0.5 text-[10px] font-bold text-muted">
             {todo.mode === 'TASK' ? 'TASK' : '같이 인증'}
           </span>
         </div>
         {todo.description && (
-          <p className="mb-5 rounded-[12px] bg-gray-50 px-3.5 py-3 text-[13px] leading-relaxed text-gray-600">
+          <p className="mb-5 rounded-[12px] bg-surface px-3.5 py-3 text-[13px] leading-relaxed text-ink/70">
             {todo.description}
           </p>
         )}
@@ -172,13 +223,13 @@ function TodoDetailContent() {
         <div>
           <div className="mb-1.5 flex items-center justify-between">
             <span className="text-[12px] font-semibold text-ink/60">달성 현황</span>
-            <span className="text-[12px] font-semibold text-gray-700">
+            <span className="text-[12px] font-semibold text-ink">
               {achieved}/{total}
               {todo.mode === 'TASK' ? '개' : '명'} · {percentage}%
             </span>
           </div>
           <div className="relative pb-9">
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-30">
               <motion.div
                 className="h-full rounded-full bg-primary"
                 initial={{ width: 0 }}
@@ -219,7 +270,9 @@ function TodoDetailContent() {
               mode={todo.mode}
               deadline={getWorkItemDeadline(workItem, todo.deadline)}
               isCurrentUser={workItem.assigneeId === user?.userId}
-              onCertify={() => navigateToCertify(workItem)}
+              isCertifying={certifyingId === workItem.workItemId}
+              token={token}
+              onCertify={() => triggerCertify(workItem)}
               onReact={(type) => handleReact(workItem.workItemId, type)}
               onViewSubmission={() => openSubmission(workItem.workItemId)}
               onReassign={() => {
@@ -230,6 +283,14 @@ function TodoDetailContent() {
           ))}
         </div>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={PROOF_FILE_ACCEPT}
+        className="sr-only"
+        onChange={handleFileSelected}
+      />
 
       <div className="border-t border-border px-6 py-5">
         <Button variant="secondary" onClick={() => router.back()}>
@@ -293,18 +354,32 @@ function TodoDetailContent() {
             ) : submission &&
               (submission.kind === 'IMAGE' ||
                 (submission.kind === null && submission.contentType?.startsWith('image/'))) ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={submission.originalUrl}
-                alt="인증샷 원본"
-                className="max-h-full max-w-full rounded-2xl object-contain"
-                onClick={(event) => event.stopPropagation()}
-              />
-            ) : submission ? (
               <div
-                className="flex w-full max-w-80 flex-col items-center gap-4 rounded-2xl bg-white px-6 py-8"
+                className="relative max-h-full max-w-full"
                 onClick={(event) => event.stopPropagation()}
               >
+                {submission.resubmitted && (
+                  <span className="absolute top-3 left-3 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+                    재제출됨
+                  </span>
+                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={submission.originalUrl}
+                  alt="인증샷 원본"
+                  className="max-h-full max-w-full rounded-2xl object-contain"
+                />
+              </div>
+            ) : submission ? (
+              <div
+                className="relative flex w-full max-w-80 flex-col items-center gap-4 rounded-2xl bg-white px-6 py-8"
+                onClick={(event) => event.stopPropagation()}
+              >
+                {submission.resubmitted && (
+                  <span className="absolute top-3 left-3 rounded-full bg-surface px-2.5 py-1 text-[10px] font-semibold text-muted">
+                    재제출됨
+                  </span>
+                )}
                 <FiFile size={32} className="text-muted" />
                 <p className="wrap-break-word text-center text-[14px] font-semibold text-ink">
                   {submission.fileName}
@@ -332,17 +407,10 @@ function TodoDetailContent() {
             className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/65 px-6 py-10"
             onClick={() => setShowToast(false)}
           >
-            <Image
-              src="/images/decor/confetti.svg"
-              alt=""
-              fill
-              unoptimized
-              className="pointer-events-none object-cover"
-            />
             <div className="relative my-auto w-full max-w-sm shrink-0 rounded-[32px] bg-white px-10 py-10 text-center shadow-xl">
               <BeePose pose="thumbsUp" size={144} className="mx-auto mb-2" />
-              <p className="text-[28px] font-black text-gray-900">인증 완료!</p>
-              <p className="mt-2 text-[15px] text-gray-500">인증샷이 업로드됐어요</p>
+              <p className="text-[28px] font-black text-ink">인증 완료!</p>
+              <p className="mt-2 text-[15px] text-muted">인증샷이 업로드됐어요</p>
               <button
                 type="button"
                 onClick={() => setShowToast(false)}
@@ -351,6 +419,13 @@ function TodoDetailContent() {
                 확인
               </button>
             </div>
+            <Image
+              src="/images/decor/confetti.svg"
+              alt=""
+              fill
+              unoptimized
+              className="pointer-events-none z-10 object-cover"
+            />
           </motion.div>
         )}
       </AnimatePresence>

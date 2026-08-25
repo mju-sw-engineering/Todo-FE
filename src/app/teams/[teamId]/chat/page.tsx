@@ -1,19 +1,19 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useTeamChat } from '@/hooks/useTeamChat'
 import { getTeamById } from '@/services/teamService'
 import { useChatInput } from '@/hooks/useChatInput'
 import { useAuth } from '@/store/authStore'
-import { CHAT_COMMAND_LABEL, parseChatCommand } from '@/lib/chatCommand'
+import { CHAT_COMMAND_LABEL, CHAT_COMMAND_LIST, parseChatCommand } from '@/lib/chatCommand'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
+import { BotReplyBubble } from '@/components/chat/BotReplyBubble'
 import { CommandChip } from '@/components/chat/CommandChip'
-import { CommandResultSheet } from '@/components/chat/CommandResultSheet'
 import { MessageBubble } from '@/components/chat/MessageBubble'
+import { SlashCommandMenu } from '@/components/chat/SlashCommandMenu'
 import { StickerPicker } from '@/components/chat/StickerPicker'
 import { Spinner } from '@/components/ui/Spinner'
-import type { ChatCommand } from '@/types/chat.types'
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('ko-KR', {
@@ -46,33 +46,55 @@ export default function TeamChatPage() {
   }, [teamName, token, teamId])
   const title = teamName || '팀 채팅'
 
-  const {
-    messages,
-    isConnected,
-    isLoadingHistory,
-    hasNext,
-    typingUsers,
-    sendMessage,
-    loadMore,
-    notifyTyping,
-  } = useTeamChat(teamId, token)
+  const { messages, isLoadingHistory, hasNext, typingUsers, sendMessage, loadMore, notifyTyping } =
+    useTeamChat(teamId, token)
 
   const [showPicker, setShowPicker] = useState(false)
-  const [openCommand, setOpenCommand] = useState<{
-    messageId: number
-    command: ChatCommand
-  } | null>(null)
 
   const {
     editableRef,
     hasContent,
+    text,
     handleInput,
     handleSend,
+    sendRaw,
     handleSendSticker,
     handleInsertMini,
     handleKeyDown,
     handlePaste,
   } = useChatInput({ sendMessage, notifyTyping, onSend: () => setShowPicker(false) })
+
+  const showSlashMenu = text.startsWith('/') && !text.includes(' ') && !text.includes('\n')
+  const matchedCommands = showSlashMenu
+    ? CHAT_COMMAND_LIST.filter((c) => c.text.startsWith(text))
+    : []
+
+  // text가 바뀔 때마다 목록이 달라지므로, 별도 리셋 없이 매번 범위 안으로만 잘라 쓴다
+  const [rawActiveIndex, setActiveCommandIndex] = useState(0)
+  const activeCommandIndex = Math.min(rawActiveIndex, Math.max(0, matchedCommands.length - 1))
+
+  function handleInputKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (showSlashMenu && matchedCommands.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setActiveCommandIndex((activeCommandIndex + 1) % matchedCommands.length)
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setActiveCommandIndex(
+          (activeCommandIndex - 1 + matchedCommands.length) % matchedCommands.length
+        )
+        return
+      }
+      if ((e.key === 'Enter' || e.key === 'Tab') && !e.shiftKey && !e.nativeEvent.isComposing) {
+        e.preventDefault()
+        sendRaw(matchedCommands[activeCommandIndex].text)
+        return
+      }
+    }
+    handleKeyDown(e)
+  }
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -108,17 +130,7 @@ export default function TeamChatPage() {
         >
           ← {title}
         </button>
-        <div className="flex items-center justify-between">
-          <h1 className="text-[17px] font-bold text-ink">팀 채팅</h1>
-          <span
-            className={`flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-full ${isConnected ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400 bg-gray-100'}`}
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`}
-            />
-            {isConnected ? '연결됨' : '연결 중...'}
-          </span>
-        </div>
+        <h1 className="text-[17px] font-bold text-ink">팀 채팅</h1>
       </div>
 
       <div
@@ -153,51 +165,62 @@ export default function TeamChatPage() {
                     : msg.senderNickname === (user?.nickname ?? user?.loginId)
               const command = parseChatCommand(msg.content)
               return (
-                <div
-                  key={`${msg.messageId}-${idx}`}
-                  className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} ${msg.isFirst ? 'mt-3' : 'mt-0.5'}`}
-                >
-                  {!isMine && (
-                    <div className="shrink-0 self-start mt-0.5">
-                      {msg.isFirst ? (
-                        <BlobAvatar seed={msg.senderNickname} size={32} />
-                      ) : (
-                        <div className="w-8" />
-                      )}
-                    </div>
-                  )}
+                <Fragment key={`${msg.messageId}-${idx}`}>
                   <div
-                    className={`flex flex-col gap-0.5 max-w-[72%] ${isMine ? 'items-end' : 'items-start'}`}
+                    className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} ${msg.isFirst ? 'mt-3' : 'mt-0.5'}`}
                   >
-                    {!isMine && msg.isFirst && (
-                      <span className="text-[11px] font-semibold text-ink/50 ml-1">
-                        {msg.senderNickname}
-                      </span>
+                    {!isMine && (
+                      <div className="shrink-0 self-start mt-0.5">
+                        {msg.isFirst ? (
+                          <BlobAvatar seed={msg.senderNickname} size={32} />
+                        ) : (
+                          <div className="w-8" />
+                        )}
+                      </div>
                     )}
-                    <div className="flex items-end gap-1.5">
-                      {isMine && (
-                        <span className="text-[10px] text-muted shrink-0 mb-0.5">
-                          {formatTime(msg.createdAt)}
+                    <div
+                      className={`flex flex-col gap-0.5 max-w-[72%] ${isMine ? 'items-end' : 'items-start'}`}
+                    >
+                      {!isMine && msg.isFirst && (
+                        <span className="text-[11px] font-semibold text-ink/50 ml-1">
+                          {msg.senderNickname}
                         </span>
                       )}
-                      {command ? (
-                        <CommandChip
-                          label={CHAT_COMMAND_LABEL[command]}
-                          isMine={isMine}
-                          pending={msg.messageId < 0}
-                          onTap={() => setOpenCommand({ messageId: msg.messageId, command })}
-                        />
-                      ) : (
-                        <MessageBubble content={msg.content} isMine={isMine} />
-                      )}
-                      {!isMine && (
-                        <span className="text-[10px] text-muted shrink-0 mb-0.5">
-                          {formatTime(msg.createdAt)}
-                        </span>
-                      )}
+                      <div className="flex items-end gap-1.5">
+                        {isMine && (
+                          <span className="text-[10px] text-muted shrink-0 mb-0.5">
+                            {formatTime(msg.createdAt)}
+                          </span>
+                        )}
+                        {command ? (
+                          <CommandChip
+                            label={CHAT_COMMAND_LABEL[command]}
+                            isMine={isMine}
+                            pending={msg.messageId < 0}
+                          />
+                        ) : (
+                          <MessageBubble content={msg.content} isMine={isMine} />
+                        )}
+                        {!isMine && (
+                          <span className="text-[10px] text-muted shrink-0 mb-0.5">
+                            {formatTime(msg.createdAt)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  {/* 명령어 메시지 바로 아래에 비니가 답장한다 — 아직 임시(전송 중) ID면 실제 ID로
+                      다시 렌더될 때까지 기다린다 */}
+                  {command && msg.messageId > 0 && token && (
+                    <BotReplyBubble
+                      teamId={teamId}
+                      messageId={msg.messageId}
+                      command={command}
+                      token={token}
+                    />
+                  )}
+                </Fragment>
               )
             })}
             <div ref={bottomRef} />
@@ -225,7 +248,18 @@ export default function TeamChatPage() {
           </div>
         )}
 
-        {showPicker && <StickerPicker onSticker={handleSendSticker} onMini={handleInsertMini} />}
+        {showSlashMenu && (
+          <SlashCommandMenu
+            commands={matchedCommands}
+            activeIndex={activeCommandIndex}
+            onHover={setActiveCommandIndex}
+            onSelect={sendRaw}
+          />
+        )}
+
+        {showPicker && !showSlashMenu && (
+          <StickerPicker onSticker={handleSendSticker} onMini={handleInsertMini} />
+        )}
 
         <div className="flex items-center gap-2">
           <button
@@ -250,7 +284,7 @@ export default function TeamChatPage() {
               contentEditable
               suppressContentEditableWarning
               onInput={handleInput}
-              onKeyDown={handleKeyDown}
+              onKeyDown={handleInputKeyDown}
               onPaste={handlePaste}
               className="w-full outline-none text-[16px] text-ink py-3 leading-normal"
             />
@@ -267,17 +301,6 @@ export default function TeamChatPage() {
           </button>
         </div>
       </div>
-
-      {openCommand && token && (
-        <CommandResultSheet
-          teamId={teamId}
-          messageId={openCommand.messageId}
-          command={openCommand.command}
-          label={CHAT_COMMAND_LABEL[openCommand.command]}
-          token={token}
-          onClose={() => setOpenCommand(null)}
-        />
-      )}
     </div>
   )
 }

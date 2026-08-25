@@ -11,7 +11,6 @@ import { WeekStrip } from './components/WeekStrip'
 import { TeamMenuSheet } from './components/TeamMenuSheet'
 import { TeamMenuHint, markTeamMenuHintSeen } from './components/TeamMenuHint'
 import { AddTodoCard } from './components/AddTodoCard'
-import { TeamHiveGrowthCard } from '@/app/teams/[teamId]/components/TeamHiveGrowthCard'
 import { BackButton } from '@/components/ui/BackButton'
 import { Calendar } from '@/components/ui/Calendar'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -122,7 +121,30 @@ function TodoListContent() {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-4 flex flex-col">
-        <TeamHiveGrowthCard teamId={teamId} token={token} compact />
+        <div className="flex items-center gap-1.5 px-5 pt-3 pb-1.5 shrink-0">
+          {TAB_LABELS.map(({ key, label }) => {
+            const count =
+              key === 'all' ? todos.length : key === 'complete' ? completeCount : incompleteCount
+            return (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${
+                  tab === key
+                    ? 'bg-primary text-white'
+                    : 'bg-neutral-30 text-muted hover:bg-neutral-40'
+                }`}
+              >
+                {label} {count}
+              </button>
+            )
+          })}
+          {overdueCount > 0 && (
+            <span className="ml-auto text-[11.5px] font-bold text-status-red bg-status-red/10 px-2.5 py-1 rounded-full whitespace-nowrap">
+              지난 마감 {overdueCount}
+            </span>
+          )}
+        </div>
 
         <WeekStrip
           selectedDate={selectedDate}
@@ -159,31 +181,6 @@ function TodoListContent() {
           )}
         </AnimatePresence>
 
-        <div className="flex items-center gap-1.5 px-5 py-2.5 shrink-0">
-          {TAB_LABELS.map(({ key, label }) => {
-            const count =
-              key === 'all' ? todos.length : key === 'complete' ? completeCount : incompleteCount
-            return (
-              <button
-                key={key}
-                onClick={() => setTab(key)}
-                className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-150 ${
-                  tab === key
-                    ? 'bg-primary text-white'
-                    : 'bg-neutral-30 text-muted hover:bg-neutral-40'
-                }`}
-              >
-                {label} {count}
-              </button>
-            )
-          })}
-          {overdueCount > 0 && (
-            <span className="ml-auto text-[11.5px] font-bold text-status-red bg-status-red/10 px-2.5 py-1 rounded-full whitespace-nowrap">
-              지난 마감 {overdueCount}
-            </span>
-          )}
-        </div>
-
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={selectedDate}
@@ -212,7 +209,9 @@ function TodoListContent() {
                 <p className="text-[15px] font-bold text-ink">이 날은 마감인 할 일이 없어요</p>
                 <p className="text-[13px] text-muted mt-1">위에서 다른 날짜를 골라볼 수 있어요</p>
                 <div className="w-full mt-6">
-                  <AddTodoCard onClick={() => router.push(`/teams/${teamId}/todos/new`)} />
+                  <AddTodoCard
+                    onClick={() => router.push(`/teams/${teamId}/todos/new?date=${selectedDate}`)}
+                  />
                 </div>
               </div>
             ) : filteredTodos.length === 0 ? (

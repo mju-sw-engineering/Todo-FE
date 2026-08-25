@@ -2,6 +2,7 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import { BackButton } from '@/components/ui/BackButton'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
@@ -18,7 +19,6 @@ function AvailabilityListContent() {
   const { token } = useAuth()
 
   const [polls, setPolls] = useState<AvailabilityPollListItem[]>([])
-  const [showToast, setShowToast] = useState(searchParams.get('created') === '1')
   const { isLoading, error, run } = useAsyncTask(true)
 
   useEffect(() => {
@@ -31,10 +31,10 @@ function AvailabilityListContent() {
   }, [token, teamId, run])
 
   useEffect(() => {
-    if (!showToast) return
-    const timer = setTimeout(() => setShowToast(false), 2400)
-    return () => clearTimeout(timer)
-  }, [showToast])
+    if (searchParams.get('created') !== '1') return
+    toast.success('투표가 생성되었습니다')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 진입 시 한 번만
+  }, [])
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
@@ -87,12 +87,6 @@ function AvailabilityListContent() {
           </div>
         )}
       </div>
-
-      {showToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-ink text-white text-[13px] font-bold text-center py-3.5 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] animate-fade-up z-50">
-          투표가 생성되었습니다
-        </div>
-      )}
     </div>
   )
 }

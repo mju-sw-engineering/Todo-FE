@@ -153,7 +153,7 @@ export function BadgesCard({ badges }: Props) {
         {badges.map((badge) => (
           <div key={badge.id} className="flex flex-col items-center gap-3">
             {badge.acquired ? (
-              <span className="relative w-15 h-15 rounded-full flex items-center justify-center bg-surface border border-border shadow-[0_4px_10px_-4px_rgba(0,0,0,0.12)]">
+              <span className="relative w-15 h-15 rounded-full flex items-center justify-center bg-sun-glow border border-sun/40 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.12)]">
                 <BadgeIcon badge={badge} />
               </span>
             ) : (

@@ -86,7 +86,7 @@ export function WeekStrip({
               {isSelected && (
                 <motion.span
                   layoutId="week-day-pill"
-                  className="absolute inset-0 rounded-[13px] bg-primary"
+                  className="absolute inset-0 rounded-[13px] border-2 border-primary"
                   transition={
                     reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34 }
                   }
@@ -94,27 +94,25 @@ export function WeekStrip({
               )}
               <span
                 className={`relative text-[10.5px] font-semibold ${
-                  isSelected ? 'text-white/75' : 'text-coolGray-50'
+                  isSelected ? 'text-primary' : 'text-coolGray-50'
                 }`}
               >
                 {DAYS_SHORT_KO[d.getDay()]}
               </span>
               <span
                 className={`relative text-[14.5px] font-bold tabular-nums ${
-                  isSelected
-                    ? 'text-white'
-                    : isTodayCell
-                      ? 'text-primary'
-                      : date > todayStr
-                        ? 'text-neutral-60'
-                        : 'text-ink'
+                  isSelected || isTodayCell
+                    ? 'text-primary'
+                    : date > todayStr
+                      ? 'text-neutral-60'
+                      : 'text-ink'
                 }`}
               >
                 {d.getDate()}
               </span>
               <span
                 className={`relative w-[5px] h-[5px] rounded-full ${
-                  isSelected ? 'bg-white' : (dot ?? 'bg-transparent')
+                  isSelected ? 'bg-primary' : (dot ?? 'bg-transparent')
                 }`}
               />
             </button>

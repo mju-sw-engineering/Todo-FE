@@ -242,7 +242,7 @@ export function TeamRhythmList({ teams, hideBanner = false }: TeamRhythmListProp
       {!hideBanner && (
         <div
           className="mx-5 mt-3 rounded-[22px] overflow-hidden relative border border-white flex flex-col items-center py-6"
-          style={{ background: 'linear-gradient(155deg,#dbe9ff 0%,#a9c6ff 100%)' }}
+          style={{ background: 'linear-gradient(155deg,#6699ff 0%,#4d7fe6 100%)' }}
         >
           <Image src="/images/decor/trophy.svg" alt="" width={180} height={180} unoptimized />
           <p className="mt-2 text-[15px] font-black text-white text-center leading-snug">

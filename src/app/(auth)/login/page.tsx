@@ -69,12 +69,7 @@ function LoginPageContent() {
   }
 
   return (
-    <div
-      className="flex flex-1 flex-col overflow-hidden animate-fade-up"
-      style={{
-        background: 'radial-gradient(circle at 50% 40%, #eaf1ff 0%, #669aff 55%, #2f4fb0 100%)',
-      }}
-    >
+    <div className="flex flex-1 flex-col overflow-hidden animate-fade-up">
       {/* 타이틀 + 로그인 벌 인트로 */}
       <div className="flex-1 relative px-6 pb-10 flex flex-col justify-end items-end text-right overflow-hidden">
         <LoginBeeScene />

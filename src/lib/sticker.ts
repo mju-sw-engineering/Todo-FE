@@ -13,6 +13,18 @@ export const STICKER_TYPES: StickerType[] = [
   'DEVIL',
 ]
 
+/** 채팅 스티커 = 우리 꿀벌 캐릭터 일러스트. 기본 이모지 대신 이걸로 통일해서 쓴다.
+ *  파일명에 공백이 있으면 URL로 못 쓰니 encodeURI로 감싼다. */
+export const STICKER_IMAGE: Record<StickerType, string> = {
+  LIKE: '/images/bee/최고꿀벌.png',
+  HEART: encodeURI('/images/bee/하트들고있는 꿀벌.png'),
+  SURPRISED: '/images/bee/기대하는꿀벌.png',
+  DISLIKE: '/images/bee/고민하는꿀벌.png',
+  ANGRY: '/images/bee/멍청한꿀벌.png',
+  ANGEL: '/images/bee/꽃을달은꿀벌.png',
+  DEVIL: '/images/bee/화이팅꿀벌.png',
+}
+
 const INLINE_RE = /\[(LIKE|HEART|SURPRISED|DISLIKE|ANGRY|ANGEL|DEVIL)\]/g
 
 export function parseStickerType(content: string): StickerType | null {

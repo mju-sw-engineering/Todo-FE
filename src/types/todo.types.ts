@@ -151,6 +151,8 @@ export interface TodoWorkItemSubmission {
   originalUrl: string
   /** 이미지 제출에만 존재. 문서는 null */
   thumbnailUrl: string | null
+  /** 마감 전 재제출로 파일이 갱신된 적이 있으면 true, 최초 제출 그대로면 false */
+  resubmitted: boolean
   expiresAt: string
   /** 판정 대상이 아니면 null */
   aiAnalysis: AiAnalysis | null

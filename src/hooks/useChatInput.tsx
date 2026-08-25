@@ -14,6 +14,7 @@ export function useChatInput({ sendMessage, notifyTyping, onSend }: UseChatInput
   const editableRef = useRef<HTMLDivElement>(null)
   const emojiRootsRef = useRef<ReturnType<typeof createRoot>[]>([])
   const [hasContent, setHasContent] = useState(false)
+  const [text, setText] = useState('')
 
   useEffect(() => {
     return () => {
@@ -42,16 +43,26 @@ export function useChatInput({ sendMessage, notifyTyping, onSend }: UseChatInput
     emojiRootsRef.current = []
     if (editableRef.current) editableRef.current.innerHTML = ''
     setHasContent(false)
+    setText('')
   }
 
   function handleInput() {
-    const text = getContentText()
-    setHasContent(text.trim().length > 0)
-    if (text.trim()) notifyTyping()
+    const content = getContentText()
+    setText(content)
+    setHasContent(content.trim().length > 0)
+    if (content.trim()) notifyTyping()
   }
 
   function handleSend() {
     const content = getContentText().trim()
+    if (!content) return
+    sendMessage(content)
+    clearInput()
+    onSend?.()
+  }
+
+  /** 자동완성에서 명령어를 탭했을 때처럼, 입력창을 거치지 않고 바로 보낸다 */
+  function sendRaw(content: string) {
     if (!content) return
     sendMessage(content)
     clearInput()
@@ -111,8 +122,10 @@ export function useChatInput({ sendMessage, notifyTyping, onSend }: UseChatInput
   return {
     editableRef,
     hasContent,
+    text,
     handleInput,
     handleSend,
+    sendRaw,
     handleSendSticker,
     handleInsertMini,
     handleKeyDown,

@@ -28,7 +28,7 @@ export function HiveShelfCard({ months, current }: Props) {
           return (
             <div
               key={`${m.year}-${m.month}`}
-              className="flex-1 flex flex-col items-center gap-1 bg-surface rounded-xl py-3"
+              className="flex-1 flex flex-col items-center gap-1 bg-sun-glow rounded-xl py-3"
             >
               <HiveIcon size={40} muted={!complete} />
               <span className="text-[11px] font-extrabold text-ink">{m.month}월</span>

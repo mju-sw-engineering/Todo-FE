@@ -17,14 +17,25 @@ function isSameDay(a: Date, b: Date): boolean {
   )
 }
 
-function buildDayOptions(): Date[] {
+/** 기본 7일 범위 밖의 날짜(예: 목록 화면에서 미리 골라온 마감일)가 들어오면
+ *  그 날도 칩으로 넣어준다 — 안 그러면 picker를 열 때 조용히 오늘로 되돌아간다. */
+function buildDayOptions(anchor?: Date | null): Date[] {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  return Array.from({ length: DAY_OPTION_COUNT }, (_, i) => {
+  const days = Array.from({ length: DAY_OPTION_COUNT }, (_, i) => {
     const d = new Date(today)
     d.setDate(d.getDate() + i)
     return d
   })
+  if (anchor) {
+    const anchorDay = new Date(anchor)
+    anchorDay.setHours(0, 0, 0, 0)
+    if (anchorDay.getTime() >= today.getTime() && !days.some((d) => isSameDay(d, anchorDay))) {
+      days.push(anchorDay)
+      days.sort((a, b) => a.getTime() - b.getTime())
+    }
+  }
+  return days
 }
 
 function dayShortLabel(d: Date, index: number): string {
@@ -42,7 +53,7 @@ interface DeadlinePickerProps {
 
 export function DeadlinePicker({ value, maxDate, onChange, onClose }: DeadlinePickerProps) {
   const now = new Date()
-  const dayOptions = buildDayOptions()
+  const dayOptions = buildDayOptions(value)
 
   const initial = value ?? dayOptions[0]
   const initialDayIndex = Math.max(

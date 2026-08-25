@@ -1,5 +1,6 @@
 'use client'
 
+import { motion, useReducedMotion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { HeroCard } from './components/HeroCard'
 import { TeamRhythmList } from './components/TeamRhythmList'
@@ -19,6 +20,7 @@ export default function FeedPage() {
   const { token } = useAuth()
   const { isLoading, run } = useAsyncTask(true)
   const [scope, setScope] = useState<FeedScope>('personal')
+  const reduceMotion = useReducedMotion()
 
   const [teamRhythms, setTeamRhythms] = useState<TeamRhythm[]>([])
   const [monthlyHive, setMonthlyHive] = useState<MonthlyHive | null>(null)
@@ -48,34 +50,42 @@ export default function FeedPage() {
   if (isLoading) return <PageLoader />
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-[linear-gradient(180deg,#8fb4ff_0%,#b3ccff_45%,#f5f8ff_100%)]">
+    <div className="flex-1 flex flex-col overflow-hidden animate-fade-up bg-white">
       <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pb-6 scrollbar-hidden">
         <div className="px-5 pt-7 pb-[18px]">
-          <h1 className="text-[23px] font-black text-white tracking-[-0.5px]">기록</h1>
-          <p className="text-[12px] text-white/85 mt-0.5">팀과 함께 쌓아가는 꾸준함의 꿀</p>
+          <h1 className="text-[23px] font-black text-ink tracking-[-0.5px]">기록</h1>
+          <p className="text-[12px] text-muted mt-0.5">팀과 함께 쌓아가는 꾸준함의 꿀</p>
         </div>
 
         <HeroCard />
 
-        <div className="mx-5 mt-4 grid grid-cols-2 gap-1 rounded-full bg-white/70 p-1 backdrop-blur-sm">
-          <button
-            type="button"
-            onClick={() => setScope('personal')}
-            className={`rounded-full py-2 text-[13px] font-bold transition-all duration-150 ${
-              scope === 'personal' ? 'bg-primary text-white' : 'text-ink/70 hover:text-ink'
-            }`}
-          >
-            개인
-          </button>
-          <button
-            type="button"
-            onClick={() => setScope('team')}
-            className={`rounded-full py-2 text-[13px] font-bold transition-all duration-150 ${
-              scope === 'team' ? 'bg-primary text-white' : 'text-ink/70 hover:text-ink'
-            }`}
-          >
-            팀
-          </button>
+        <div className="mx-5 mt-4 grid grid-cols-2 gap-1 rounded-full bg-neutral-30 p-1">
+          {(
+            [
+              { key: 'personal', label: '개인' },
+              { key: 'team', label: '팀' },
+            ] as const
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setScope(key)}
+              className="relative py-2 text-[13px] font-bold transition-colors"
+            >
+              {scope === key && (
+                <motion.span
+                  layoutId="feed-scope-pill"
+                  className="absolute inset-0 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)]"
+                  transition={
+                    reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34 }
+                  }
+                />
+              )}
+              <span className={`relative ${scope === key ? 'text-ink' : 'text-muted'}`}>
+                {label}
+              </span>
+            </button>
+          ))}
         </div>
 
         {scope === 'personal' ? (

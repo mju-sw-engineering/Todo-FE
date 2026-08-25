@@ -106,11 +106,9 @@ export function TeamTodoCard({ todo, variant, now, onClick }: TeamTodoCardProps)
           )}
         </div>
 
-        {todo.description && (
-          <p className="text-[12.5px] font-medium leading-relaxed text-white/85 line-clamp-2">
-            {todo.description}
-          </p>
-        )}
+        <p className="h-11 text-[12.5px] font-medium leading-relaxed text-white/85 line-clamp-2">
+          {todo.description}
+        </p>
 
         <div className="flex items-center justify-between gap-3">
           <ParticipantAvatars participants={participants} size={26} onHero />
@@ -139,9 +137,7 @@ export function TeamTodoCard({ todo, variant, now, onClick }: TeamTodoCardProps)
         <div className="flex-1 min-w-0">
           <p
             className={`text-[14.5px] font-bold leading-snug truncate ${
-              isDone
-                ? 'text-muted line-through decoration-neutral-50 decoration-[1.5px]'
-                : 'text-ink'
+              isDone ? 'text-muted' : 'text-ink'
             }`}
           >
             {todo.title}
@@ -189,14 +185,12 @@ export function TeamTodoCard({ todo, variant, now, onClick }: TeamTodoCardProps)
         )}
       </div>
 
-      {!isDone && percentage > 0 && (
-        <div className="w-full h-1.5 rounded-full overflow-hidden bg-neutral-30">
-          <div
-            className="h-full rounded-full transition-all duration-500 bg-primary"
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
-      )}
+      <div className="w-full h-1.5 rounded-full overflow-hidden bg-neutral-30">
+        <div
+          className="h-full rounded-full transition-all duration-500 bg-primary"
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
     </ConvexCard>
   )
 }

@@ -117,7 +117,7 @@ export function Calendar({
                 className={`w-6 h-6 flex items-center justify-center rounded-full text-[12px] font-semibold transition-colors
                   ${
                     isSelected
-                      ? 'bg-primary text-white'
+                      ? 'border-2 border-primary text-primary'
                       : isToday
                         ? 'ring-1 ring-primary text-primary'
                         : isFuture

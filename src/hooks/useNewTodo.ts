@@ -1,10 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
+import { parseDateString, todayString } from '@/lib/dateUtils'
 import { getTeamById } from '@/services/teamService'
 import { createTodo } from '@/services/todoService'
 import type { TeamMember } from '@/types/team.types'
 import type { CreateTodoTaskRequest } from '@/types/todo.types'
+
+/** 목록 화면에서 고른 날짜로 새 할 일을 시작할 때 붙는 기본 마감 시각 */
+const DEFAULT_DEADLINE_HOUR = 21
+
+/** 목록에서 넘어온 'YYYY-MM-DD'를 그날 저녁 9시 마감으로 바꾼다. 과거 날짜면 무시한다 */
+function initialDeadlineFrom(dateParam: string | null): Date | null {
+  if (!dateParam) return null
+  if (dateParam < todayString()) return null
+  const date = parseDateString(dateParam)
+  date.setHours(DEFAULT_DEADLINE_HOUR, 0, 0, 0)
+  return date
+}
 
 export interface MemberDraft {
   excluded: boolean
@@ -24,14 +37,20 @@ function createMemberDraft(): MemberDraft {
   }
 }
 
-export function useNewTodo(teamId: number, token: string | null) {
+export function useNewTodo(
+  teamId: number,
+  token: string | null,
+  initialDate: string | null = null
+) {
   const router = useRouter()
 
   const [members, setMembers] = useState<TeamMember[]>([])
   const [isMembersLoading, setIsMembersLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [commonDeadline, setCommonDeadline] = useState<Date | null>(null)
+  const [commonDeadline, setCommonDeadline] = useState<Date | null>(() =>
+    initialDeadlineFrom(initialDate)
+  )
   const [memberDrafts, setMemberDrafts] = useState<Record<number, MemberDraft>>({})
   const { isLoading, setError, run } = useAsyncTask()
 
