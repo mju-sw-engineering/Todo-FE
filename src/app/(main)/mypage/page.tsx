@@ -7,7 +7,6 @@ import { useRef, useState } from 'react'
 import { FiCamera } from 'react-icons/fi'
 import { useMyPage } from '@/hooks/useMyPage'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
-import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -17,7 +16,6 @@ export default function MyPage() {
   const {
     myInfo,
     loading,
-    toast,
     profileImageUrl,
     avatarSeed,
     editingNickname,
@@ -29,14 +27,11 @@ export default function MyPage() {
     setConfirm,
     deletePassword,
     setDeletePassword,
-    deleteAccountError,
     deletingAccount,
     isAppleAccount,
     providerKnown,
     uploadingProfileImage,
     changingPassword,
-    passwordError,
-    setPasswordError,
     handleSaveNickname,
     handleProfileImageChange,
     handleChangePassword,
@@ -58,7 +53,6 @@ export default function MyPage() {
     setCurrentPasswordInput('')
     setNewPasswordInput('')
     setNewPasswordConfirmInput('')
-    setPasswordError(null)
   }
 
   async function submitPasswordChange() {
@@ -74,8 +68,6 @@ export default function MyPage() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white">
-      {toast && <Toast message={toast} />}
-
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-8 flex flex-col gap-4 animate-fade-up">
         <div className="mb-2">
           <h1 className="text-[20px] font-black text-ink leading-tight">마이페이지</h1>
@@ -233,9 +225,6 @@ export default function MyPage() {
                   disabled={changingPassword}
                   className="min-h-12"
                 />
-                {passwordError && (
-                  <p className="text-[12px] font-semibold text-status-red">{passwordError}</p>
-                )}
                 <div className="flex gap-2">
                   <button
                     onClick={submitPasswordChange}
@@ -339,11 +328,6 @@ export default function MyPage() {
                   className="w-full rounded-xl border border-border px-3 py-2.5 text-[16px] text-ink outline-none transition-colors focus:border-status-red disabled:bg-neutral-30"
                 />
               </>
-            )}
-            {deleteAccountError && (
-              <p role="alert" className="mt-2 text-left text-[12px] text-status-red">
-                {deleteAccountError}
-              </p>
             )}
           </ConfirmModal>
         )}

@@ -1,22 +1,20 @@
 'use client'
 
 import { motion, useReducedMotion, type AnimationDefinition, type Variants } from 'framer-motion'
-import Image from 'next/image'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { LOGIN_BEE_SVG } from './loginBeeSvg'
 
-// ─── 로그인 벌 씬 (3마리 편대) 수정 가이드 ──────────────────────────────────
-// 서사: 혼자 날던 리더에게 동료 둘이 합류해 같은 방향으로 함께 순항한다.
-// 벌은 전부 같은 리그형 SVG 한 장을 재사용하고, 순항 포즈(24° 기울기 + 처진 파츠)는
-// globals.css의 .login-bee.is-cruise 가, 개성은 액세서리 클래스(.with-ribbon/.with-sprout)가 담당.
+// ─── 로그인 벌 씬 (단독 비행) 수정 가이드 ──────────────────────────────────
+// 서사: 혼자 날아온 벌이 잠깐 순항하다 퇴장하고, 다시 처음부터 등장한다.
+// 순항 포즈(24° 기울기 + 처진 파츠)는 globals.css의 .login-bee.is-cruise 가 담당.
 //
 // 무엇을 고치려면 어디를:
-// - 사이클 타이밍(혼자 1.6s → 합류 → 순항 → 8.6s 퇴장 → 10s 재시작): LoginBeeScene 의 run() 타이머
-// - 편대 위치·크기: 아래 <LoginBee className> 의 left/top/w 값
-// - 합류 궤적·통통 튀는 정도: LoginBee 의 enter variant (spring stiffness/damping)
-// - 둥실거림 주기·깊이: 각 <LoginBee bobDuration/bobDepth> (셋을 다르게 해야 살아 보임)
-// - 날개짓 속도: <LoginBee flapDuration> (작은 벌일수록 빠르게)
-// - 순항 포즈·액세서리·표정 파츠: globals.css .login-bee 섹션
+// - 사이클 타이밍(등장 1.6s → 합류 → 순항 → 8.6s 퇴장 → 10s 재시작): LoginBeeScene 의 run() 타이머
+// - 위치·크기: 아래 <LoginBee className> 의 left/top/w 값
+// - 진입 궤적·통통 튀는 정도: LoginBee 의 enter variant (spring stiffness/damping)
+// - 둥실거림 주기·깊이: <LoginBee bobDuration/bobDepth>
+// - 날개짓 속도: <LoginBee flapDuration>
+// - 순항 포즈·표정 파츠: globals.css .login-bee 섹션
 // - 캐릭터 모양: public/images/bee/login-bee-character.svg 수정 후
 //   `node scripts/generate-login-bee-svg.mjs` (SVG 상단 주석 참고)
 // ───────────────────────────────────────────────────────────────────────────
@@ -296,20 +294,9 @@ export function LoginBeeScene() {
   const cruising = reduce || phase === 'cruise'
   const rushing = !cruising
   const departing = !reduce && phase === 'depart'
-  const friendsVisible = reduce || phase !== 'solo'
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* 랜딩 감성의 앰비언트 장식 — 항상 은은하게 자체 재생된다 */}
-      <Image
-        src="/images/decor/translate.svg"
-        alt=""
-        width={96}
-        height={96}
-        unoptimized
-        className="absolute left-[-6%] bottom-[6%] w-24 opacity-40"
-      />
-
       {/* 해는 배경 패럴랙스와 대비되도록 고정해 둔다 */}
 
       {/* 원경의 작은 뭉게구름 — 아주 느리게 흘러 깊이를 만든다 */}
@@ -359,20 +346,6 @@ export function LoginBeeScene() {
 
       {/* 그림자 — 벌 크기·위치에 맞춰 초원 위에 얕게 깔린다 */}
       <BeeShadow
-        className="absolute left-[20%] top-[76%] w-9 -translate-x-1/2"
-        targetOpacity={0.2}
-        breatheDuration={3.8}
-        visible={cruising && !departing}
-        reduce={reduce}
-      />
-      <BeeShadow
-        className="absolute left-[22%] top-[80%] w-8 -translate-x-1/2"
-        targetOpacity={0.18}
-        breatheDuration={5.1}
-        visible={cruising && !departing}
-        reduce={reduce}
-      />
-      <BeeShadow
         className="absolute left-[56%] top-[72%] w-16 -translate-x-1/2"
         targetOpacity={0.32}
         breatheDuration={4.4}
@@ -380,9 +353,9 @@ export function LoginBeeScene() {
         reduce={reduce}
       />
 
-      {/* 말풍선 — 순항 중 리더 곁에서만 잠깐 인사를 건넨다 (합류/퇴장 중엔 숨음) */}
+      {/* 말풍선 — 순항 중 리더 곁에서 크게 환영 인사를 건넨다 (합류/퇴장 중엔 숨음) */}
       <motion.div
-        className="absolute left-[74%] top-[19%] z-40 -translate-x-1/2 -translate-y-1/2"
+        className="absolute left-[72%] top-[20%] z-40 w-[min(62vw,240px)] -translate-x-1/2 -translate-y-1/2"
         initial={{ opacity: 0, scale: 0.5, y: 8 }}
         animate={
           reduce
@@ -403,46 +376,20 @@ export function LoginBeeScene() {
               : { duration: 0.25 }
         }
       >
-        <div className="relative rounded-2xl bg-white px-3.5 py-2 shadow-[0_6px_18px_rgba(30,50,110,0.22)]">
-          <p className="whitespace-nowrap font-jua text-[13px] text-ink">
-            우리 같이 할일을 해봐요?
+        <div className="relative rounded-3xl bg-white px-5 py-4 shadow-[0_10px_28px_rgba(30,50,110,0.25)]">
+          <p className="text-center font-jua text-[16px] leading-snug text-ink break-keep">
+            두비두비에 오신 걸 환영해요!
+            <br />
+            함께 시작해볼까요?
           </p>
-          <span className="absolute -bottom-1.5 left-8 h-3 w-3 rotate-45 bg-white" />
+          <span className="absolute -bottom-2 left-10 h-4 w-4 rotate-45 rounded-[2px] bg-white" />
         </div>
       </motion.div>
 
-      {/* 편대: 리더(앞) + 리본·새싹 동료(뒤 삼각 대형). 크기·날개속도·둥실 주기를 다르게 */}
-      <LoginBee
-        key={`ribbon-${cycle}`}
-        className="absolute left-[20%] top-[22%] z-10 w-[min(50vw,100px)] -translate-x-1/2 -translate-y-1/2"
-        accessory="ribbon"
-        flapDuration={rushing ? '0.26s' : '0.4s'}
-        bobDuration={3.8}
-        bobDepth={5}
-        enterFrom={{ x: -150, y: -36 }}
-        enterDelay={0}
-        departDelay={0.16}
-        departing={departing}
-        visible={friendsVisible}
-        reduce={reduce}
-      />
-      <LoginBee
-        key={`sprout-${cycle}`}
-        className="absolute left-[22%] top-[64%] z-20 w-[min(21vw,84px)] -translate-x-1/2 -translate-y-1/2"
-        accessory="sprout"
-        flapDuration={rushing ? '0.24s' : '0.36s'}
-        bobDuration={5.1}
-        bobDepth={4}
-        enterFrom={{ x: -140, y: 70 }}
-        enterDelay={0.55}
-        departDelay={0.3}
-        departing={departing}
-        visible={friendsVisible}
-        reduce={reduce}
-      />
+      {/* 단독 비행 벌 */}
       <LoginBee
         key={`leader-${cycle}`}
-        className="absolute left-[56%] top-[43%] z-30 w-[min(42vw,165px)] -translate-x-1/2 -translate-y-1/2"
+        className="absolute left-[56%] top-[43%] z-30 w-[min(52vw,205px)] -translate-x-1/2 -translate-y-1/2"
         flapDuration={rushing ? '0.3s' : '0.48s'}
         bobDuration={4.4}
         bobDepth={6}

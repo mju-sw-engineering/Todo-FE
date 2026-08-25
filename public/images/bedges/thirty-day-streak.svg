@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+  <linearGradient id="dropFill" x1="88" y1="34" x2="176" y2="212" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#FFE77B"/><stop offset=".5" stop-color="#FFE042"/><stop offset="1" stop-color="#EEAC32"/>
+  </linearGradient>
+  <linearGradient id="jarFill" x1="-54" y1="-44" x2="44" y2="70" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#FFE77B"/><stop offset=".5" stop-color="#FFD454"/><stop offset="1" stop-color="#EEAC32"/>
+  </linearGradient>
+  <linearGradient id="calHead" x1="-80" y1="-62" x2="80" y2="-18" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#FFE042"/><stop offset="1" stop-color="#EEAC32"/>
+  </linearGradient>
+  <filter id="sh" x="-25%" y="-25%" width="150%" height="160%" color-interpolation-filters="sRGB">
+    <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#E0A400" flood-opacity=".22"/>
+  </filter></defs>
+  <g filter="url(#sh)">
+  <g transform="translate(128 132) scale(1.16)">
+    <clipPath id="cal-s30"><rect x="-80" y="-62" width="160" height="142" rx="26"/></clipPath>
+    <rect x="-47" y="-84" width="16" height="32" rx="8" fill="#C98F00"/>
+    <rect x="31" y="-84" width="16" height="32" rx="8" fill="#C98F00"/>
+    <rect x="-80" y="-62" width="160" height="142" rx="26" fill="#FFFDF5"/>
+    <g clip-path="url(#cal-s30)"><rect x="-80" y="-62" width="160" height="44" fill="url(#calHead)"/></g>
+    <rect x="-80" y="-62" width="160" height="142" rx="26" fill="none" stroke="#E0A400" stroke-width="7"/>
+    <g transform="translate(0 31)">
+      <path d="M-44 -23 C-44 -37 -12 -41 -12 -21 C-12 -7 -26 -3 -30 -3 C-24 -3 -8 2 -8 20 C-8 40 -40 42 -46 27" stroke="#4E3021" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <ellipse cx="27" cy="0" rx="18" ry="33" stroke="#4E3021" stroke-width="14" fill="none"/>
+    </g>
+  </g>
+  </g>
+</svg>

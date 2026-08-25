@@ -75,7 +75,7 @@ export function MemberCertCard({
   }, [])
 
   return (
-    <article className="rounded-[18px] overflow-hidden border border-border bg-white">
+    <article className="shrink-0 rounded-[18px] overflow-hidden border border-border bg-white">
       {mode === 'TASK' && (
         <div className="border-b border-border bg-gray-50/70 px-4 py-3">
           <div className="flex items-start justify-between gap-3">

@@ -1,5 +1,16 @@
+import Image from 'next/image'
 import { HiveIcon } from '@/components/ui/HiveIcon'
 import type { FeedBadge } from '@/types/feed.types'
+
+/** 배지 id → public/images/bedges 일러스트 파일명. 없으면 icon 타입 기반으로 대체한다 */
+const BADGE_IMAGE_FILES: Record<string, string> = {
+  'first-honey': 'first-honey',
+  'streak-7': 'seven-day-streak',
+  'first-full-hive': 'first-completion',
+  'streak-30': 'thirty-day-streak',
+  'full-hive-3': 'three-month-completion',
+  'team-all-in': 'all-team-participation',
+}
 
 /**
  * 배지 칸(60px 금색 메달) 전용 벌 아이콘. 같은 캐릭터지만 팔다리·기울기를 뺀
@@ -36,11 +47,15 @@ function BeeIcon() {
   )
 }
 
-function BadgeIcon({ icon }: { icon: FeedBadge['icon'] }) {
-  if (icon === 'bee') {
+function BadgeIcon({ badge }: { badge: FeedBadge }) {
+  const file = BADGE_IMAGE_FILES[badge.id]
+  if (file) {
+    return <Image src={`/images/bedges/${file}.svg`} alt="" width={44} height={44} unoptimized />
+  }
+  if (badge.icon === 'bee') {
     return <BeeIcon />
   }
-  if (icon === 'hive') {
+  if (badge.icon === 'hive') {
     return <HiveIcon size={32} />
   }
   return (
@@ -134,26 +149,12 @@ export function BadgesCard({ badges }: Props) {
       </div>
       <p className="text-[12px] text-muted mt-0.5">꾸준함의 순간들을 모아요</p>
 
-      <div className="flex gap-4 mt-4 overflow-x-auto scrollbar-hidden snap-x snap-mandatory -mx-5 px-5">
+      <div className="grid grid-cols-3 gap-y-4 mt-4">
         {badges.map((badge) => (
-          <div key={badge.id} className="flex flex-col items-center gap-2 shrink-0 w-18 snap-start">
+          <div key={badge.id} className="flex flex-col items-center gap-3">
             {badge.acquired ? (
-              <span
-                className="relative w-15 h-15 rounded-full flex items-center justify-center overflow-hidden shadow-[0_6px_14px_-4px_rgba(224,164,0,0.55)]"
-                style={{
-                  background: 'linear-gradient(160deg, #fff3d2 0%, #ffe042 55%, #f0b800 100%)',
-                }}
-              >
-                <span
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background:
-                      'radial-gradient(circle at 32% 26%, rgba(255,255,255,0.85), rgba(255,255,255,0) 55%)',
-                  }}
-                />
-                <span className="relative">
-                  <BadgeIcon icon={badge.icon} />
-                </span>
+              <span className="relative w-15 h-15 rounded-full flex items-center justify-center bg-surface border border-border shadow-[0_4px_10px_-4px_rgba(0,0,0,0.12)]">
+                <BadgeIcon badge={badge} />
               </span>
             ) : (
               <span className="w-15 h-15 rounded-full flex items-center justify-center bg-neutral-30/70 border border-dashed border-neutral-50">

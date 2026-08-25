@@ -16,7 +16,7 @@ interface JoinModalProps {
 
 export function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
   const [inviteCode, setInviteCode] = useState('')
-  const { isLoading, error, run } = useAsyncTask()
+  const { isLoading, run } = useAsyncTask()
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -68,7 +68,6 @@ export function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
             onChange={(e) => setInviteCode(e.target.value)}
             placeholder="초대 코드 8자리를 입력하세요"
             maxLength={8}
-            hint={error || undefined}
           />
           <Button
             type="submit"

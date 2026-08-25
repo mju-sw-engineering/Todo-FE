@@ -70,8 +70,6 @@ export default function TodoNewPage() {
     setMemberTitle,
     setMemberDeadlineMode,
     setMemberCustomDeadline,
-    error,
-    setError,
     isLoading,
     handleSubmit,
   } = useNewTodo(teamId, token)
@@ -101,10 +99,7 @@ export default function TodoNewPage() {
             id="title"
             type="text"
             value={title}
-            onChange={(e) => {
-              setTitle(e.target.value)
-              if (error) setError('')
-            }}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="할 일을 입력해주세요"
           />
         </div>
@@ -297,12 +292,6 @@ export default function TodoNewPage() {
             </p>
           )}
         </div>
-
-        {error && (
-          <p className="text-[13px] text-status-red bg-status-red/10 rounded-[10px] px-4 py-2.5">
-            {error}
-          </p>
-        )}
       </div>
 
       <div className="px-6 py-5 border-t border-border flex flex-col gap-3">
@@ -329,7 +318,6 @@ export default function TodoNewPage() {
               } else {
                 setMemberCustomDeadline(pickerTarget, date)
               }
-              if (error) setError('')
             }}
             onClose={() => setPickerTarget(null)}
           />

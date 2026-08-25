@@ -33,7 +33,7 @@ export function useNewTodo(teamId: number, token: string | null) {
   const [description, setDescription] = useState('')
   const [commonDeadline, setCommonDeadline] = useState<Date | null>(null)
   const [memberDrafts, setMemberDrafts] = useState<Record<number, MemberDraft>>({})
-  const { isLoading, error, setError, run } = useAsyncTask()
+  const { isLoading, setError, run } = useAsyncTask()
 
   useEffect(() => {
     if (!token || !teamId) return
@@ -57,7 +57,6 @@ export function useNewTodo(teamId: number, token: string | null) {
       ...prev,
       [userId]: { ...(prev[userId] ?? createMemberDraft()), ...updates },
     }))
-    if (error) setError(null)
   }
 
   function toggleExclude(userId: number) {
@@ -167,8 +166,6 @@ export function useNewTodo(teamId: number, token: string | null) {
     setMemberTitle,
     setMemberDeadlineMode,
     setMemberCustomDeadline,
-    error,
-    setError,
     isLoading,
     handleSubmit,
   }

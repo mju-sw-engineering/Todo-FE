@@ -2,12 +2,12 @@
 
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { Toast } from '@/components/ui/Toast'
 import { getTeams } from '@/services/teamService'
 import { useAuth } from '@/store/authStore'
 import type { TeamListItem } from '@/types/team.types'
@@ -37,16 +37,9 @@ export function NavCreateButton() {
   const [teams, setTeams] = useState<TeamListItem[]>([])
   const [pickerOpen, setPickerOpen] = useState(false)
   const [isPending, setIsPending] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
 
   // 이미 만들기 화면이면 눌러봐야 같은 경로가 히스토리에 쌓일 뿐이라 자리째 접는다
   const onCreatePage = pathname.endsWith('/todos/new')
-
-  useEffect(() => {
-    if (!toast) return
-    const timer = setTimeout(() => setToast(null), 2500)
-    return () => clearTimeout(timer)
-  }, [toast])
 
   async function handleClick() {
     const teamId = currentTeamId(pathname)
@@ -64,7 +57,7 @@ export function NavCreateButton() {
       setPickerOpen(true)
     } catch {
       // 조용히 실패하면 버튼이 고장 난 것처럼 보인다
-      setToast('팀 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.')
+      toast.error('팀 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.')
     } finally {
       setIsPending(false)
     }
@@ -144,8 +137,6 @@ export function NavCreateButton() {
           </div>
         </BottomSheet>
       )}
-
-      {toast && <Toast message={toast} />}
     </>
   )
 }

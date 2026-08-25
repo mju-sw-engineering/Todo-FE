@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 import { reauthenticate, reauthenticateWithApple } from '@/services/authService'
 import { useAuth } from '@/store/authStore'
 import { ApiError } from '@/lib/apiClient'
@@ -47,8 +48,6 @@ export function useMyPage() {
 
   const [myInfo, setMyInfo] = useState<MyInfoResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState<string | null>(null)
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [editingNickname, setEditingNickname] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
@@ -56,7 +55,6 @@ export function useMyPage() {
 
   const [confirm, setConfirm] = useState<MyPageConfirmState>(null)
   const [deletePassword, setDeletePassword] = useState('')
-  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null)
   const [deletingAccount, setDeletingAccount] = useState(false)
 
   const { upload: uploadProfileImage, isUploading: uploadingProfileImage } = usePresignedUpload({
@@ -65,7 +63,6 @@ export function useMyPage() {
   })
 
   const [changingPassword, setChangingPassword] = useState(false)
-  const [passwordError, setPasswordError] = useState<string | null>(null)
 
   // 애플 계정은 비밀번호가 없어 탈퇴 재인증 방식이 다르다.
   //
@@ -77,23 +74,11 @@ export function useMyPage() {
   const profileImageUrl = myInfo?.profileImageUrl ?? user?.profileImageUrl ?? null
   const avatarSeed = myInfo?.nickname ?? user?.nickname ?? user?.loginId ?? ''
 
-  function showToast(message: string) {
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    setToast(message)
-    toastTimer.current = setTimeout(() => setToast(null), 2500)
-  }
-
-  useEffect(() => {
-    return () => {
-      if (toastTimer.current) clearTimeout(toastTimer.current)
-    }
-  }, [])
-
   useEffect(() => {
     if (!token) return
     getMyInfo(token)
       .then(setMyInfo)
-      .catch(() => showToast('정보를 불러오는 데 실패했습니다.'))
+      .catch(() => toast.error('정보를 불러오는 데 실패했습니다.'))
       .finally(() => setLoading(false))
   }, [token])
 
@@ -101,7 +86,7 @@ export function useMyPage() {
     if (!token || !myInfo) return
     const trimmed = nicknameInput.trim()
     if (!trimmed) {
-      showToast('닉네임을 입력해 주세요.')
+      toast.error('닉네임을 입력해 주세요.')
       return
     }
     setSavingNickname(true)
@@ -110,9 +95,9 @@ export function useMyPage() {
       setMyInfo(updated)
       updateUser({ nickname: updated.nickname })
       setEditingNickname(false)
-      showToast('닉네임이 수정되었습니다.')
+      toast.success('닉네임이 수정되었습니다.')
     } catch (err) {
-      showToast(err instanceof Error ? err.message : '닉네임 수정에 실패했습니다.')
+      toast.error(err instanceof Error ? err.message : '닉네임 수정에 실패했습니다.')
     } finally {
       setSavingNickname(false)
     }
@@ -125,9 +110,9 @@ export function useMyPage() {
       const updated = await updateProfileImage(profileImageKey, token)
       setMyInfo(updated)
       updateUser({ profileImageUrl: updated.profileImageUrl })
-      showToast('프로필 사진이 변경되었습니다.')
+      toast.success('프로필 사진이 변경되었습니다.')
     } catch (err) {
-      showToast(err instanceof Error ? err.message : '프로필 사진 변경에 실패했습니다.')
+      toast.error(err instanceof Error ? err.message : '프로필 사진 변경에 실패했습니다.')
     }
   }
 
@@ -137,18 +122,17 @@ export function useMyPage() {
     newPasswordConfirm: string
   ): Promise<boolean> {
     if (!token) return false
-    setPasswordError(null)
     if (newPassword !== newPasswordConfirm) {
-      setPasswordError('새 비밀번호가 일치하지 않습니다.')
+      toast.error('새 비밀번호가 일치하지 않습니다.')
       return false
     }
     setChangingPassword(true)
     try {
       await updatePassword({ currentPassword, newPassword, newPasswordConfirm }, token)
-      showToast('비밀번호가 변경되었습니다.')
+      toast.success('비밀번호가 변경되었습니다.')
       return true
     } catch (err) {
-      setPasswordError(getErrorMessage(err, '비밀번호 변경에 실패했습니다.'))
+      toast.error(getErrorMessage(err, '비밀번호 변경에 실패했습니다.'))
       return false
     } finally {
       setChangingPassword(false)
@@ -163,20 +147,18 @@ export function useMyPage() {
       /* proceed with local logout */
     }
     logout()
-    showToast('로그아웃 되었습니다.')
+    toast.success('로그아웃 되었습니다.')
     setTimeout(() => router.replace('/login'), 800)
   }
 
   function openDeleteAccountConfirm() {
     setDeletePassword('')
-    setDeleteAccountError(null)
     setConfirm({ type: 'deleteAccount' })
   }
 
   function closeDeleteAccountConfirm() {
     if (deletingAccount) return
     setDeletePassword('')
-    setDeleteAccountError(null)
     setConfirm(null)
   }
 
@@ -215,7 +197,6 @@ export function useMyPage() {
     if (!isAppleAccount && !deletePassword) return
 
     setDeletingAccount(true)
-    setDeleteAccountError(null)
     let phase: DeleteAccountPhase = 'reauth'
 
     try {
@@ -225,10 +206,11 @@ export function useMyPage() {
       setConfirm(null)
       setDeletePassword('')
       logout()
-      showToast('탈퇴가 완료되었습니다.')
+      toast.success('탈퇴가 완료되었습니다.')
       setTimeout(() => router.replace('/login'), 800)
     } catch (err) {
-      setDeleteAccountError(deleteAccountErrorMessage(err, phase))
+      const message = deleteAccountErrorMessage(err, phase)
+      if (message) toast.error(message)
     } finally {
       setDeletingAccount(false)
     }
@@ -237,7 +219,6 @@ export function useMyPage() {
   return {
     myInfo,
     loading,
-    toast,
     profileImageUrl,
     avatarSeed,
     editingNickname,
@@ -249,14 +230,11 @@ export function useMyPage() {
     setConfirm,
     deletePassword,
     setDeletePassword,
-    deleteAccountError,
     deletingAccount,
     isAppleAccount,
     providerKnown,
     uploadingProfileImage,
     changingPassword,
-    passwordError,
-    setPasswordError,
     handleSaveNickname,
     handleProfileImageChange,
     handleChangePassword,

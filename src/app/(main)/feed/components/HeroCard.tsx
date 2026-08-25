@@ -35,7 +35,7 @@ export function HeroCard() {
           </p>
           <p className="mt-1.5 text-[12.5px] text-muted">작은 한 걸음이 모여 큰 벌집이 됩니다.</p>
         </div>
-        <BeePose pose="cheer" size={84} className="shrink-0" />
+        <BeePose pose="jump" size={84} className="shrink-0" />
       </div>
     </section>
   )

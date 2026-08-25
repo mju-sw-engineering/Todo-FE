@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { FiFile } from 'react-icons/fi'
+import toast from 'react-hot-toast'
 import { parseAchievementCount, formatDeadline } from '@/lib/formatters'
 import { useTodoDetail } from '@/hooks/useTodoDetail'
 import { getTeamById } from '@/services/teamService'
@@ -59,7 +60,6 @@ function TodoDetailContent() {
   const [isReassigning, setIsReassigning] = useState(false)
   const [submission, setSubmission] = useState<TodoWorkItemSubmission | null>(null)
   const [isImageLoading, setIsImageLoading] = useState(false)
-  const [actionError, setActionError] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
   const [showBubble, setShowBubble] = useState(false)
 
@@ -116,12 +116,11 @@ function TodoDetailContent() {
   async function openSubmission(workItemId: number) {
     if (!token) return
     setIsImageLoading(true)
-    setActionError(null)
     try {
       const result = await getTodoWorkItemSubmission(workItemId, token)
       setSubmission(result)
     } catch {
-      setActionError('인증 파일을 불러오지 못했습니다.')
+      toast.error('인증 파일을 불러오지 못했습니다.')
     } finally {
       setIsImageLoading(false)
     }
@@ -130,13 +129,12 @@ function TodoDetailContent() {
   async function confirmReassign() {
     if (!reassignTarget || !selectedAssigneeId) return
     setIsReassigning(true)
-    setActionError(null)
     try {
       await handleReassign(reassignTarget.workItemId, selectedAssigneeId)
       setReassignTarget(null)
       setSelectedAssigneeId(null)
     } catch {
-      setActionError('담당자를 재배정하지 못했습니다.')
+      toast.error('담당자를 재배정하지 못했습니다.')
     } finally {
       setIsReassigning(false)
     }
@@ -212,7 +210,6 @@ function TodoDetailContent() {
           <p className="text-[13px] font-semibold text-ink/60">
             {todo.mode === 'TASK' ? 'Task 현황' : '인증 현황'}
           </p>
-          {actionError && <span className="text-[11px] text-status-red">{actionError}</span>}
         </div>
         <div className="flex flex-col gap-3">
           {workItems.map((workItem) => (
@@ -343,7 +340,7 @@ function TodoDetailContent() {
               className="pointer-events-none object-cover"
             />
             <div className="relative my-auto w-full max-w-sm shrink-0 rounded-[32px] bg-white px-10 py-10 text-center shadow-xl">
-              <BeePose pose="flower" size={144} className="mx-auto mb-2" />
+              <BeePose pose="thumbsUp" size={144} className="mx-auto mb-2" />
               <p className="text-[28px] font-black text-gray-900">인증 완료!</p>
               <p className="mt-2 text-[15px] text-gray-500">인증샷이 업로드됐어요</p>
               <button

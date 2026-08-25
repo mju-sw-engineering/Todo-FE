@@ -14,7 +14,7 @@ export default function TeamJoinPage() {
   const { token } = useAuth()
 
   const [inviteCode, setInviteCode] = useState('')
-  const { isLoading, error, setError, run } = useAsyncTask()
+  const { isLoading, setError, run } = useAsyncTask()
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
@@ -60,7 +60,6 @@ export default function TeamJoinPage() {
             placeholder="초대 코드 8자리를 입력해 주세요"
             maxLength={8}
             required
-            hint={error || undefined}
           />
         </form>
       </div>

@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { HeroCard } from './components/HeroCard'
-import { TeamSummaryCard } from './components/TeamSummaryCard'
+import { TeamRhythmList } from './components/TeamRhythmList'
 import { HivePreviewCard } from './components/HivePreviewCard'
 import { HiveShelfCard } from './components/HiveShelfCard'
 import { BadgesCard } from './components/BadgesCard'
-import { TeamRhythmPreviewCard } from './components/TeamRhythmPreviewCard'
 import { MOCK_BADGES } from './components/mockFeedData'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { getBadges, getHiveArchive, getMonthlyHive, getTeamRhythms } from '@/services/feedService'
@@ -14,9 +13,12 @@ import { useAuth } from '@/store/authStore'
 import { PageLoader } from '@/components/ui/PageLoader'
 import type { FeedBadge, HiveArchiveMonth, MonthlyHive, TeamRhythm } from '@/types/feed.types'
 
+type FeedScope = 'personal' | 'team'
+
 export default function FeedPage() {
   const { token } = useAuth()
-  const { isLoading, error, run } = useAsyncTask(true)
+  const { isLoading, run } = useAsyncTask(true)
+  const [scope, setScope] = useState<FeedScope>('personal')
 
   const [teamRhythms, setTeamRhythms] = useState<TeamRhythm[]>([])
   const [monthlyHive, setMonthlyHive] = useState<MonthlyHive | null>(null)
@@ -53,18 +55,38 @@ export default function FeedPage() {
           <p className="text-[12px] text-white/85 mt-0.5">팀과 함께 쌓아가는 꾸준함의 꿀</p>
         </div>
 
-        {error && (
-          <p className="mx-5 mb-4 text-sm text-status-red bg-white rounded-[14px] px-4 py-3">
-            {error}
-          </p>
-        )}
-
         <HeroCard />
-        {monthlyHive && <TeamSummaryCard hive={monthlyHive} team={teamRhythms[0]} />}
-        {monthlyHive && <HivePreviewCard hive={monthlyHive} />}
-        {monthlyHive && <HiveShelfCard months={hiveArchive} current={monthlyHive} />}
-        <TeamRhythmPreviewCard teams={teamRhythms} />
-        <BadgesCard badges={badges} />
+
+        <div className="mx-5 mt-4 grid grid-cols-2 gap-1 rounded-full bg-white/70 p-1 backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={() => setScope('personal')}
+            className={`rounded-full py-2 text-[13px] font-bold transition-all duration-150 ${
+              scope === 'personal' ? 'bg-primary text-white' : 'text-ink/70 hover:text-ink'
+            }`}
+          >
+            개인
+          </button>
+          <button
+            type="button"
+            onClick={() => setScope('team')}
+            className={`rounded-full py-2 text-[13px] font-bold transition-all duration-150 ${
+              scope === 'team' ? 'bg-primary text-white' : 'text-ink/70 hover:text-ink'
+            }`}
+          >
+            팀
+          </button>
+        </div>
+
+        {scope === 'personal' ? (
+          <>
+            {monthlyHive && <HivePreviewCard hive={monthlyHive} />}
+            <BadgesCard badges={badges} />
+            {monthlyHive && <HiveShelfCard months={hiveArchive} current={monthlyHive} />}
+          </>
+        ) : (
+          <TeamRhythmList teams={teamRhythms} />
+        )}
       </div>
     </div>
   )
