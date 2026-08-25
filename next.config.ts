@@ -3,6 +3,9 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   output: 'standalone',
   deploymentId: process.env.DEPLOYMENT_VERSION,
+  // 개발 모드에서 화면 하단(기본 bottom-left)에 잠깐씩 뜨는 Next.js 빌드 인디케이터.
+  // 탭바 가운데 + 버튼과 겹쳐 보여 꺼둔다. 프로덕션 빌드에는 원래 안 나온다.
+  devIndicators: false,
   images: {
     remotePatterns: [
       {

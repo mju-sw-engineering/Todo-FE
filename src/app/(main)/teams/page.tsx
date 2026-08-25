@@ -19,7 +19,7 @@ function TeamsContent() {
   const { token } = useAuth()
 
   const [teams, setTeams] = useState<TeamListItem[]>([])
-  const { isLoading, error, run } = useAsyncTask(true)
+  const { isLoading, run } = useAsyncTask(true)
   const [showToast, setShowToast] = useState(() => searchParams.get('created') === '1')
   // 가입 완료 화면의 "초대 코드로 참여" CTA가 ?join=1로 진입한다
   const [showJoinModal, setShowJoinModal] = useState(() => searchParams.get('join') === '1')
@@ -50,12 +50,6 @@ function TeamsContent() {
           <h1 className="text-[20px] font-black text-ink leading-tight">팀</h1>
           <p className="text-[12px] text-muted mt-0.5">참여 중인 팀을 확인하고 관리하세요</p>
         </div>
-
-        {error && (
-          <p className="text-sm text-status-red bg-status-red/10 rounded-[14px] px-4 py-3 mb-4">
-            {error}
-          </p>
-        )}
 
         {teams.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2">

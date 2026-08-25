@@ -21,7 +21,6 @@ export default function FindIdPage() {
   const [secondsLeft, setSecondsLeft] = useState(CODE_TTL_SECONDS)
   const [foundLoginId, setFoundLoginId] = useState<string | null>(null)
 
-  const { error, setError } = useAsyncTask()
   const sendTask = useAsyncTask()
   const verifyTask = useAsyncTask()
   const findTask = useAsyncTask()
@@ -43,8 +42,7 @@ export default function FindIdPage() {
   }
 
   async function handleSendCode() {
-    setError(null)
-    if (!email) return setError('이메일을 입력해 주세요.')
+    if (!email) return sendTask.setError('이메일을 입력해 주세요.')
     await sendTask.run(
       async () => {
         await sendEmailVerification({ email })
@@ -60,8 +58,7 @@ export default function FindIdPage() {
   }
 
   async function handleVerifyCode() {
-    setError(null)
-    if (!code) return setError('인증코드를 입력해 주세요.')
+    if (!code) return verifyTask.setError('인증코드를 입력해 주세요.')
     await verifyTask.run(
       async () => {
         const { emailVerificationToken } = await verifyEmailCode({ email, code })
@@ -186,12 +183,6 @@ export default function FindIdPage() {
                 : '인증 시간이 만료되었습니다. 재발송해 주세요.'}
             </p>
           </div>
-        )}
-
-        {error && (
-          <p className="text-sm text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
-            {error}
-          </p>
         )}
 
         <Link

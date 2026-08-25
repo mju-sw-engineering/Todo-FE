@@ -9,8 +9,8 @@ interface ProofFileCardProps {
 
 export function ProofFileCard({ fileName, fileSize, onRemove }: ProofFileCardProps) {
   return (
-    <div className="flex shrink-0 items-center gap-3 rounded-[18px] border border-border bg-gray-50 px-4 py-3.5">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white">
+    <div className="flex shrink-0 items-center gap-3 rounded-[18px] border border-border bg-white px-4 py-3.5">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface">
         <FiFile size={18} className="text-muted" />
       </div>
       <div className="min-w-0 flex-1">

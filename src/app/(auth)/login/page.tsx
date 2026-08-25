@@ -29,7 +29,7 @@ function LoginPageContent() {
 
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
-  const { isLoading, error, setError, run } = useAsyncTask()
+  const { isLoading, setError, run } = useAsyncTask()
   const apple = useAppleSignIn()
 
   // 애플 로그인을 못 쓰는 환경(브라우저·Android)에서는 아이디 로그인이 유일한 수단이므로
@@ -139,12 +139,6 @@ function LoginPageContent() {
               아이디를 잊으셨나요?
             </Link>
           </form>
-        )}
-
-        {(error || apple.error) && (
-          <p className="text-[13px] text-status-red bg-status-red/10 rounded-xl px-4 py-2.5">
-            {error || apple.error}
-          </p>
         )}
 
         <p className="text-center text-[13px] text-gray-400">

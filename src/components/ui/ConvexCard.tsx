@@ -20,7 +20,7 @@ export function ConvexCard({
   return (
     <div
       onClick={onClick}
-      className={`relative w-full rounded-[22px] overflow-hidden transition-all duration-150 ${className}`}
+      className={`relative w-full shrink-0 rounded-[22px] overflow-hidden transition-all duration-150 ${className}`}
       style={{ background: bg }}
     >
       <div className={`relative flex flex-col ${dense ? 'px-4 py-3.5 gap-2' : 'px-5 py-5 gap-3'}`}>

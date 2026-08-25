@@ -34,7 +34,7 @@ function CertifyContent() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
-  const { isLoading: isSubmitting, error, setError, run } = useAsyncTask()
+  const { isLoading: isSubmitting, setError, run } = useAsyncTask()
 
   const isImageSelected = file ? isProofImageFile(file) : false
   const isHwpSelected = file ? isHwpFile(file) : false
@@ -93,15 +93,7 @@ function CertifyContent() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white animate-fade-up">
-      <input
-        id="certify-camera"
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="sr-only"
-        onChange={handleFileChange}
-      />
+    <div className="flex-1 flex flex-col bg-surface animate-fade-up">
       <input
         ref={galleryInputRef}
         id="certify-gallery"
@@ -111,18 +103,18 @@ function CertifyContent() {
         onChange={handleFileChange}
       />
 
-      <div className="px-6 pt-8 pb-4">
+      <div className="shrink-0 border-b border-border bg-white px-6 pt-8 pb-5">
         <button
           onClick={() => router.back()}
-          className="text-[13px] font-semibold text-muted mb-6 flex items-center gap-1 hover:text-gray-700 transition-colors"
+          className="mb-6 flex items-center gap-1 text-[13px] font-semibold text-muted transition-colors hover:text-gray-700"
         >
           ← 인증샷 업로드
         </button>
-        <h1 className="text-[20px] font-bold text-ink mb-1 leading-snug">{title}</h1>
+        <h1 className="mb-1 text-[20px] font-bold leading-snug text-ink">{title}</h1>
         <p className="text-[13px] text-muted">인증 사진 또는 파일을 업로드해 주세요</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-3 min-h-0">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-6 py-5">
         {file && !isImageSelected ? (
           <ProofFileCard fileName={file.name} fileSize={file.size} onRemove={handleRemove} />
         ) : (
@@ -130,40 +122,35 @@ function CertifyContent() {
             imageUrl={preview}
             onAddClick={() => galleryInputRef.current?.click()}
             onRemove={handleRemove}
-            className="shrink-0"
+            className="shrink-0 border-2 border-dashed border-border"
             style={{ height: '52vw', minHeight: '200px', maxHeight: '320px' }}
           />
         )}
 
-        <div className="grid grid-cols-2 gap-3 shrink-0">
-          <label
-            htmlFor="certify-camera"
-            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-primary hover:text-primary"
-          >
-            카메라
-          </label>
-          <label
-            htmlFor="certify-gallery"
-            className="py-3.5 rounded-[14px] border border-border text-[14px] font-semibold text-ink text-center cursor-pointer transition-all duration-200 hover:border-primary hover:text-primary"
-          >
-            파일 선택
-          </label>
-        </div>
-
-        {isHwpSelected && (
-          <p className="text-[12px] text-muted bg-gray-50 rounded-[10px] px-4 py-2.5 shrink-0">
-            한글 파일은 AI 요약이 지원되지 않아요. PDF로 저장해 올리면 요약해드려요.
+        {!file && (
+          <p className="-mt-1 text-center text-[12px] text-muted">
+            사진, PDF, 문서 파일을 올릴 수 있어요
           </p>
         )}
 
-        {error && (
-          <p className="text-[13px] text-status-red bg-status-red/10 rounded-[10px] px-4 py-2.5 shrink-0">
-            {error}
+        {file && (
+          <button
+            type="button"
+            onClick={() => galleryInputRef.current?.click()}
+            className="self-center text-[12.5px] font-semibold text-primary transition-colors hover:text-primary-hover"
+          >
+            다른 파일 선택
+          </button>
+        )}
+
+        {isHwpSelected && (
+          <p className="shrink-0 rounded-[10px] bg-white px-4 py-2.5 text-[12px] text-muted">
+            한글 파일은 AI 요약이 지원되지 않아요. PDF로 저장해 올리면 요약해드려요.
           </p>
         )}
       </div>
 
-      <div className="px-6 py-5 border-t border-border">
+      <div className="shrink-0 border-t border-border bg-white px-6 py-5">
         <Button onClick={handleSubmit} disabled={!file || isSubmitting}>
           {isSubmitting ? '업로드 중...' : '제출하기'}
         </Button>

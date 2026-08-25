@@ -19,7 +19,7 @@ export default function TeamNewPage() {
   const [teamImage, setTeamImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isFeedPublic, setIsFeedPublic] = useState(true)
-  const { isLoading, error, setError, run } = useAsyncTask()
+  const { isLoading, setError, run } = useAsyncTask()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { upload, isUploading } = usePresignedUpload({ type: 'TEAM', token: token ?? undefined })
@@ -76,12 +76,8 @@ export default function TeamNewPage() {
             label="팀 이름"
             type="text"
             value={teamName}
-            onChange={(e) => {
-              setTeamName(e.target.value)
-              if (error) setError('')
-            }}
+            onChange={(e) => setTeamName(e.target.value)}
             placeholder="팀 이름을 입력해주세요"
-            hint={error === '팀 이름을 입력해주세요' ? error : undefined}
           />
 
           <Input
@@ -157,10 +153,6 @@ export default function TeamNewPage() {
               </button>
             </div>
           </div>
-
-          {error && error !== '팀 이름을 입력해주세요' && (
-            <p className="text-xs text-status-red text-center">{error}</p>
-          )}
         </form>
       </div>
 

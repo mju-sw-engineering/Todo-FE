@@ -130,12 +130,6 @@ export default function AvailabilityMyResponsePage() {
         가능한 시간을 눌러서 선택하세요. 손가락으로 드래그하면 여러 칸을 한 번에 선택할 수 있어요.
       </p>
 
-      {submitTask.error && (
-        <p className="mx-5 mb-3 text-[12.5px] text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
-          {submitTask.error}
-        </p>
-      )}
-
       <div
         className="flex-1 overflow-y-auto overflow-x-hidden"
         onPointerMove={handlePointerMove}

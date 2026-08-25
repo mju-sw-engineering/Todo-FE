@@ -30,11 +30,6 @@ import type { StickerType } from '@/lib/sticker'
 
 // ─── Title / content parsing ──────────────────────────────────────────────────
 
-function extractSender(title: string): string {
-  const m = title.match(/^(.+?)님이/)
-  return m ? m[1] : ''
-}
-
 function stripContentPrefix(content: string): string {
   const idx = content.indexOf(': ')
   return idx !== -1 ? content.slice(idx + 2) : content
@@ -107,12 +102,13 @@ function NotificationContent({ content }: { content: string }) {
 
 // ─── Notification type → icon / tone ───────────────────────────────────────────
 
-type NotificationTone = 'primary' | 'secondary' | 'red' | 'neutral'
+type NotificationTone = 'primary' | 'secondary' | 'success' | 'red' | 'neutral'
 
 const TONE_CLASSES: Record<NotificationTone, string> = {
-  primary: 'bg-primary/10 text-primary',
-  secondary: 'bg-secondary-50/10 text-secondary-50',
-  red: 'bg-status-red/10 text-status-red',
+  primary: 'bg-primary/15 text-primary',
+  secondary: 'bg-secondary-50/15 text-secondary-50',
+  success: 'bg-meadow/35 text-meadow-dark',
+  red: 'bg-status-red/15 text-status-red',
   neutral: 'bg-neutral-30 text-neutral-80',
 }
 
@@ -121,11 +117,11 @@ const NOTIFICATION_META: Record<NotificationType, { Icon: IconType; tone: Notifi
   TODO_CREATED: { Icon: FiPlusSquare, tone: 'primary' },
   TODO_ASSIGNED: { Icon: FiUserPlus, tone: 'primary' },
   TODO_UNASSIGNED: { Icon: FiUserX, tone: 'neutral' },
-  TODO_SUBMITTED: { Icon: FiUpload, tone: 'primary' },
+  TODO_SUBMITTED: { Icon: FiUpload, tone: 'success' },
   TODO_DEADLINE_APPROACHING: { Icon: FiClock, tone: 'secondary' },
   TODO_WORK_ITEM_EXPIRED: { Icon: FiAlertTriangle, tone: 'red' },
   TODO_REACTION_ADDED: { Icon: FiHeart, tone: 'primary' },
-  TODO_ALL_COMPLETED: { Icon: FiCheckCircle, tone: 'primary' },
+  TODO_ALL_COMPLETED: { Icon: FiCheckCircle, tone: 'success' },
   AI_PROOF_MISMATCH: { Icon: FiAlertTriangle, tone: 'red' },
   TEAM_MEMBER_JOINED: { Icon: FiUserPlus, tone: 'secondary' },
   TEAM_MEMBER_LEFT: { Icon: FiUserMinus, tone: 'neutral' },
@@ -140,9 +136,9 @@ function NotificationIcon({ type }: { type: NotificationType }) {
   const { Icon, tone } = NOTIFICATION_META[type]
   return (
     <div
-      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${TONE_CLASSES[tone]}`}
+      className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${TONE_CLASSES[tone]}`}
     >
-      <Icon size={15} />
+      <Icon size={20} />
     </div>
   )
 }
@@ -158,8 +154,8 @@ function NotificationItem({
   onRead: (id: number) => void
   onOpen: (notification: AppNotification) => void
 }) {
-  const sender = extractSender(notification.title)
   const message = stripContentPrefix(notification.content)
+  const showMessage = message && message !== notification.title
 
   return (
     <button
@@ -168,19 +164,25 @@ function NotificationItem({
         if (!notification.isRead) onRead(notification.notificationId)
         onOpen(notification)
       }}
-      className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors hover:bg-gray-50 ${notification.isRead ? 'opacity-50' : ''}`}
+      className={`relative w-full text-left rounded-2xl bg-white px-4 py-3.5 flex items-start gap-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-colors hover:bg-gray-50 ${notification.isRead ? 'opacity-50' : ''}`}
     >
       <NotificationIcon type={notification.type} />
-      <div className="flex-1 min-w-0">
-        {sender && <p className="text-[12px] font-semibold text-ink truncate">{sender}</p>}
-        <p className="text-[13px] text-gray-600 leading-snug">
-          <NotificationContent content={message} />
+      <div className="flex-1 min-w-0 pr-14">
+        <p className="text-[14px] font-bold text-ink leading-snug wrap-break-word line-clamp-2">
+          {notification.title}
         </p>
-        <p className="text-[11px] text-muted mt-0.5">
-          {formatRelativeTime(notification.createdAt)}
-        </p>
+        {showMessage && (
+          <p className="mt-1 text-[12px] text-muted leading-snug">
+            <NotificationContent content={message} />
+          </p>
+        )}
       </div>
-      {!notification.isRead && <span className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+      <div className="absolute top-3.5 right-4 flex items-center gap-1.5">
+        {!notification.isRead && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+        <span className="text-[11px] font-semibold text-muted whitespace-nowrap">
+          {formatRelativeTime(notification.createdAt)}
+        </span>
+      </div>
     </button>
   )
 }
@@ -287,7 +289,7 @@ export function NotificationBell() {
         )}
       </div>
 
-      <div className="overflow-y-auto flex-1 divide-y divide-border">
+      <div className="overflow-y-auto flex-1 bg-surface p-3 flex flex-col gap-2">
         {isLoading && notifications.length === 0 ? (
           <div className="flex items-center justify-center py-10">
             <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />

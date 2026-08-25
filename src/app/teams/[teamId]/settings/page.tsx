@@ -1,9 +1,8 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { useTeamDetail } from '@/hooks/useTeamDetail'
-import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { TeamMembersCard } from '../components/TeamMembersCard'
 import { FeedVisibilityCard } from '../components/FeedVisibilityCard'
@@ -23,13 +22,11 @@ export default function TeamSettingsPage() {
   const {
     team,
     isLoading,
-    actionError,
     kickTarget,
     setKickTarget,
     showLeaveConfirm,
     setShowLeaveConfirm,
     isSubmitting,
-    toast,
     showToast,
     currentUserId,
     myRole,
@@ -49,8 +46,6 @@ export default function TeamSettingsPage() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
-      {toast && <Toast message={toast} />}
-
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-6">
         <div className="flex items-center gap-2 mb-6">
           <BackButton onClick={() => router.back()} />
@@ -61,19 +56,6 @@ export default function TeamSettingsPage() {
             <p className="text-[12px] text-muted mt-0.5">팀 설정</p>
           </div>
         </div>
-
-        <AnimatePresence>
-          {actionError && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="mb-3 px-4 py-3 bg-red-50 border border-red-200 rounded-[14px] text-[13px] font-semibold text-red-600"
-            >
-              {actionError}
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <TeamMembersCard
           team={team}

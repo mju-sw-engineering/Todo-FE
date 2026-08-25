@@ -34,7 +34,7 @@ export default function AppleSetupPage() {
     marketingAgreed: false,
   })
 
-  const { isLoading, error, setError, run } = useAsyncTask()
+  const { isLoading, setError, run } = useAsyncTask()
   const { upload, isUploading } = usePresignedUpload({
     type: 'PROFILE',
     signupToken: setupToken ?? undefined,
@@ -134,7 +134,7 @@ export default function AppleSetupPage() {
   return (
     <div className="flex-1 flex flex-col px-6 pt-12 pb-10 animate-fade-up">
       <div className="flex justify-center">
-        <BeePose pose="cheer" size={88} decorative />
+        <BeePose pose="thumbsUp" size={88} decorative />
       </div>
 
       <h1 className="text-[24px] font-jua text-gray-900 text-center mt-4 leading-snug">
@@ -164,12 +164,6 @@ export default function AppleSetupPage() {
         />
 
         <ConsentAgreements value={consents} onChange={setConsents} />
-
-        {error && (
-          <p className="text-[13px] text-status-red bg-status-red/10 rounded-xl px-4 py-2.5">
-            {error}
-          </p>
-        )}
 
         <Button type="submit" size="lg" disabled={isLoading || isUploading} className="mt-1">
           {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '시작하기'}

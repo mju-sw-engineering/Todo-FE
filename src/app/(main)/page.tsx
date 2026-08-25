@@ -156,7 +156,7 @@ export default function HomePage() {
 
       {!historyLoading && !historyError && displayTodos.length > 0 && completionPct === 100 && (
         <div className="mx-4 mb-3 shrink-0 rounded-2xl px-4 py-2.5 flex items-center gap-3 bg-[linear-gradient(135deg,#eef4ff_0%,#dbe9ff_100%)]">
-          <BeePose pose="cheer" size={62} />
+          <BeePose pose="confetti" size={62} />
           <div>
             <p className="text-[13.5px] font-bold text-ink">오늘 할 일을 모두 끝냈어요</p>
             <p className="text-[11px] text-gray-500 font-medium mt-0.5">

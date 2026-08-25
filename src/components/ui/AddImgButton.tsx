@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FiCamera } from 'react-icons/fi'
+import { FiImage } from 'react-icons/fi'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 interface AddImgButtonProps {
@@ -34,13 +34,15 @@ export function AddImgButton({
       <button
         type="button"
         onClick={handleClick}
-        className={`w-full rounded-[18px] bg-gray-50 overflow-hidden flex items-center justify-center bg-cover bg-center shrink-0 transition-colors hover:bg-gray-100 ${className}`}
+        className={`w-full rounded-[18px] bg-white overflow-hidden flex items-center justify-center bg-cover bg-center shrink-0 transition-colors hover:bg-surface ${className}`}
         style={{ ...style, ...(imageUrl ? { backgroundImage: `url(${imageUrl})` } : {}) }}
       >
         {!imageUrl && (
           <div className="flex flex-col items-center gap-2">
-            <FiCamera size={28} className="text-gray-300" />
-            <p className="text-[13px] text-gray-300 select-none">사진을 선택하거나 촬영하세요</p>
+            <FiImage size={28} className="text-neutral-50" />
+            <p className="text-[13px] text-neutral-60 select-none">
+              탭해서 사진이나 파일을 선택하세요
+            </p>
           </div>
         )}
       </button>

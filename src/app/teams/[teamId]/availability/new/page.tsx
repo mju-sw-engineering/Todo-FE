@@ -37,13 +37,12 @@ export default function AvailabilityEventNewPage() {
   const [selectedDates, setSelectedDates] = useState<string[]>([])
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('21:00')
-  const { isLoading, error, setError, run } = useAsyncTask()
+  const { isLoading, setError, run } = useAsyncTask()
 
   const [showStartTimeSheet, setShowStartTimeSheet] = useState(false)
   const [showEndTimeSheet, setShowEndTimeSheet] = useState(false)
 
   function toggleDate(dateStr: string) {
-    if (error) setError('')
     setSelectedDates((prev) =>
       prev.includes(dateStr) ? prev.filter((d) => d !== dateStr) : [...prev, dateStr].sort()
     )
@@ -94,10 +93,7 @@ export default function AvailabilityEventNewPage() {
           label="이벤트 이름"
           type="text"
           value={title}
-          onChange={(e) => {
-            setTitle(e.target.value)
-            if (error) setError('')
-          }}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="예: 이번주 팀 회의"
         />
 
@@ -145,10 +141,7 @@ export default function AvailabilityEventNewPage() {
           <div className="flex items-center gap-2.5">
             <button
               type="button"
-              onClick={() => {
-                setShowStartTimeSheet(true)
-                if (error) setError('')
-              }}
+              onClick={() => setShowStartTimeSheet(true)}
               className="flex-1 min-w-0 text-center px-3 py-3 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink transition-all duration-200 hover:border-primary"
             >
               {formatDisplayTime(startTime)}
@@ -156,22 +149,13 @@ export default function AvailabilityEventNewPage() {
             <span className="text-[13px] text-muted shrink-0">~</span>
             <button
               type="button"
-              onClick={() => {
-                setShowEndTimeSheet(true)
-                if (error) setError('')
-              }}
+              onClick={() => setShowEndTimeSheet(true)}
               className="flex-1 min-w-0 text-center px-3 py-3 rounded-[14px] border-[1.5px] border-border bg-white text-[14px] text-ink transition-all duration-200 hover:border-primary"
             >
               {formatDisplayTime(endTime)}
             </button>
           </div>
         </div>
-
-        {error && (
-          <p className="text-sm text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
-            {error}
-          </p>
-        )}
       </div>
 
       <div className="px-5 py-4 border-t border-border">

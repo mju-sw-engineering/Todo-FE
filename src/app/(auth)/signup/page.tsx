@@ -52,7 +52,7 @@ export default function SignupPage() {
     marketingAgreed: false,
   })
 
-  const { isLoading, error, setError, run } = useAsyncTask()
+  const { isLoading, setError, run } = useAsyncTask()
   const apple = useAppleSignIn()
   const sendTask = useAsyncTask()
   const verifyTask = useAsyncTask()
@@ -182,7 +182,7 @@ export default function SignupPage() {
           <div className="relative mb-3">
             <HiveIcon size={96} />
             <div className="absolute -left-16 top-8 bee-bob">
-              <BeePose pose="cheer" size={58} flip decorative />
+              <BeePose pose="confetti" size={58} flip decorative />
             </div>
           </div>
           <p className="relative text-[22px] font-jua text-ink px-8 text-center break-keep">
@@ -213,7 +213,7 @@ export default function SignupPage() {
           <h1 className="text-[18px] font-bold text-gray-900 tracking-tight">회원가입</h1>
         </div>
         <div className="flex items-center gap-1 mt-2">
-          <BeePose pose="flower" size={60} flip decorative />
+          <BeePose pose="wave" size={60} flip decorative />
           <span className="bg-[#faf4e4] rounded-xl rounded-bl-[4px] px-3 py-1.5 text-[13px] font-jua text-[#57430f]">
             반가워요! 같이 꿀 모아요
           </span>
@@ -347,12 +347,6 @@ export default function SignupPage() {
           />
 
           <ConsentAgreements value={consents} onChange={setConsents} />
-
-          {(error || apple.error) && (
-            <p className="text-sm text-status-red bg-status-red/10 rounded-xl px-3.5 py-2.5">
-              {error || apple.error}
-            </p>
-          )}
 
           {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
           <AppleLoginButton

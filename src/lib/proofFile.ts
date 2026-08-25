@@ -43,9 +43,15 @@ const HWP_RULE: ProofFileRule = {
 
 const RULES = [IMAGE_RULE, DOCUMENT_RULE, HWP_RULE]
 
-export const PROOF_FILE_ACCEPT = RULES.flatMap((rule) =>
-  rule.extensions.map((ext) => `.${ext}`)
-).join(',')
+/**
+ * 확장자만 나열하면 iOS Safari 등 일부 모바일 브라우저가 "사진 보관함"을
+ * 인식하지 못하고 카메라로 바로 넘어간다. MIME 타입도 함께 나열해야
+ * 갤러리(파일 선택) 옵션이 안정적으로 뜬다.
+ */
+export const PROOF_FILE_ACCEPT = RULES.flatMap((rule) => [
+  ...rule.extensions.map((ext) => `.${ext}`),
+  ...rule.mimeTypes,
+]).join(',')
 
 function getExtension(fileName: string): string {
   const dot = fileName.lastIndexOf('.')
