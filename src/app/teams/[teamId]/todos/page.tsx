@@ -58,7 +58,6 @@ function TodoListContent() {
     isLoading,
     tab,
     setTab,
-    showToast,
     direction,
     calendarOpen,
     setCalendarOpen,
@@ -236,12 +235,6 @@ function TodoListContent() {
       </div>
 
       {menuOpen && <TeamMenuSheet teamId={teamId} onClose={() => setMenuOpen(false)} />}
-
-      {showToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-sm bg-ink text-white text-[13px] font-bold text-center py-3.5 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] animate-fade-up z-50">
-          할 일이 추가되었습니다
-        </div>
-      )}
     </div>
   )
 }

@@ -85,23 +85,25 @@ export function TeamHiveGrowthCard({ teamId, token, compact = false }: Props) {
           type="button"
           aria-label="벌집 성장 단계 설명 보기"
           onClick={(e) => setInfoAnchor(e.currentTarget.getBoundingClientRect())}
-          className="mx-5 mt-3 flex items-center gap-2.5 rounded-[14px] border border-border bg-white px-3 py-2 hover:border-neutral-50 active:scale-[0.99] transition-all"
+          className="mx-5 mt-3 flex items-center gap-3 rounded-[16px] border border-sun/50 bg-gradient-to-br from-point-light to-sun-glow px-3.5 py-2.5 shadow-[0_3px_12px_-5px_rgba(237,160,32,0.5)] transition-all hover:brightness-[1.03] active:scale-[0.99]"
         >
-          <TeamHiveIcon level={level} size={26} />
-          <span className="shrink-0 text-[12px] font-black text-ink">우리 벌집 Lv.{level}</span>
-          <div className="flex-1 h-1.5 rounded-full bg-neutral-30 overflow-hidden">
+          <span className="shrink-0 drop-shadow-[0_1px_1px_rgba(255,255,255,0.6)]">
+            <TeamHiveIcon level={level} size={32} />
+          </span>
+          <span className="shrink-0 text-[12.5px] font-black text-ink">우리 벌집 Lv.{level}</span>
+          <div className="flex-1 h-2 rounded-full bg-white/55 overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-primary"
+              className="h-full rounded-full bg-point"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={reduceMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' }}
             />
           </div>
-          <span className="shrink-0 text-[10.5px] font-semibold text-muted">
+          <span className="shrink-0 text-[10.5px] font-bold text-neutral-90">
             {isMax ? '최고 단계' : `${remaining}개 남음`}
           </span>
           <svg
-            className="shrink-0 w-3.5 h-3.5 text-neutral-60"
+            className="shrink-0 w-3.5 h-3.5 text-neutral-70"
             viewBox="0 0 16 16"
             fill="none"
             stroke="currentColor"

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 import { getTeamTodoReport, getTodosByDate } from '@/services/todoService'
 import { addDays, pad, startOfWeekMonday, todayString } from '@/lib/dateUtils'
 import type { DayStat, Todo } from '@/types/todo.types'
@@ -58,7 +59,6 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
   // 이펙트 본문에서 동기적으로 setState 하지 않아 연쇄 렌더가 생기지 않는다.
   const [loadedDate, setLoadedDate] = useState<string | null>(null)
   const [tab, setTab] = useState<TeamTodoTabType>('all')
-  const [showToast, setShowToast] = useState(initialShowToast)
   const [now, setNow] = useState(() => Date.now())
 
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -82,11 +82,11 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
   }, [])
 
   useEffect(() => {
-    if (!showToast) return
+    if (!initialShowToast) return
     router.replace(`/teams/${teamId}/todos`)
-    const t = setTimeout(() => setShowToast(false), 3000)
-    return () => clearTimeout(t)
-  }, [showToast, router, teamId])
+    toast.success('할 일이 추가되었습니다')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 진입 시 한 번만: 쿼리스트링 제거 후 재실행되면 안 된다
+  }, [])
 
   // 선택한 날짜의 할 일. 캐시가 살아있으면 즉시 반환돼 날짜를 넘길 때 깜빡이지 않는다.
   useEffect(() => {
@@ -188,7 +188,6 @@ export function useTeamTodos(teamId: number, token: string | null, initialShowTo
     isLoading,
     tab,
     setTab,
-    showToast,
     direction,
     calendarOpen,
     setCalendarOpen,
