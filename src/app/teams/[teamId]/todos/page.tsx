@@ -63,7 +63,6 @@ function TodoListContent() {
     calendarYear,
     calendarMonth,
     dayStats,
-    now,
     filteredTodos,
     completeCount,
     incompleteCount,
@@ -181,14 +180,14 @@ function TodoListContent() {
           )}
         </AnimatePresence>
 
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={selectedDate}
             initial={{ opacity: 0, x: direction * slideX }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: direction * -slideX }}
             transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.4, 0, 0.2, 1] }}
-            className="flex flex-col gap-2.5 px-5 pb-4"
+            className="flex flex-col gap-2.5 px-5 pb-4 mt-3"
           >
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
@@ -224,7 +223,6 @@ function TodoListContent() {
                   key={todo.todoId}
                   todo={todo}
                   variant={variant}
-                  now={now}
                   onClick={() => router.push(`/teams/${teamId}/todos/${todo.todoId}`)}
                 />
               ))
@@ -233,7 +231,9 @@ function TodoListContent() {
         </AnimatePresence>
       </div>
 
-      {menuOpen && <TeamMenuSheet teamId={teamId} onClose={() => setMenuOpen(false)} />}
+      <AnimatePresence>
+        {menuOpen && <TeamMenuSheet teamId={teamId} onClose={() => setMenuOpen(false)} />}
+      </AnimatePresence>
     </div>
   )
 }

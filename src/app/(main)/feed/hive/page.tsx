@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { AnimatePresence } from 'framer-motion'
 import { FiCheckCircle, FiLock } from 'react-icons/fi'
 import { IoFlame } from 'react-icons/io5'
 import { BackButton } from '@/components/ui/BackButton'
@@ -241,23 +242,27 @@ export default function HiveDetailPage() {
         </div>
       </div>
 
-      {selectedDay != null && (
-        <BottomSheet onClose={() => setSelectedDay(null)}>
-          <p className="text-[13px] font-bold text-muted text-center">
-            {month}월 {selectedDay}일
-          </p>
-          <p className="mt-2 text-[22px] font-black text-ink text-center">
-            {selectedLevel != null && selectedLevel > 0 ? LEVEL_LABEL[selectedLevel] : '기록 없음'}
-          </p>
-          <button
-            type="button"
-            onClick={() => setSelectedDay(null)}
-            className="mt-6 w-full rounded-2xl bg-primary py-3 text-[14px] font-bold text-white"
-          >
-            확인
-          </button>
-        </BottomSheet>
-      )}
+      <AnimatePresence>
+        {selectedDay != null && (
+          <BottomSheet onClose={() => setSelectedDay(null)}>
+            <p className="text-[13px] font-bold text-muted text-center">
+              {month}월 {selectedDay}일
+            </p>
+            <p className="mt-2 text-[22px] font-black text-ink text-center">
+              {selectedLevel != null && selectedLevel > 0
+                ? LEVEL_LABEL[selectedLevel]
+                : '기록 없음'}
+            </p>
+            <button
+              type="button"
+              onClick={() => setSelectedDay(null)}
+              className="mt-6 w-full rounded-2xl bg-primary py-3 text-[14px] font-bold text-white"
+            >
+              확인
+            </button>
+          </BottomSheet>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

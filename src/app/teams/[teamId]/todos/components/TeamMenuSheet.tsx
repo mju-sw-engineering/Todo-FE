@@ -1,9 +1,9 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { FiClock, FiMessageCircle, FiSettings, FiX } from 'react-icons/fi'
+import { FiClock, FiMessageCircle, FiSettings } from 'react-icons/fi'
 import type { IconType } from 'react-icons'
-import { SideSheet } from '@/components/ui/SideSheet'
+import { BottomSheet } from '@/components/ui/BottomSheet'
 
 type MenuTone = 'primary' | 'secondary' | 'neutral'
 
@@ -18,11 +18,7 @@ interface TeamMenuSheetProps {
   onClose: () => void
 }
 
-/**
- * 팀에 딸린 화면들로 가는 메뉴. 오른쪽에서 밀려 들어오는 사이드 시트로 연다.
- * 제목을 두지 않는다 — 시트 옆으로 헤더에 팀 이름이 그대로 보이고,
- * 무언가를 묻는 시트가 아니라 갈 곳을 늘어놓는 시트라서다.
- */
+/** 팀에 딸린 화면들로 가는 메뉴. 아래에서 올라오는 바텀시트로 연다. */
 export function TeamMenuSheet({ teamId, onClose }: TeamMenuSheetProps) {
   const router = useRouter()
 
@@ -57,15 +53,8 @@ export function TeamMenuSheet({ teamId, onClose }: TeamMenuSheetProps) {
   ]
 
   return (
-    <SideSheet onClose={onClose}>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="메뉴 닫기"
-        className="mb-4 flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-neutral-30"
-      >
-        <FiX size={18} />
-      </button>
+    <BottomSheet onClose={onClose}>
+      <h2 className="mb-4 text-[17px] font-bold text-ink">메뉴</h2>
 
       <div className="flex flex-col gap-2">
         {items.map(({ label, description, href, Icon, tone }) => (
@@ -86,6 +75,6 @@ export function TeamMenuSheet({ teamId, onClose }: TeamMenuSheetProps) {
           </button>
         ))}
       </div>
-    </SideSheet>
+    </BottomSheet>
   )
 }

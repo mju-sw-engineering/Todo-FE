@@ -66,19 +66,6 @@ export function startOfWeekMonday(date: string): string {
 }
 
 /** 마감까지 남은 시간. 이미 지났으면 null이라 호출부에서 '지남'과 구분된다. */
-export function formatRemaining(iso: string, now: number = Date.now()): string | null {
-  const diff = new Date(iso).getTime() - now
-  if (isNaN(diff) || diff <= 0) return null
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}분 남음`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) {
-    const rest = mins % 60
-    return rest === 0 ? `${hours}시간 남음` : `${hours}시간 ${rest}분 남음`
-  }
-  return `${Math.floor(hours / 24)}일 남음`
-}
-
 export function formatISOTime(iso: string): string {
   const d = new Date(iso)
   if (isNaN(d.getTime())) return ''

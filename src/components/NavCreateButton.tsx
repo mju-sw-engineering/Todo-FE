@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { Button } from '@/components/ui/Button'
@@ -98,45 +98,47 @@ export function NavCreateButton() {
         </motion.button>
       </motion.div>
 
-      {pickerOpen && (
-        <BottomSheet onClose={() => setPickerOpen(false)}>
-          <h2 className="text-[17px] font-bold text-ink">어느 팀에 추가할까요?</h2>
-          <p className="mt-1 text-[12px] text-muted">
-            {teams.length === 0
-              ? '할 일은 팀 안에서 만들어요. 먼저 팀에 들어가주세요.'
-              : '할 일을 만들 팀을 선택해주세요.'}
-          </p>
-          <div className="my-5 max-h-72 flex flex-col gap-2 overflow-y-auto">
-            {teams.length === 0 && (
-              <Button variant="outline" onClick={() => router.push('/teams')}>
-                팀 만들거나 참여하기
-              </Button>
-            )}
-            {teams.map((team) => (
-              <button
-                key={team.teamId}
-                onClick={() => router.push(`/teams/${team.teamId}/todos/new`)}
-                className="w-full flex items-center gap-3 rounded-[14px] border border-border px-4 py-3 text-left hover:border-neutral-50 transition-colors"
-              >
-                {team.teamImageUrl ? (
-                  <span className="w-8 h-8 rounded-full overflow-hidden shrink-0 relative">
-                    <Image
-                      src={team.teamImageUrl}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </span>
-                ) : (
-                  <BlobAvatar seed={team.teamName} size={32} />
-                )}
-                <span className="text-[14px] font-semibold text-ink">{team.teamName}</span>
-              </button>
-            ))}
-          </div>
-        </BottomSheet>
-      )}
+      <AnimatePresence>
+        {pickerOpen && (
+          <BottomSheet onClose={() => setPickerOpen(false)}>
+            <h2 className="text-[17px] font-bold text-ink">어느 팀에 추가할까요?</h2>
+            <p className="mt-1 text-[12px] text-muted">
+              {teams.length === 0
+                ? '할 일은 팀 안에서 만들어요. 먼저 팀에 들어가주세요.'
+                : '할 일을 만들 팀을 선택해주세요.'}
+            </p>
+            <div className="my-5 max-h-72 flex flex-col gap-2 overflow-y-auto">
+              {teams.length === 0 && (
+                <Button variant="outline" onClick={() => router.push('/teams')}>
+                  팀 만들거나 참여하기
+                </Button>
+              )}
+              {teams.map((team) => (
+                <button
+                  key={team.teamId}
+                  onClick={() => router.push(`/teams/${team.teamId}/todos/new`)}
+                  className="w-full flex items-center gap-3 rounded-[14px] border border-border px-4 py-3 text-left hover:border-neutral-50 transition-colors"
+                >
+                  {team.teamImageUrl ? (
+                    <span className="w-8 h-8 rounded-full overflow-hidden shrink-0 relative">
+                      <Image
+                        src={team.teamImageUrl}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </span>
+                  ) : (
+                    <BlobAvatar seed={team.teamName} size={32} />
+                  )}
+                  <span className="text-[14px] font-semibold text-ink">{team.teamName}</span>
+                </button>
+              ))}
+            </div>
+          </BottomSheet>
+        )}
+      </AnimatePresence>
     </>
   )
 }

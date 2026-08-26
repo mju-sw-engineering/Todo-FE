@@ -28,22 +28,6 @@ import { PageLoader } from '@/components/ui/PageLoader'
 import type { TeamMember } from '@/types/team.types'
 import type { TodoWorkItem, TodoWorkItemSubmission } from '@/types/todo.types'
 
-const PROGRESS_MESSAGES = {
-  none: ['아직 완료된 항목이 없어요', '첫 완료를 기다리고 있어요'],
-  some: ['하나씩 완료하고 있어요 🔥', '좋은 흐름이에요 💪'],
-  most: ['거의 다 왔어요! 🎯', '조금만 더! ⚡'],
-  all: ['모두 완료! 🎊', '완벽하게 끝냈어요! ✨'],
-}
-
-function getProgressMessage(achieved: number, total: number, seed: number): string {
-  const pick = (messages: string[]) => messages[seed % messages.length]
-  if (total === 0) return ''
-  if (achieved === 0) return pick(PROGRESS_MESSAGES.none)
-  if (achieved === total) return pick(PROGRESS_MESSAGES.all)
-  if (achieved / total >= 0.8) return pick(PROGRESS_MESSAGES.most)
-  return pick(PROGRESS_MESSAGES.some)
-}
-
 function getWorkItemDeadline(workItem: TodoWorkItem, todoDeadline: string): string {
   return 'deadline' in workItem ? workItem.deadline : todoDeadline
 }
@@ -70,16 +54,10 @@ function TodoDetailContent() {
   const [submission, setSubmission] = useState<TodoWorkItemSubmission | null>(null)
   const [isImageLoading, setIsImageLoading] = useState(false)
   const [showToast, setShowToast] = useState(() => searchParams.get('certified') === '1')
-  const [showBubble, setShowBubble] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [certifyTarget, setCertifyTarget] = useState<TodoWorkItem | null>(null)
   const [certifyingId, setCertifyingId] = useState<number | null>(null)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowBubble(true), 650)
-    return () => clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     if (!showToast) return
@@ -228,30 +206,13 @@ function TodoDetailContent() {
               {todo.mode === 'TASK' ? '개' : '명'} · {percentage}%
             </span>
           </div>
-          <div className="relative pb-9">
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-30">
-              <motion.div
-                className="h-full rounded-full bg-primary"
-                initial={{ width: 0 }}
-                animate={{ width: `${percentage}%` }}
-                transition={{ duration: 0.75, ease: 'easeOut', delay: 0.2 }}
-              />
-            </div>
-            {showBubble && total > 0 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.55, y: -4 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="pointer-events-none absolute top-3"
-                style={{
-                  left: `${Math.max(6, Math.min(achieved === 0 ? 0 : percentage, 84))}%`,
-                  transform: 'translateX(-50%)',
-                }}
-              >
-                <div className="whitespace-nowrap rounded-[10px] bg-primary-light px-2.5 py-1.5 text-[11px] font-semibold text-primary shadow-sm">
-                  {getProgressMessage(achieved, total, todoId)}
-                </div>
-              </motion.div>
-            )}
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-30">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={{ width: 0 }}
+              animate={{ width: `${percentage}%` }}
+              transition={{ duration: 0.75, ease: 'easeOut', delay: 0.2 }}
+            />
           </div>
         </div>
       </div>
@@ -408,7 +369,18 @@ function TodoDetailContent() {
             onClick={() => setShowToast(false)}
           >
             <div className="relative my-auto w-full max-w-sm shrink-0 rounded-[32px] bg-white px-10 py-10 text-center shadow-xl">
-              <BeePose pose="thumbsUp" size={144} className="mx-auto mb-2" />
+              <div className="relative mx-auto mb-2 w-fit">
+                <BeePose pose="thumbsUp" size={144} />
+                <span className="absolute -right-1 -bottom-1 block h-13 w-13 overflow-hidden rounded-full shadow-md ring-4 ring-white">
+                  <Image
+                    src="/images/decor/check-burst.svg"
+                    alt=""
+                    fill
+                    unoptimized
+                    className="pointer-events-none object-cover"
+                  />
+                </span>
+              </div>
               <p className="text-[28px] font-black text-ink">인증 완료!</p>
               <p className="mt-2 text-[15px] text-muted">인증샷이 업로드됐어요</p>
               <button
@@ -419,13 +391,6 @@ function TodoDetailContent() {
                 확인
               </button>
             </div>
-            <Image
-              src="/images/decor/confetti.svg"
-              alt=""
-              fill
-              unoptimized
-              className="pointer-events-none z-10 object-cover"
-            />
           </motion.div>
         )}
       </AnimatePresence>

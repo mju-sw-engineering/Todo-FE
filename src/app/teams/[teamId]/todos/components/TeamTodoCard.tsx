@@ -3,7 +3,7 @@
 import { BlobAvatar } from '@/components/ui/BlobAvatar'
 import { ConvexCard } from '@/components/ui/ConvexCard'
 import { parseAchievementCount } from '@/lib/formatters'
-import { formatISOTime, formatRemaining } from '@/lib/dateUtils'
+import { formatISOTime } from '@/lib/dateUtils'
 import {
   isMyWorkComplete,
   type Todo,
@@ -15,13 +15,10 @@ import type { TeamTodoVariant } from '@/hooks/useTeamTodos'
 interface TeamTodoCardProps {
   todo: Todo
   variant: TeamTodoVariant
-  /** 남은 시간 계산 기준. 훅이 1분마다 갱신해 내려준다 */
-  now: number
   onClick: () => void
 }
 
 const CARD_BG = 'var(--color-static-white)'
-const HERO_BG = 'var(--color-primary)'
 const CHECK_COLOR = 'var(--color-point)'
 
 const STATUS_LABEL: Record<WorkItemStatus, string> = {
@@ -83,7 +80,7 @@ function ParticipantAvatars({ participants, size, onHero }: ParticipantAvatarsPr
   )
 }
 
-export function TeamTodoCard({ todo, variant, now, onClick }: TeamTodoCardProps) {
+export function TeamTodoCard({ todo, variant, onClick }: TeamTodoCardProps) {
   const { achieved, total } = parseAchievementCount(todo.achievementCount)
   const percentage = total > 0 ? Math.round((achieved / total) * 100) : 0
   const myWorkComplete = isMyWorkComplete(todo.myWorkSummary)
@@ -91,45 +88,17 @@ export function TeamTodoCard({ todo, variant, now, onClick }: TeamTodoCardProps)
   const participants = todo.participants ?? []
   const unitLabel = todo.mode === 'TASK' ? 'Task' : '인증'
 
-  // ── 다음 마감: 하루에 한 장만 크게 잡는다 ──
-  if (variant === 'hero') {
-    const remaining = formatRemaining(todo.deadline, now)
-
-    return (
-      <ConvexCard bg={HERO_BG} className="cursor-pointer active:scale-[0.99]" onClick={onClick}>
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-[17px] font-black leading-snug text-white">{todo.title}</p>
-          {time && (
-            <span className="text-[15px] font-black tracking-tight text-white shrink-0 tabular-nums">
-              ~{time}
-            </span>
-          )}
-        </div>
-
-        <p className="h-11 text-[12.5px] font-medium leading-relaxed text-white/85 line-clamp-2">
-          {todo.description}
-        </p>
-
-        <div className="flex items-center justify-between gap-3">
-          <ParticipantAvatars participants={participants} size={26} onHero />
-          <span className="shrink-0 text-[11.5px] font-bold text-white px-2.5 py-1 rounded-full bg-white/20 whitespace-nowrap">
-            {remaining ?? `${achieved}/${total} ${unitLabel}`}
-          </span>
-        </div>
-      </ConvexCard>
-    )
-  }
-
-  // ── 나머지는 컴팩트 행 ──
   const isDone = variant === 'done'
   const isOverdue = variant === 'overdue'
+  // 다음 마감인 항목만 파란 테두리로 살짝 강조한다 — 카드 크기는 다른 항목과 동일하게 유지한다
+  const isNext = variant === 'hero'
 
   return (
     <ConvexCard
       bg={CARD_BG}
       dense
       className={`cursor-pointer active:scale-[0.99] border ${
-        isOverdue ? 'border-status-red/25 opacity-65' : 'border-border'
+        isOverdue ? 'border-status-red/25 opacity-65' : isNext ? 'border-primary' : 'border-border'
       }`}
       onClick={onClick}
     >
@@ -142,27 +111,33 @@ export function TeamTodoCard({ todo, variant, now, onClick }: TeamTodoCardProps)
           >
             {todo.title}
           </p>
-          <div className="flex items-center gap-1.5 mt-0.5">
+          <div className="flex items-center gap-1.5 mt-0.5 min-h-[18px]">
             {participants.length > 0 && (
               <ParticipantAvatars participants={participants} size={18} onHero={false} />
             )}
             <span
               className={`text-[11px] font-semibold whitespace-nowrap ${
-                isOverdue ? 'text-status-red' : 'text-muted'
+                isOverdue ? 'text-status-red' : isNext ? 'text-primary' : 'text-muted'
               }`}
             >
               {isDone
                 ? `완료 · ${achieved}/${total} ${unitLabel}`
                 : isOverdue
                   ? `마감 지남 · ${achieved}/${total} ${unitLabel}`
-                  : `${achieved}/${total} ${unitLabel}`}
+                  : isNext
+                    ? `다음 마감 · ${achieved}/${total} ${unitLabel}`
+                    : `${achieved}/${total} ${unitLabel}`}
               {myWorkComplete && !isDone ? ' · 내 작업 완료' : ''}
             </span>
           </div>
         </div>
 
         {time && (
-          <span className="text-[13px] font-black tracking-tight text-muted shrink-0 tabular-nums">
+          <span
+            className={`text-[13px] font-black tracking-tight shrink-0 tabular-nums ${
+              isNext ? 'text-primary' : 'text-muted'
+            }`}
+          >
             ~{time}
           </span>
         )}
