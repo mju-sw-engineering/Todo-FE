@@ -3,15 +3,8 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useRef, useState } from 'react'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
-import { compressImageFile } from '@/lib/imageCompression'
-import {
-  PROOF_FILE_ACCEPT,
-  getProofUploadContentType,
-  isHwpFile,
-  isProofImageFile,
-  validateProofFile,
-} from '@/lib/proofFile'
-import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
+import { useBackgroundProofUpload } from '@/hooks/useBackgroundProofUpload'
+import { PROOF_FILE_ACCEPT, isHwpFile, isProofImageFile, validateProofFile } from '@/lib/proofFile'
 import { submitTodo, submitTodoWorkItem } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import { AddImgButton } from '@/components/ui/AddImgButton'
@@ -35,6 +28,8 @@ function CertifyContent() {
   const [preview, setPreview] = useState<string | null>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const { isLoading: isSubmitting, setError, run } = useAsyncTask()
+  // 파일을 고른 순간 업로드를 시작해, 미리보기를 확인하는 동안 업로드가 끝나 있게 한다
+  const backgroundUpload = useBackgroundProofUpload(todoId, token ?? undefined)
 
   const isImageSelected = file ? isProofImageFile(file) : false
   const isHwpSelected = file ? isHwpFile(file) : false
@@ -54,31 +49,22 @@ function CertifyContent() {
     setFile(selected)
     setError(null)
     setPreview(isProofImageFile(selected) ? URL.createObjectURL(selected) : null)
+    backgroundUpload.start(selected)
   }
 
   function handleRemove() {
     if (preview) URL.revokeObjectURL(preview)
     setFile(null)
     setPreview(null)
+    backgroundUpload.cancel()
   }
 
   async function handleSubmit() {
     if (!file || !token) return
     await run(
       async () => {
-        const originalFileName = file.name
-        const uploadFile = isProofImageFile(file) ? await compressImageFile(file) : file
-        const { uploadUrl, objectKey } = await getPresignedUploadUrl(
-          {
-            type: 'PROOF',
-            fileName: uploadFile.name,
-            contentType: getProofUploadContentType(uploadFile),
-            fileSize: uploadFile.size,
-            todoId,
-          },
-          token
-        )
-        await uploadFileToStorage(uploadUrl, uploadFile)
+        // 파일 선택 시점에 시작한 업로드를 기다린다. 대부분 이미 끝나 있다.
+        const { objectKey, originalFileName } = await backgroundUpload.waitForResult()
         const request = { proofImageKey: objectKey, proofFileName: originalFileName }
         if (mode === 'TASK') {
           if (!workItemId) throw new Error('Task 정보를 확인할 수 없습니다.')
@@ -151,8 +137,13 @@ function CertifyContent() {
       </div>
 
       <div className="shrink-0 border-t border-border bg-white px-6 py-5">
+        {file && backgroundUpload.status === 'uploading' && !isSubmitting && (
+          <p className="mb-2 text-center text-[12px] text-muted">
+            파일 올리는 중 · {backgroundUpload.progress}%
+          </p>
+        )}
         <Button onClick={handleSubmit} disabled={!file || isSubmitting}>
-          {isSubmitting ? '업로드 중...' : '제출하기'}
+          {isSubmitting ? '제출 중...' : '제출하기'}
         </Button>
       </div>
     </div>
