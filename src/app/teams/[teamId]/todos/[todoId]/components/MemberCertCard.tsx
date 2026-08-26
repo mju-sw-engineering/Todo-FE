@@ -60,6 +60,8 @@ interface MemberCertCardProps {
   isCurrentUser: boolean
   /** 이 카드가 지금 파일을 올리는 중인지 — 업로드 동안 자리를 지키며 스피너를 보여준다 */
   isCertifying?: boolean
+  /** 업로드 진행률(0~100). null이면 업로드는 끝났고 제출 API 구간이라는 뜻 — 라벨이 갈린다 */
+  certifyProgress?: number | null
   /** 이미지가 아닌 파일 제출일 때 실제 파일명·아이콘을 가져오는 데 필요 */
   token: string | null
   onCertify: () => void
@@ -74,6 +76,7 @@ export function MemberCertCard({
   deadline,
   isCurrentUser,
   isCertifying = false,
+  certifyProgress = null,
   token,
   onCertify,
   onReact,
@@ -87,6 +90,10 @@ export function MemberCertCard({
   const pickerRef = useRef<HTMLDivElement>(null)
   const isExpired = new Date(deadline).getTime() <= now
   const isCompleted = workItem.status === 'SUCCESS'
+  // 업로드(수 초) 동안은 진행률을, 업로드가 끝난 제출 API 구간(순간)은 고정 라벨을 보여준다.
+  // 큰 파일에서 라벨이 몇 초씩 멈춰 있으면 실패한 것처럼 보이는 문제를 진행률이 해소한다.
+  const certifyingLabel =
+    certifyProgress !== null ? `올리는 중 · ${certifyProgress}%` : '제출 중...'
   const canCertify = isCurrentUser && workItem.status === 'IN_PROGRESS' && !isExpired
   // 마감 전이면 이미 완료된 항목도 같은 제출 API로 파일을 덮어쓸 수 있다 (재제출)
   const canResubmit = isCurrentUser && isCompleted && !isExpired
@@ -196,7 +203,7 @@ export function MemberCertCard({
                 className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black/60 disabled:opacity-50"
               >
                 <FiRefreshCw size={11} />
-                {isCertifying ? '제출 중...' : '재제출'}
+                {isCertifying ? certifyingLabel : '재제출'}
               </button>
             )}
           </div>
@@ -234,7 +241,7 @@ export function MemberCertCard({
                     className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[10px] font-semibold text-muted transition-colors hover:bg-neutral-40 disabled:opacity-50"
                   >
                     <FiRefreshCw size={11} />
-                    {isCertifying ? '제출 중...' : '재제출'}
+                    {isCertifying ? certifyingLabel : '재제출'}
                   </button>
                 )}
               </div>
@@ -250,7 +257,7 @@ export function MemberCertCard({
             {isCertifying ? (
               <>
                 <span className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <span className="text-[12px] font-semibold text-primary">올리는 중...</span>
+                <span className="text-[12px] font-semibold text-primary">{certifyingLabel}</span>
               </>
             ) : (
               <>
