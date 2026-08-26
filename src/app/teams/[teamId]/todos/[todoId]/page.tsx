@@ -17,7 +17,8 @@ import {
 } from '@/lib/proofFile'
 import { useTodoDetail } from '@/hooks/useTodoDetail'
 import { getTeamById } from '@/services/teamService'
-import { getPresignedUploadUrl, uploadFileToStorage } from '@/services/fileService'
+import { putFileWithProgress } from '@/lib/apiClient'
+import { getPresignedUploadUrl } from '@/services/fileService'
 import { getTodoWorkItemSubmission, submitTodo, submitTodoWorkItem } from '@/services/todoService'
 import { useAuth } from '@/store/authStore'
 import { TodoStatusBadge } from '@/components/ui/TodoStatusBadge'
@@ -58,6 +59,8 @@ function TodoDetailContent() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [certifyTarget, setCertifyTarget] = useState<TodoWorkItem | null>(null)
   const [certifyingId, setCertifyingId] = useState<number | null>(null)
+  /** 업로드 진행률(0~100). 업로드가 끝나 제출 API 구간이면 null — 카드 라벨이 이걸로 갈린다. */
+  const [certifyProgress, setCertifyProgress] = useState<number | null>(null)
 
   useEffect(() => {
     if (!showToast) return
@@ -112,6 +115,7 @@ function TodoDetailContent() {
     }
 
     setCertifyingId(target.workItemId)
+    setCertifyProgress(0)
     try {
       const originalFileName = file.name
       const uploadFile = isProofImageFile(file) ? await compressImageFile(file) : file
@@ -125,7 +129,9 @@ function TodoDetailContent() {
         },
         token
       )
-      await uploadFileToStorage(uploadUrl, uploadFile)
+      await putFileWithProgress(uploadUrl, uploadFile, { onProgress: setCertifyProgress })
+      // 업로드가 끝나고 제출 API 구간으로 넘어간다. 카드 라벨이 "제출 중..."으로 바뀐다.
+      setCertifyProgress(null)
       const request = { proofImageKey: objectKey, proofFileName: originalFileName }
       if (todo!.mode === 'TASK') {
         await submitTodoWorkItem(target.workItemId, request, token)
@@ -139,6 +145,7 @@ function TodoDetailContent() {
     } finally {
       setCertifyingId(null)
       setCertifyTarget(null)
+      setCertifyProgress(null)
     }
   }
 
@@ -232,6 +239,7 @@ function TodoDetailContent() {
               deadline={getWorkItemDeadline(workItem, todo.deadline)}
               isCurrentUser={workItem.assigneeId === user?.userId}
               isCertifying={certifyingId === workItem.workItemId}
+              certifyProgress={certifyingId === workItem.workItemId ? certifyProgress : null}
               token={token}
               onCertify={() => triggerCertify(workItem)}
               onReact={(type) => handleReact(workItem.workItemId, type)}
