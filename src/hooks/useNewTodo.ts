@@ -105,7 +105,7 @@ export function useNewTodo(
 
   async function handleSubmit() {
     if (!title.trim()) return setError('할 일을 입력해주세요.')
-    if (!commonDeadline) return setError('공통 마감을 입력해주세요.')
+    if (!commonDeadline) return setError('전체 마감을 입력해주세요.')
     if (!token) return setError('로그인이 필요합니다.')
 
     const includedMembers = members.filter((member) => !memberDrafts[member.userId]?.excluded)
@@ -148,7 +148,7 @@ export function useNewTodo(
       const exceedsCommonDeadline = tasks.some(
         (task) => new Date(task.deadline).getTime() > commonDeadline.getTime()
       )
-      if (exceedsCommonDeadline) return setError('각자 마감은 공통 마감보다 늦을 수 없습니다.')
+      if (exceedsCommonDeadline) return setError('개별 마감은 전체 마감보다 늦을 수 없습니다.')
 
       const created = await run(
         () =>

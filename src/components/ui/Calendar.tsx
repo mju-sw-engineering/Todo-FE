@@ -12,6 +12,8 @@ interface CalendarProps {
   dayStats: Record<string, DayStat>
   /** 마감이 미래인 할 일도 보여주는 화면이라면 앞으로의 날짜도 고를 수 있어야 한다 */
   allowFuture?: boolean
+  /** 이 날짜(포함) 이후는 고를 수 없게 막는다 — 예: 개인 마감은 전체 마감보다 늦을 수 없다 */
+  maxDateStr?: string
   onSelectDate: (date: string) => void
   onPrevMonth: () => void
   onNextMonth: () => void
@@ -23,6 +25,7 @@ export function Calendar({
   month,
   dayStats,
   allowFuture = false,
+  maxDateStr,
   onSelectDate,
   onPrevMonth,
   onNextMonth,
@@ -107,7 +110,9 @@ export function Calendar({
           return (
             <button
               key={dateStr}
-              disabled={!allowFuture && isFuture}
+              disabled={
+                (!allowFuture && isFuture) || (maxDateStr !== undefined && dateStr > maxDateStr)
+              }
               onClick={() => onSelectDate(dateStr)}
               aria-current={isSelected ? 'date' : undefined}
               aria-label={`${month}월 ${day}일${stat ? `, 할 일 ${stat.total}개` : ''}`}

@@ -3,45 +3,14 @@
 import { createPortal } from 'react-dom'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { DAYS_KO } from '@/lib/dateUtils'
+import { Calendar } from '@/components/ui/Calendar'
+import { pad } from '@/lib/dateUtils'
 
 const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
-const DAY_OPTION_COUNT = 7
 
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  )
-}
-
-/** 기본 7일 범위 밖의 날짜(예: 목록 화면에서 미리 골라온 마감일)가 들어오면
- *  그 날도 칩으로 넣어준다 — 안 그러면 picker를 열 때 조용히 오늘로 되돌아간다. */
-function buildDayOptions(anchor?: Date | null): Date[] {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const days = Array.from({ length: DAY_OPTION_COUNT }, (_, i) => {
-    const d = new Date(today)
-    d.setDate(d.getDate() + i)
-    return d
-  })
-  if (anchor) {
-    const anchorDay = new Date(anchor)
-    anchorDay.setHours(0, 0, 0, 0)
-    if (anchorDay.getTime() >= today.getTime() && !days.some((d) => isSameDay(d, anchorDay))) {
-      days.push(anchorDay)
-      days.sort((a, b) => a.getTime() - b.getTime())
-    }
-  }
-  return days
-}
-
-function dayShortLabel(d: Date, index: number): string {
-  if (index === 0) return '오늘'
-  if (index === 1) return '내일'
-  return DAYS_KO[d.getDay()].charAt(0)
+function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 interface DeadlinePickerProps {
@@ -51,17 +20,14 @@ interface DeadlinePickerProps {
   onClose: () => void
 }
 
+/** 마감 날짜·시간 선택 — 날짜는 실제 달력에서 몇 달이든 앞으로 골라 마감 범위를 넉넉히 잡을 수 있다 */
 export function DeadlinePicker({ value, maxDate, onChange, onClose }: DeadlinePickerProps) {
   const now = new Date()
-  const dayOptions = buildDayOptions(value)
+  const initial = value ?? now
 
-  const initial = value ?? dayOptions[0]
-  const initialDayIndex = Math.max(
-    0,
-    dayOptions.findIndex((d) => isSameDay(d, initial))
-  )
-
-  const [dayIndex, setDayIndex] = useState(initialDayIndex)
+  const [selectedDateStr, setSelectedDateStr] = useState(toDateStr(initial))
+  const [calYear, setCalYear] = useState(initial.getFullYear())
+  const [calMonth, setCalMonth] = useState(initial.getMonth() + 1)
   const [ampm, setAmpm] = useState<'AM' | 'PM'>(initial.getHours() >= 12 ? 'PM' : 'AM')
   const [hour, setHour] = useState(initial.getHours() % 12 || 12)
   const [minute, setMinute] = useState(
@@ -70,41 +36,33 @@ export function DeadlinePicker({ value, maxDate, onChange, onClose }: DeadlinePi
       : (MINUTES.find((m) => m >= initial.getMinutes()) ?? 0)
   )
 
+  const maxDateStr = maxDate ? toDateStr(maxDate) : undefined
+
   function get24H(h: number, ap: 'AM' | 'PM'): number {
     return (h % 12) + (ap === 'PM' ? 12 : 0)
   }
 
-  function buildDate(dIdx: number, h24: number, m: number): Date {
-    const d = new Date(dayOptions[dIdx])
-    d.setHours(h24, m, 0, 0)
-    return d
+  function buildDate(dateStr: string, h24: number, m: number): Date {
+    const [y, mo, d] = dateStr.split('-').map(Number)
+    return new Date(y, mo - 1, d, h24, m, 0, 0)
   }
 
-  function isDisabled(dIdx: number, h24: number, m: number): boolean {
-    const candidate = buildDate(dIdx, h24, m).getTime()
+  function isDisabled(dateStr: string, h24: number, m: number): boolean {
+    const candidate = buildDate(dateStr, h24, m).getTime()
     if (candidate <= now.getTime()) return true
     if (maxDate && candidate > maxDate.getTime()) return true
     return false
   }
 
-  function isDayFullyDisabled(dIdx: number): boolean {
-    return HOURS.every((h) =>
-      MINUTES.every(
-        (m) => isDisabled(dIdx, get24H(h, 'AM'), m) && isDisabled(dIdx, get24H(h, 'PM'), m)
-      )
-    )
-  }
-
-  function handleDay(dIdx: number) {
-    if (isDayFullyDisabled(dIdx)) return
-    setDayIndex(dIdx)
-    if (isDisabled(dIdx, get24H(hour, ampm), minute)) {
+  function handleSelectDate(dateStr: string) {
+    setSelectedDateStr(dateStr)
+    if (isDisabled(dateStr, get24H(hour, ampm), minute)) {
       const fallback = [
         ...HOURS.flatMap((h) => [
           { h, ap: 'AM' as const },
           { h, ap: 'PM' as const },
         ]),
-      ].find(({ h, ap }) => !isDisabled(dIdx, get24H(h, ap), minute))
+      ].find(({ h, ap }) => !isDisabled(dateStr, get24H(h, ap), minute))
       if (fallback) {
         setHour(fallback.h)
         setAmpm(fallback.ap)
@@ -114,28 +72,46 @@ export function DeadlinePicker({ value, maxDate, onChange, onClose }: DeadlinePi
 
   function handleAmpm(ap: 'AM' | 'PM') {
     setAmpm(ap)
-    if (isDisabled(dayIndex, get24H(hour, ap), minute)) {
-      const validHour = HOURS.find((h) => !isDisabled(dayIndex, get24H(h, ap), minute))
+    if (isDisabled(selectedDateStr, get24H(hour, ap), minute)) {
+      const validHour = HOURS.find((h) => !isDisabled(selectedDateStr, get24H(h, ap), minute))
       if (validHour) setHour(validHour)
     }
   }
 
   function handleHour(h: number) {
     setHour(h)
-    if (isDisabled(dayIndex, get24H(h, ampm), minute)) {
-      const validMinute = MINUTES.find((m) => !isDisabled(dayIndex, get24H(h, ampm), m))
+    if (isDisabled(selectedDateStr, get24H(h, ampm), minute)) {
+      const validMinute = MINUTES.find((m) => !isDisabled(selectedDateStr, get24H(h, ampm), m))
       if (validMinute !== undefined) setMinute(validMinute)
+    }
+  }
+
+  function handlePrevMonth() {
+    if (calMonth === 1) {
+      setCalYear((y) => y - 1)
+      setCalMonth(12)
+    } else {
+      setCalMonth((m) => m - 1)
+    }
+  }
+
+  function handleNextMonth() {
+    if (calMonth === 12) {
+      setCalYear((y) => y + 1)
+      setCalMonth(1)
+    } else {
+      setCalMonth((m) => m + 1)
     }
   }
 
   function confirm() {
     const h24 = get24H(hour, ampm)
-    if (isDisabled(dayIndex, h24, minute)) return
-    onChange(buildDate(dayIndex, h24, minute))
+    if (isDisabled(selectedDateStr, h24, minute)) return
+    onChange(buildDate(selectedDateStr, h24, minute))
     onClose()
   }
 
-  const confirmDisabled = isDisabled(dayIndex, get24H(hour, ampm), minute)
+  const confirmDisabled = isDisabled(selectedDateStr, get24H(hour, ampm), minute)
 
   return createPortal(
     <>
@@ -158,108 +134,101 @@ export function DeadlinePicker({ value, maxDate, onChange, onClose }: DeadlinePi
         onDragEnd={(_, info) => {
           if (info.offset.y > 80 || info.velocity.y > 400) onClose()
         }}
-        className="fixed bottom-0 left-0 right-0 z-50 max-w-97.5 mx-auto bg-white rounded-t-3xl px-5 pt-4 pb-10 cursor-grab active:cursor-grabbing"
+        className="fixed bottom-0 left-0 right-0 z-50 max-w-97.5 mx-auto flex max-h-[85vh] flex-col rounded-t-3xl bg-white pt-4 cursor-grab active:cursor-grabbing"
       >
-        <div className="w-9 h-1 bg-border rounded-full mx-auto mb-5" />
-        <h3 className="text-[16px] font-bold text-ink mb-5">마감 날짜·시간 선택</h3>
+        <div className="w-9 h-1 bg-border rounded-full mx-auto mb-5 shrink-0" />
 
-        <div className="grid grid-cols-7 gap-1.5 mb-5">
-          {dayOptions.map((d, i) => {
-            const disabled = isDayFullyDisabled(i)
-            return (
+        <div className="overflow-y-auto px-5">
+          <h3 className="text-[16px] font-bold text-ink mb-4">마감 날짜·시간 선택</h3>
+
+          <div className="mb-5">
+            <Calendar
+              selectedDate={selectedDateStr}
+              year={calYear}
+              month={calMonth}
+              dayStats={{}}
+              allowFuture
+              maxDateStr={maxDateStr}
+              onSelectDate={handleSelectDate}
+              onPrevMonth={handlePrevMonth}
+              onNextMonth={handleNextMonth}
+            />
+          </div>
+
+          <div className="flex bg-surface rounded-[14px] p-1 mb-5">
+            {(['AM', 'PM'] as const).map((p) => (
               <button
-                key={d.toISOString()}
+                key={p}
                 type="button"
-                onClick={() => !disabled && handleDay(i)}
-                disabled={disabled}
-                className={`flex flex-col items-center gap-0.5 py-2 rounded-[10px] text-[12px] font-semibold transition-all duration-150 ${
-                  dayIndex === i && !disabled
-                    ? 'bg-primary text-white'
-                    : disabled
-                      ? 'bg-surface text-muted/40 cursor-not-allowed'
-                      : 'bg-surface text-ink hover:bg-gray-100'
+                onClick={() => handleAmpm(p)}
+                className={`flex-1 py-2.5 rounded-[11px] text-[14px] font-semibold transition-all duration-200 ${
+                  ampm === p ? 'bg-white text-ink shadow-sm' : 'text-muted'
                 }`}
               >
-                <span>{dayShortLabel(d, i)}</span>
-                <span className="text-[10px] opacity-70">
-                  {d.getMonth() + 1}/{d.getDate()}
-                </span>
+                {p === 'AM' ? '오전' : '오후'}
               </button>
-            )
-          })}
+            ))}
+          </div>
+
+          <p className="text-[11px] font-semibold text-muted tracking-wider mb-2">시</p>
+          <div className="grid grid-cols-6 gap-1.5 mb-5">
+            {HOURS.map((h) => {
+              const disabled = isDisabled(selectedDateStr, get24H(h, ampm), minute)
+              return (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => !disabled && handleHour(h)}
+                  disabled={disabled}
+                  className={`py-2.5 rounded-[10px] text-[14px] font-semibold transition-all duration-150 ${
+                    hour === h && !disabled
+                      ? 'bg-primary text-white'
+                      : disabled
+                        ? 'bg-surface text-muted/40 cursor-not-allowed line-through'
+                        : 'bg-surface text-ink hover:bg-gray-100'
+                  }`}
+                >
+                  {h}
+                </button>
+              )
+            })}
+          </div>
+
+          <p className="text-[11px] font-semibold text-muted tracking-wider mb-2">분</p>
+          <div className="grid grid-cols-6 gap-1.5 mb-6">
+            {MINUTES.map((m) => {
+              const disabled = isDisabled(selectedDateStr, get24H(hour, ampm), m)
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => !disabled && setMinute(m)}
+                  disabled={disabled}
+                  className={`py-2.5 rounded-[10px] text-[14px] font-semibold transition-all duration-150 ${
+                    minute === m && !disabled
+                      ? 'bg-primary text-white'
+                      : disabled
+                        ? 'bg-surface text-muted/40 cursor-not-allowed line-through'
+                        : 'bg-surface text-ink hover:bg-gray-100'
+                  }`}
+                >
+                  {m.toString().padStart(2, '0')}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        <div className="flex bg-surface rounded-[14px] p-1 mb-5">
-          {(['AM', 'PM'] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => handleAmpm(p)}
-              className={`flex-1 py-2.5 rounded-[11px] text-[14px] font-semibold transition-all duration-200 ${
-                ampm === p ? 'bg-white text-ink shadow-sm' : 'text-muted'
-              }`}
-            >
-              {p === 'AM' ? '오전' : '오후'}
-            </button>
-          ))}
+        <div className="shrink-0 px-5 pt-3 pb-9">
+          <button
+            type="button"
+            onClick={confirm}
+            disabled={confirmDisabled}
+            className="w-full py-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            확인
+          </button>
         </div>
-
-        <p className="text-[11px] font-semibold text-muted tracking-wider mb-2">시</p>
-        <div className="grid grid-cols-6 gap-1.5 mb-5">
-          {HOURS.map((h) => {
-            const disabled = isDisabled(dayIndex, get24H(h, ampm), minute)
-            return (
-              <button
-                key={h}
-                type="button"
-                onClick={() => !disabled && handleHour(h)}
-                disabled={disabled}
-                className={`py-2.5 rounded-[10px] text-[14px] font-semibold transition-all duration-150 ${
-                  hour === h && !disabled
-                    ? 'bg-primary text-white'
-                    : disabled
-                      ? 'bg-surface text-muted/40 cursor-not-allowed line-through'
-                      : 'bg-surface text-ink hover:bg-gray-100'
-                }`}
-              >
-                {h}
-              </button>
-            )
-          })}
-        </div>
-
-        <p className="text-[11px] font-semibold text-muted tracking-wider mb-2">분</p>
-        <div className="grid grid-cols-6 gap-1.5 mb-6">
-          {MINUTES.map((m) => {
-            const disabled = isDisabled(dayIndex, get24H(hour, ampm), m)
-            return (
-              <button
-                key={m}
-                type="button"
-                onClick={() => !disabled && setMinute(m)}
-                disabled={disabled}
-                className={`py-2.5 rounded-[10px] text-[14px] font-semibold transition-all duration-150 ${
-                  minute === m && !disabled
-                    ? 'bg-primary text-white'
-                    : disabled
-                      ? 'bg-surface text-muted/40 cursor-not-allowed line-through'
-                      : 'bg-surface text-ink hover:bg-gray-100'
-                }`}
-              >
-                {m.toString().padStart(2, '0')}
-              </button>
-            )
-          })}
-        </div>
-
-        <button
-          type="button"
-          onClick={confirm}
-          disabled={confirmDisabled}
-          className="w-full py-4 bg-primary text-white text-[15px] font-semibold rounded-[14px] transition-all duration-200 hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          확인
-        </button>
       </motion.div>
     </>,
     document.body

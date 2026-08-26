@@ -15,7 +15,7 @@ export function TodoStatusBadge({ status }: { status: TodoStatus }) {
 
   if (status === 'SUCCESS') {
     return (
-      <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600">
+      <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-meadow/20 text-meadow-dark">
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="shrink-0">
           <path
             d="M2 5.5L4.5 8L9 3"

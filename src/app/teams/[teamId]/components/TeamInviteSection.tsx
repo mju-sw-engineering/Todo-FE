@@ -52,9 +52,9 @@ export function TeamInviteSection({ teamId, token, onToast }: TeamInviteSectionP
   return (
     <div className="bg-white rounded-[18px] border border-border mb-3 px-4 py-4">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+        <div className="w-8 h-8 rounded-full bg-neutral-30 flex items-center justify-center shrink-0">
           <svg
-            className="w-4 h-4 text-gray-500"
+            className="w-4 h-4 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -76,7 +76,7 @@ export function TeamInviteSection({ teamId, token, onToast }: TeamInviteSectionP
         <button
           onClick={handleCopy}
           disabled={loading || !inviteLink}
-          className={`text-[12px] font-semibold shrink-0 px-3 py-1.5 rounded-lg transition-colors duration-200 disabled:opacity-50 ${copyDone ? 'text-[#2d7a56] bg-[#eaf6ef]' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'}`}
+          className={`text-[12px] font-semibold shrink-0 px-3 py-1.5 rounded-lg transition-colors duration-200 disabled:opacity-50 ${copyDone ? 'text-meadow-dark bg-meadow/20' : 'text-muted bg-neutral-30 hover:bg-neutral-40'}`}
         >
           {copyDone ? '복사됨 ✓' : '복사'}
         </button>

@@ -10,7 +10,6 @@ import { TeamTodoCard } from './components/TeamTodoCard'
 import { WeekStrip } from './components/WeekStrip'
 import { TeamMenuSheet } from './components/TeamMenuSheet'
 import { TeamMenuHint, markTeamMenuHintSeen } from './components/TeamMenuHint'
-import { AddTodoCard } from './components/AddTodoCard'
 import { BackButton } from '@/components/ui/BackButton'
 import { Calendar } from '@/components/ui/Calendar'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -145,40 +144,49 @@ function TodoListContent() {
           )}
         </div>
 
-        <WeekStrip
-          selectedDate={selectedDate}
-          todayStr={todayStr}
-          dayStats={dayStats}
-          calendarOpen={calendarOpen}
-          onSelectDate={handleSelectDate}
-          onToggleCalendar={() => setCalendarOpen(!calendarOpen)}
-        />
+        <div className="relative shrink-0">
+          <WeekStrip
+            selectedDate={selectedDate}
+            todayStr={todayStr}
+            dayStats={dayStats}
+            calendarOpen={calendarOpen}
+            onSelectDate={handleSelectDate}
+            onToggleCalendar={() => setCalendarOpen(!calendarOpen)}
+          />
 
-        <AnimatePresence initial={false}>
-          {calendarOpen && (
-            <motion.div
-              key="calendar"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.4, 0, 0.2, 1] }}
-              className="overflow-hidden px-5 shrink-0"
-            >
-              <div className="pt-1 pb-2">
-                <Calendar
-                  selectedDate={selectedDate}
-                  year={calendarYear}
-                  month={calendarMonth}
-                  dayStats={dayStats}
-                  allowFuture
-                  onSelectDate={handleSelectDate}
-                  onPrevMonth={handlePrevMonth}
-                  onNextMonth={handleNextMonth}
+          <AnimatePresence>
+            {calendarOpen && (
+              <>
+                <motion.div
+                  className="fixed inset-0 z-30"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.15 }}
+                  onClick={() => setCalendarOpen(false)}
                 />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <motion.div
+                  className="absolute left-5 right-5 top-full z-40 mt-1 rounded-2xl border border-border bg-white p-3 shadow-[0_12px_32px_rgba(0,0,0,0.14)]"
+                  initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.4, 0, 0.2, 1] }}
+                >
+                  <Calendar
+                    selectedDate={selectedDate}
+                    year={calendarYear}
+                    month={calendarMonth}
+                    dayStats={dayStats}
+                    allowFuture
+                    onSelectDate={handleSelectDate}
+                    onPrevMonth={handlePrevMonth}
+                    onNextMonth={handleNextMonth}
+                  />
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
 
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
@@ -205,13 +213,11 @@ function TodoListContent() {
                   <rect x="4" y="3" width="16" height="18" rx="2" />
                   <path strokeLinecap="round" d="M8 8h8M8 12h8M8 16h5" />
                 </svg>
-                <p className="text-[15px] font-bold text-ink">이 날은 마감인 할 일이 없어요</p>
-                <p className="text-[13px] text-muted mt-1">위에서 다른 날짜를 골라볼 수 있어요</p>
-                <div className="w-full mt-6">
-                  <AddTodoCard
-                    onClick={() => router.push(`/teams/${teamId}/todos/new?date=${selectedDate}`)}
-                  />
-                </div>
+                <p className="text-[15px] font-bold text-ink">
+                  {selectedDate === todayStr
+                    ? '오늘 마감인 할 일이 없어요'
+                    : '이 날은 마감인 할 일이 없어요'}
+                </p>
               </div>
             ) : filteredTodos.length === 0 ? (
               <div className="flex items-center justify-center pt-16 pb-8">

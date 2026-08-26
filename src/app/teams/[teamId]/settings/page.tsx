@@ -5,7 +5,6 @@ import { AnimatePresence } from 'framer-motion'
 import { useTeamDetail } from '@/hooks/useTeamDetail'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { TeamMembersCard } from '../components/TeamMembersCard'
-import { FeedVisibilityCard } from '../components/FeedVisibilityCard'
 import { TeamInviteSection } from '../components/TeamInviteSection'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
@@ -53,7 +52,6 @@ export default function TeamSettingsPage() {
             <h1 className="text-[20px] font-black text-ink leading-tight truncate">
               {team.teamName}
             </h1>
-            <p className="text-[12px] text-muted mt-0.5">팀 설정</p>
           </div>
         </div>
 
@@ -64,8 +62,6 @@ export default function TeamSettingsPage() {
           isSubmitting={isSubmitting}
           onKick={setKickTarget}
         />
-
-        <FeedVisibilityCard isLeader={myRole === 'LEADER'} />
 
         {token && <TeamInviteSection teamId={teamId} token={token} onToast={showToast} />}
 

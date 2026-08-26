@@ -1,6 +1,6 @@
 const COMPRESSIBLE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
-const MAX_IMAGE_DIMENSION = 1280
-const JPEG_QUALITY = 0.8
+const MAX_IMAGE_DIMENSION = 1600
+const JPEG_QUALITY = 0.88
 
 function getCompressedFileName(fileName: string): string {
   const trimmed = fileName.trim()

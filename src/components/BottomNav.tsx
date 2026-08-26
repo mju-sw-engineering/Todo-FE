@@ -181,7 +181,7 @@ export function BottomNav() {
         <span
           className={`text-[11px] font-semibold ${myPageActive ? 'text-primary' : 'text-muted'}`}
         >
-          내 정보
+          마이페이지
         </span>
       </button>
     </nav>

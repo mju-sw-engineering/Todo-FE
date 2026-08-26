@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { FiSend } from 'react-icons/fi'
 import { useTeamChat } from '@/hooks/useTeamChat'
 import { getTeamById } from '@/services/teamService'
 import { useChatInput } from '@/hooks/useChatInput'
@@ -14,6 +15,7 @@ import { MessageBubble } from '@/components/chat/MessageBubble'
 import { SlashCommandMenu } from '@/components/chat/SlashCommandMenu'
 import { StickerPicker } from '@/components/chat/StickerPicker'
 import { Spinner } from '@/components/ui/Spinner'
+import type { TeamMember } from '@/types/team.types'
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('ko-KR', {
@@ -21,6 +23,14 @@ function formatTime(iso: string) {
     minute: '2-digit',
     hour12: true,
   })
+}
+
+/** 카톡 그룹채팅처럼 상단에 참여자 이름을 보여준다 — "팀 채팅"을 또 반복하지 않는다 */
+function formatParticipants(members: TeamMember[]): string {
+  if (members.length === 0) return ''
+  const names = members.map((m) => m.nickname)
+  if (names.length <= 3) return names.join(', ')
+  return `${names.slice(0, 2).join(', ')} 외 ${names.length - 2}명`
 }
 
 export default function TeamChatPage() {
@@ -32,18 +42,21 @@ export default function TeamChatPage() {
 
   // 팀 이름: 쿼리 파라미터는 첫 진입 최적화일 뿐, 새로고침·딥링크에서도 유지되도록 조회로 보강
   const [teamName, setTeamName] = useState(() => searchParams.get('title') ?? '')
+  const [members, setMembers] = useState<TeamMember[]>([])
   useEffect(() => {
-    if (teamName || !token || Number.isNaN(teamId)) return
+    if (!token || Number.isNaN(teamId)) return
     let cancelled = false
     getTeamById(teamId, token)
       .then((team) => {
-        if (!cancelled) setTeamName(team.teamName)
+        if (cancelled) return
+        setTeamName(team.teamName)
+        setMembers(team.members)
       })
       .catch(() => {})
     return () => {
       cancelled = true
     }
-  }, [teamName, token, teamId])
+  }, [token, teamId])
   const title = teamName || '팀 채팅'
 
   const { messages, isLoadingHistory, hasNext, typingUsers, sendMessage, loadMore, notifyTyping } =
@@ -130,7 +143,12 @@ export default function TeamChatPage() {
         >
           ← {title}
         </button>
-        <h1 className="text-[17px] font-bold text-ink">팀 채팅</h1>
+        <h1 className="text-[17px] font-bold text-ink truncate">
+          {members.length > 0 ? formatParticipants(members) : title}
+          {members.length > 0 && (
+            <span className="ml-1 text-[13px] font-semibold text-muted">{members.length}</span>
+          )}
+        </h1>
       </div>
 
       <div
@@ -153,7 +171,7 @@ export default function TeamChatPage() {
             )}
             {grouped.length === 0 && (
               <p className="text-[13px] text-muted text-center mt-12">
-                아직 메시지가 없어요. 첫 번째로 말해보세요! 💬
+                아직 메시지가 없어요. 첫 번째로 말해보세요!
               </p>
             )}
             {grouped.map((msg, idx) => {
@@ -235,7 +253,7 @@ export default function TeamChatPage() {
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"
+                  className="w-1.5 h-1.5 rounded-full bg-neutral-60 animate-bounce"
                   style={{ animationDelay: `${i * 0.15}s` }}
                 />
               ))}
@@ -265,7 +283,7 @@ export default function TeamChatPage() {
           <button
             type="button"
             onClick={() => setShowPicker((v) => !v)}
-            className={`w-12 h-12 flex items-center justify-center rounded-[14px] transition-all duration-150 active:scale-90 shrink-0 ${showPicker ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`w-12 h-12 flex items-center justify-center rounded-[14px] transition-all duration-150 active:scale-90 shrink-0 ${showPicker ? 'bg-primary text-white' : 'bg-neutral-30 text-muted hover:bg-neutral-40'}`}
             aria-label="스티커/미니티콘"
           >
             <span className="text-[24px] font-light leading-none select-none">
@@ -273,7 +291,7 @@ export default function TeamChatPage() {
             </span>
           </button>
 
-          <div className="flex-1 relative flex items-center bg-gray-50 rounded-2xl px-4 min-h-12">
+          <div className="flex-1 relative flex items-center bg-surface rounded-2xl px-4 min-h-12">
             {!hasContent && (
               <span className="absolute text-[16px] text-muted pointer-events-none select-none">
                 메시지를 입력하세요...
@@ -293,11 +311,10 @@ export default function TeamChatPage() {
           <button
             onClick={handleSend}
             disabled={!hasContent}
-            className="w-12 h-12 flex items-center justify-center rounded-[14px] bg-primary text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] disabled:opacity-35 disabled:shadow-none transition-all duration-150 active:scale-90 shrink-0"
+            aria-label="전송"
+            className="w-12 h-12 flex items-center justify-center rounded-full bg-primary text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] disabled:opacity-35 disabled:shadow-none transition-all duration-150 active:scale-90 shrink-0"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M17 10L3 4l3 6-3 6 14-6z" fill="currentColor" />
-            </svg>
+            <FiSend size={18} strokeWidth={2.2} className="-translate-x-px" />
           </button>
         </div>
       </div>

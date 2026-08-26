@@ -4,6 +4,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { BackButton } from '@/components/ui/BackButton'
+import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAsyncTask } from '@/hooks/useAsyncTask'
 import { getAvailabilityPolls } from '@/services/availabilityService'
@@ -45,21 +46,6 @@ function AvailabilityListContent() {
             <h1 className="text-[20px] font-black text-ink leading-tight">가능한 시간 투표</h1>
             <p className="text-[12px] text-muted mt-0.5">팀원들과 가능한 시간을 맞춰보세요</p>
           </div>
-          <button
-            onClick={() => router.push(`/teams/${teamId}/availability/new`)}
-            aria-label="투표 만들기"
-            className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center shrink-0 hover:opacity-85 transition-opacity active:scale-95"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -75,9 +61,7 @@ function AvailabilityListContent() {
         ) : polls.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
             <p className="text-[15px] font-bold text-gray-900">아직 만들어진 투표가 없어요</p>
-            <p className="text-[13px] text-gray-400 mt-1">
-              오른쪽 위 + 버튼으로 새 투표를 만들어보세요
-            </p>
+            <p className="text-[13px] text-gray-400 mt-1">아래 버튼으로 새 투표를 만들어보세요</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -86,6 +70,12 @@ function AvailabilityListContent() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="px-5 py-4 border-t border-border">
+        <Button size="lg" onClick={() => router.push(`/teams/${teamId}/availability/new`)}>
+          새 투표 만들기
+        </Button>
       </div>
     </div>
   )

@@ -14,6 +14,7 @@ export type BeePoseName =
   | 'confetti'
   | 'thumbsUp'
   | 'jump'
+  | 'tearyWave'
 
 const SRC: Record<BeePoseName, string> = {
   plain: '/images/bee/bee-plain.svg',
@@ -24,6 +25,7 @@ const SRC: Record<BeePoseName, string> = {
   confetti: '/images/bee/컨페티꿀벌.png',
   thumbsUp: '/images/bee/최고꿀벌.png',
   jump: encodeURI('/images/bee/웃으면서 점프하는 꿀벌.png'),
+  tearyWave: encodeURI('/images/bee/울면서 웃는꿀벌.png'),
 }
 
 /* 포즈마다 기울기·소품이 달라 원본 비율이 다르다 (높이 / 너비) */
@@ -36,6 +38,7 @@ const ASPECT: Record<BeePoseName, number> = {
   confetti: 295 / 254,
   thumbsUp: 240 / 252,
   jump: 280 / 224,
+  tearyWave: 230 / 201,
 }
 
 const ALT: Record<BeePoseName, string> = {
@@ -47,6 +50,7 @@ const ALT: Record<BeePoseName, string> = {
   confetti: '색종이가 흩날리는 가운데 신나 하는 꿀벌',
   thumbsUp: '엄지를 치켜든 꿀벌',
   jump: '웃으며 점프하는 꿀벌',
+  tearyWave: '눈물이 그렁그렁하지만 웃으며 손 흔드는 꿀벌',
 }
 
 interface BeePoseProps {

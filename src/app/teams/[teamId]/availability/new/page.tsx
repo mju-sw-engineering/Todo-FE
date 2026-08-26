@@ -49,7 +49,7 @@ export default function AvailabilityEventNewPage() {
   }
 
   async function handleSubmit() {
-    if (!title.trim()) return setError('이벤트 이름을 입력해주세요')
+    if (!title.trim()) return setError('투표 이름을 입력해주세요')
     if (selectedDates.length === 0) return setError('가능 날짜를 하나 이상 선택해주세요')
     if (startTime >= endTime) return setError('시간 범위를 확인해주세요')
     if (!token) return setError('로그인이 필요합니다.')
@@ -79,10 +79,8 @@ export default function AvailabilityEventNewPage() {
         <div className="flex items-center gap-2">
           <BackButton onClick={() => router.back()} />
           <div className="min-w-0">
-            <h1 className="text-[20px] font-black text-ink leading-tight">
-              가능 시간 이벤트 만들기
-            </h1>
-            <p className="text-[12px] text-muted mt-0.5">팀원 누구나 만들 수 있어요</p>
+            <h1 className="text-[20px] font-black text-ink leading-tight">새 투표 만들기</h1>
+            <p className="text-[12px] text-muted mt-0.5">날짜와 시간대를 선택해 투표를 만들어요</p>
           </div>
         </div>
       </div>
@@ -90,11 +88,12 @@ export default function AvailabilityEventNewPage() {
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-4 flex flex-col gap-6">
         <Input
           id="eventTitle"
-          label="이벤트 이름"
+          label="투표 이름"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="예: 이번주 팀 회의"
+          required
         />
 
         <div className="flex flex-col gap-2">
@@ -160,7 +159,7 @@ export default function AvailabilityEventNewPage() {
 
       <div className="px-5 py-4 border-t border-border">
         <Button size="lg" onClick={handleSubmit} disabled={isLoading}>
-          {isLoading ? '만드는 중...' : '이벤트 만들기'}
+          {isLoading ? '만드는 중...' : '투표 만들기'}
         </Button>
       </div>
 

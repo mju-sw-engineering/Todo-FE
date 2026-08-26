@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
+import { BeePose } from '@/components/bee/BeePose'
 import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -18,7 +19,6 @@ export default function TeamNewPage() {
   const [description, setDescription] = useState('')
   const [teamImage, setTeamImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [isFeedPublic, setIsFeedPublic] = useState(true)
   const { isLoading, setError, run } = useAsyncTask()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -70,7 +70,7 @@ export default function TeamNewPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pb-4">
-        <form id="team-new-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <form id="team-new-form" onSubmit={handleSubmit} className="flex min-h-full flex-col gap-6">
           <Input
             id="teamName"
             label="팀 이름"
@@ -127,31 +127,11 @@ export default function TeamNewPage() {
             />
           </div>
 
-          <div className="rounded-[14px] border border-border px-4 py-3.5">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[13.5px] font-bold text-ink">피드에 공개</p>
-                <p className="text-[11.5px] text-muted leading-relaxed mt-1">
-                  켜면 다른 팀도 우리 팀의 연속 달성 랭킹과 인증 피드를 볼 수 있어요.
-                </p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={isFeedPublic}
-                aria-label="피드에 공개"
-                onClick={() => setIsFeedPublic((p) => !p)}
-                className={`shrink-0 w-10 h-6 rounded-full relative transition-colors duration-200 ${
-                  isFeedPublic ? 'bg-primary' : 'bg-gray-200'
-                }`}
-              >
-                <span
-                  className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                    isFeedPublic ? 'translate-x-4' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
+          <div className="mt-auto flex flex-col items-center gap-2 pt-6 pb-2">
+            <BeePose pose="flower" size={72} decorative />
+            <p className="text-[12.5px] text-muted text-center">
+              멋진 이름으로 우리 벌집을 열어보세요
+            </p>
           </div>
         </form>
       </div>

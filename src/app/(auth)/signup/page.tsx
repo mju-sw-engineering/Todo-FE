@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { BeePose } from '@/components/bee/BeePose'
@@ -174,6 +174,17 @@ export default function SignupPage() {
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0')
   const ss = String(secondsLeft % 60).padStart(2, '0')
 
+  // 필수 항목을 다 채워야만 완료 버튼이 아래에서 올라온다 — 토스 스타일 CTA
+  const isFormValid =
+    emailStatus === 'verified' &&
+    Boolean(emailVerificationToken) &&
+    loginId.trim().length > 0 &&
+    password.length >= 6 &&
+    password === passwordConfirm &&
+    nickname.trim().length > 0 &&
+    consents.termsAgreed &&
+    consents.privacyAgreed
+
   if (showWelcome) {
     return (
       <div className="flex-1 flex flex-col animate-fade-up overflow-hidden">
@@ -213,7 +224,7 @@ export default function SignupPage() {
           <h1 className="text-[18px] font-bold text-gray-900 tracking-tight">회원가입</h1>
         </div>
         <div className="flex items-center gap-1 mt-2">
-          <BeePose pose="wave" size={60} flip decorative />
+          <BeePose pose="wave" size={60} decorative />
           <span className="bg-[#faf4e4] rounded-xl rounded-bl-[4px] px-3 py-1.5 text-[13px] font-jua text-[#57430f]">
             반가워요! 같이 꿀 모아요
           </span>
@@ -227,7 +238,7 @@ export default function SignupPage() {
               htmlFor="email"
               className="text-[13px] font-semibold text-gray-700 tracking-wide"
             >
-              이메일
+              이메일<span className="text-status-red ml-0.5">*</span>
             </label>
             <div className="flex gap-2">
               <input
@@ -244,7 +255,7 @@ export default function SignupPage() {
               <Button
                 type="button"
                 variant="secondary"
-                size="md"
+                size="sm"
                 fullWidth={false}
                 className="shrink-0 px-4 whitespace-nowrap"
                 onClick={handleSendCode}
@@ -264,7 +275,7 @@ export default function SignupPage() {
                 htmlFor="code"
                 className="text-[13px] font-semibold text-gray-700 tracking-wide"
               >
-                인증번호
+                인증번호<span className="text-status-red ml-0.5">*</span>
               </label>
               <div className="flex gap-2">
                 <input
@@ -281,7 +292,7 @@ export default function SignupPage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  size="md"
+                  size="sm"
                   fullWidth={false}
                   className="shrink-0 px-4"
                   onClick={handleVerifyCode}
@@ -356,18 +367,26 @@ export default function SignupPage() {
           />
         </div>
 
-        {/* 제출 버튼 + 로그인 링크는 스크롤과 무관하게 항상 눈에 보이도록 바텀시트로 고정 */}
-        <div className="shrink-0 bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-5 pb-8 flex flex-col gap-3">
-          <Button type="submit" size="lg" disabled={isLoading || isUploading || apple.isLoading}>
-            {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '완료'}
-          </Button>
-          <Link
-            href="/login"
-            className="block text-center text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
-          >
-            로그인으로 돌아가기
-          </Link>
-        </div>
+        {/* 필수 항목을 다 채워야만 아래에서 올라온다 — 뒤로 가기는 이미 상단 BackButton이 하므로 여기 따로 안 둔다 */}
+        <AnimatePresence>
+          {isFormValid && (
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'tween', duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="shrink-0 bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-5 pb-8"
+            >
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isLoading || isUploading || apple.isLoading}
+              >
+                {isUploading ? '이미지 업로드 중...' : isLoading ? '가입 중...' : '완료'}
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </form>
     </div>
   )

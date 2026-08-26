@@ -28,13 +28,11 @@ export function TeamMembersCard({
         <TeamAvatar imageUrl={team.teamImageUrl} name={team.teamName} size="lg" />
         <div className="flex-1 min-w-0">
           <p className="text-[15px] font-semibold text-ink truncate">{team.teamName}</p>
-          <p className="text-[12px] text-muted mt-0.5">
-            팀원 {team.memberCount}명 · 성공 {team.successCount}회
-          </p>
+          <p className="text-[12px] text-muted mt-0.5">팀원 {team.memberCount}명</p>
         </div>
         <button
           onClick={() => setMembersOpen((prev) => !prev)}
-          className="text-[13px] font-semibold text-gray-700 shrink-0 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
+          className="text-[13px] font-semibold text-muted shrink-0 px-3 py-1.5 rounded-lg bg-neutral-30 hover:bg-neutral-40 transition-colors duration-200"
         >
           {membersOpen ? '접기' : '펼치기'}
         </button>
@@ -63,7 +61,7 @@ export function TeamMembersCard({
                         {isMe && <span className="ml-1.5 text-[11px] text-muted">(나)</span>}
                       </span>
                       {member.role === 'LEADER' && (
-                        <span className="ml-2 text-[11px] font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                        <span className="ml-2 text-[11px] font-semibold text-ink bg-neutral-30 px-2 py-0.5 rounded-full">
                           팀장
                         </span>
                       )}

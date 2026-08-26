@@ -2,7 +2,7 @@
 
 import { AnimatePresence } from 'framer-motion'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { Suspense, useRef, useState } from 'react'
 import { useNewTodo } from '@/hooks/useNewTodo'
 import { useAuth } from '@/store/authStore'
 import { DeadlinePicker } from './components/DeadlinePicker'
@@ -56,6 +56,8 @@ function TodoNewContent() {
   const { token } = useAuth()
 
   const [pickerTarget, setPickerTarget] = useState<'common' | number | null>(null)
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false)
+  const memberRefs = useRef<Record<number, HTMLLIElement | null>>({})
 
   const {
     members,
@@ -79,6 +81,22 @@ function TodoNewContent() {
   const anyExpanded = members.some(
     (member) => !memberDrafts[member.userId]?.excluded && memberDrafts[member.userId]?.expanded
   )
+  const showDeadlineError = attemptedSubmit && !commonDeadline
+
+  function handleSubmitClick() {
+    setAttemptedSubmit(true)
+    handleSubmit()
+  }
+
+  function handleToggleExpand(userId: number) {
+    const willExpand = !(memberDrafts[userId]?.expanded ?? false)
+    toggleExpand(userId)
+    if (willExpand) {
+      requestAnimationFrame(() => {
+        memberRefs.current[userId]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+    }
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white animate-fade-up">
@@ -95,7 +113,7 @@ function TodoNewContent() {
       <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <label htmlFor="title" className="text-[13px] font-semibold text-gray-700 tracking-wide">
-            할 일
+            할 일<span className="text-status-red ml-0.5">*</span>
           </label>
           <Input
             id="title"
@@ -103,35 +121,32 @@ function TodoNewContent() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="할 일을 입력해주세요"
+            required
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-[13px] font-semibold text-gray-700 tracking-wide">공통 마감</p>
+          <p className="text-[13px] font-semibold text-gray-700 tracking-wide">
+            전체 마감<span className="text-status-red ml-0.5">*</span>
+          </p>
           <button
             type="button"
             onClick={() => setPickerTarget('common')}
             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-[14px] border-[1.5px] text-left transition-all duration-200 ${
-              commonDeadline ? 'border-primary bg-white' : 'border-border bg-white'
+              commonDeadline
+                ? 'border-primary bg-white'
+                : showDeadlineError
+                  ? 'border-status-red bg-white'
+                  : 'border-border bg-white'
             }`}
           >
-            <span className="w-9 h-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <svg
-                className="w-4.5 h-4.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <circle cx="12" cy="13" r="8" />
-                <path strokeLinecap="round" d="M12 9v4l2.5 1.5M9 3h6M5.5 6.5L4 5m14.5 1.5L20 5" />
-              </svg>
-            </span>
             <span className="flex-1 min-w-0">
               <span
                 className={`block text-[14px] font-semibold ${commonDeadline ? 'text-ink' : 'text-muted font-light'}`}
               >
-                {commonDeadline ? formatDeadlineLong(commonDeadline) : '마감을 선택해주세요'}
+                {commonDeadline
+                  ? formatDeadlineLong(commonDeadline)
+                  : '마감 날짜와 시간을 선택해주세요'}
               </span>
               <span className="block text-[11px] text-muted mt-0.5">
                 따로 안 정한 사람은 이 마감을 따라요
@@ -147,6 +162,9 @@ function TodoNewContent() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
+          {showDeadlineError && (
+            <p className="text-xs text-status-red">전체 마감을 선택해주세요.</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -167,7 +185,8 @@ function TodoNewContent() {
 
         <div className="flex flex-col gap-3">
           <p className="text-[13px] font-semibold text-gray-700 tracking-wide">
-            누가 <span className="ml-1 text-[12px] font-normal text-muted">· 여러 명 가능</span>
+            담당자<span className="text-status-red ml-0.5">*</span>
+            <span className="ml-1 text-[12px] font-normal text-muted">· 여러 명 선택 가능</span>
           </p>
 
           {isMembersLoading ? (
@@ -185,6 +204,9 @@ function TodoNewContent() {
                   return (
                     <li
                       key={member.userId}
+                      ref={(el) => {
+                        memberRefs.current[member.userId] = el
+                      }}
                       className="rounded-2xl border-2 border-primary bg-primary/5 p-4 flex flex-col gap-3"
                     >
                       <div className="flex items-center justify-between">
@@ -198,7 +220,7 @@ function TodoNewContent() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => toggleExpand(member.userId)}
+                          onClick={() => handleToggleExpand(member.userId)}
                           className="text-[12px] font-semibold text-primary"
                         >
                           접기 ▲
@@ -206,12 +228,12 @@ function TodoNewContent() {
                       </div>
 
                       <label className="flex flex-col gap-1.5 text-[11px] font-semibold text-gray-500">
-                        맡은 부분
+                        담당 업무
                         <Input
                           type="text"
                           value={draft?.customTitle ?? ''}
                           onChange={(e) => setMemberTitle(member.userId, e.target.value)}
-                          placeholder={title || '이 사람이 맡을 부분을 적어주세요'}
+                          placeholder={title || '이 사람이 담당할 업무를 적어주세요'}
                         />
                       </label>
 
@@ -227,7 +249,7 @@ function TodoNewContent() {
                                 : 'bg-white text-muted border border-border'
                             }`}
                           >
-                            공통과 같음
+                            전체와 같음
                           </button>
                           <button
                             type="button"
@@ -240,7 +262,7 @@ function TodoNewContent() {
                           >
                             {draft?.useCustomDeadline && draft.customDeadline
                               ? formatDeadlineShort(draft.customDeadline)
-                              : '따로 정하기'}
+                              : '개별 마감 정하기'}
                           </button>
                         </div>
                       </div>
@@ -251,6 +273,9 @@ function TodoNewContent() {
                 return (
                   <li
                     key={member.userId}
+                    ref={(el) => {
+                      memberRefs.current[member.userId] = el
+                    }}
                     className={`flex items-center justify-between bg-white rounded-[14px] border border-border px-4 py-3.5 transition-all duration-200 ${isExcluded ? 'opacity-40' : ''}`}
                   >
                     <div className="flex items-center gap-3">
@@ -264,9 +289,9 @@ function TodoNewContent() {
                         {!isExcluded && (
                           <span className="text-[11px] text-muted">
                             {draft?.useCustomDeadline && draft.customDeadline
-                              ? `따로 · ${formatDeadlineShort(draft.customDeadline)}`
+                              ? `개별 · ${formatDeadlineShort(draft.customDeadline)}`
                               : commonDeadline
-                                ? `공통 · ${formatDeadlineShort(commonDeadline)}`
+                                ? `전체 · ${formatDeadlineShort(commonDeadline)}`
                                 : ''}
                           </span>
                         )}
@@ -276,17 +301,21 @@ function TodoNewContent() {
                       <button
                         type="button"
                         onClick={() => toggleExclude(member.userId)}
-                        className="text-[12px] font-semibold text-muted"
+                        className={`px-3 py-1.5 rounded-[10px] border text-[12px] font-bold transition-all duration-200 ${
+                          isExcluded
+                            ? 'border-border text-muted'
+                            : 'border-border text-muted hover:border-status-red hover:text-status-red'
+                        }`}
                       >
-                        {isExcluded ? '제외됨' : '제외'}
+                        {isExcluded ? '뺌' : '빼기'}
                       </button>
                       {!isExcluded && (
                         <button
                           type="button"
-                          onClick={() => toggleExpand(member.userId)}
+                          onClick={() => handleToggleExpand(member.userId)}
                           className="px-3 py-1.5 rounded-[10px] border border-border text-[12px] font-bold text-ink transition-all duration-200 hover:border-primary hover:text-primary"
                         >
-                          + 따로
+                          개별 설정
                         </button>
                       )}
                     </div>
@@ -297,16 +326,15 @@ function TodoNewContent() {
           )}
 
           {!isMembersLoading && (
-            <p className="text-[11px] text-muted leading-relaxed bg-gray-50 rounded-xl px-3.5 py-3">
-              💡 아무도 &lsquo;따로&rsquo;를 안 펼치면 다 같이 하는 공통 업무가 돼요. 각자 완료만
-              체크하면 끝.
+            <p className="text-[11px] text-muted leading-relaxed bg-surface rounded-xl px-3.5 py-3">
+              아무도 개별 설정을 안 하면 다 같이 하는 공통 업무가 돼요. 각자 완료만 체크하면 끝.
             </p>
           )}
         </div>
       </div>
 
       <div className="px-6 py-5 border-t border-border flex flex-col gap-3">
-        <Button onClick={handleSubmit} disabled={isLoading || isMembersLoading}>
+        <Button onClick={handleSubmitClick} disabled={isLoading || isMembersLoading}>
           {isLoading ? '생성 중...' : anyExpanded ? '따로 나눠서 올리기' : '할 일 올리기'}
         </Button>
         <Button variant="secondary" onClick={() => router.back()}>

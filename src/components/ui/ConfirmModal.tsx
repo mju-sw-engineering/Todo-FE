@@ -13,6 +13,8 @@ export interface ConfirmModalProps {
   confirmDanger?: boolean
   confirmDisabled?: boolean
   confirmPending?: boolean
+  /** 기본 경고 삼각형 대신 보여줄 아이콘 — 회원 탈퇴처럼 붙잡는 톤이 필요할 때 */
+  icon?: ReactNode
   children?: ReactNode
   onConfirm: () => void
   onCancel: () => void
@@ -25,6 +27,7 @@ export function ConfirmModal({
   confirmDanger,
   confirmDisabled,
   confirmPending,
+  icon,
   children,
   onConfirm,
   onCancel,
@@ -62,13 +65,19 @@ export function ConfirmModal({
         transition={{ type: 'spring', damping: 26, stiffness: 380, mass: 0.5 }}
         className="relative w-full max-w-xs bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.18)] p-6 flex flex-col items-center text-center"
       >
-        <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${accentBg}`}>
-          <FiAlertTriangle size={26} className={accentText} />
-        </div>
+        {icon ?? (
+          <div
+            className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${accentBg}`}
+          >
+            <FiAlertTriangle size={26} className={accentText} />
+          </div>
+        )}
         <p id="confirm-modal-title" className={`text-[17px] font-bold mb-1 ${accentText}`}>
           {title}
         </p>
-        <p className={`text-[13px] text-muted leading-relaxed ${children ? 'mb-4' : 'mb-5'}`}>
+        <p
+          className={`text-[13px] text-muted leading-relaxed whitespace-pre-line ${children ? 'mb-4' : 'mb-5'}`}
+        >
           {message}
         </p>
         {children && <div className="w-full mb-5">{children}</div>}

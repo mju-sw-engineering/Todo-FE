@@ -55,7 +55,6 @@ export function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
         transition={{ type: 'spring', damping: 32, stiffness: 320, mass: 0.8 }}
       >
         <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
-        <h2 className="text-[18px] font-bold text-ink text-center mb-1">팀 참여하기</h2>
         <p className="text-[13px] text-muted text-center mb-6">
           초대 코드를 입력해 팀에 참여하세요
         </p>
@@ -66,7 +65,7 @@ export function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
             type="text"
             value={inviteCode}
             onChange={(e) => setInviteCode(e.target.value)}
-            placeholder="초대 코드 8자리를 입력하세요"
+            placeholder="예: AB12CD34"
             maxLength={8}
           />
           <Button

@@ -167,30 +167,32 @@ export function MemberCertCard({
             {assigneeName}
           </span>
         </div>
-        <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_STYLE[workItem.status]}`}
-        >
-          {workItem.unassigned ? '미배정' : STATUS_LABEL[workItem.status]}
-        </span>
+        {(!isCompleted || workItem.unassigned) && (
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_STYLE[workItem.status]}`}
+          >
+            {workItem.unassigned ? '미배정' : STATUS_LABEL[workItem.status]}
+          </span>
+        )}
       </div>
 
       <div className="relative h-44 w-full">
         {isCompleted && workItem.thumbnailUrl && !thumbnailFailed ? (
           <div className="absolute inset-0 w-full">
-            <button type="button" onClick={onViewSubmission} className="absolute inset-0 w-full">
+            <button
+              type="button"
+              onClick={onViewSubmission}
+              className="absolute inset-0 w-full bg-neutral-100"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={workItem.thumbnailUrl}
                 alt={`${assigneeName}님의 인증샷`}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
                 loading="lazy"
                 decoding="async"
                 onError={() => setThumbnailFailed(true)}
               />
-              <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
-                <FiMaximize2 size={10} />
-                크게 보기
-              </span>
             </button>
             {canResubmit && (
               <button

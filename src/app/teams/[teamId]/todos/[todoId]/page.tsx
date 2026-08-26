@@ -191,12 +191,10 @@ function TodoDetailContent() {
           <h1 className="flex-1 text-[20px] font-bold leading-snug text-ink">{todo.title}</h1>
           <TodoStatusBadge status={todo.status} />
         </div>
-        <div className="mb-5 flex flex-wrap items-center gap-2 text-[13px] text-muted">
-          <span>{formatDeadline(todo.deadline)} 최종 마감</span>
-          <span>·</span>
-          <span>{todo.creatorNickname}</span>
+        <div className="mb-5 flex flex-wrap items-center gap-2 text-[13px]">
+          <span className="font-bold text-ink">{formatDeadline(todo.deadline)} 최종 마감</span>
           <span className="rounded-full bg-neutral-30 px-2 py-0.5 text-[10px] font-bold text-muted">
-            {todo.mode === 'TASK' ? 'TASK' : '같이 인증'}
+            {todo.mode === 'TASK' ? 'TASK' : '그룹 인증'}
           </span>
         </div>
         {todo.description && (
@@ -210,7 +208,7 @@ function TodoDetailContent() {
             <span className="text-[12px] font-semibold text-ink/60">달성 현황</span>
             <span className="text-[12px] font-semibold text-ink">
               {achieved}/{total}
-              {todo.mode === 'TASK' ? '개' : '명'} · {percentage}%
+              {todo.mode === 'TASK' ? '개' : '명'}
             </span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-30">

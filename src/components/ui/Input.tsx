@@ -32,6 +32,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-[13px] font-semibold text-gray-700 tracking-wide">
         {label}
+        {props.required && <span className="text-status-red ml-0.5">*</span>}
       </label>
       {input}
       {hint && <p className="text-xs text-status-red">{hint}</p>}
