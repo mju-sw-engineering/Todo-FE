@@ -240,15 +240,25 @@ export function TeamRhythmList({ teams, hideBanner = false }: TeamRhythmListProp
   return (
     <>
       {!hideBanner && (
-        <div
-          className="mx-5 mt-3 rounded-[22px] overflow-hidden relative border border-white flex flex-col items-center py-6"
-          style={{ background: 'linear-gradient(155deg,#9dc0ff 0%,#6699ff 100%)' }}
-        >
-          <Image src="/images/decor/trophy.svg" alt="" width={180} height={180} unoptimized />
-          <p className="mt-2 text-[15px] font-black text-white text-center leading-snug">
+        <div className="mx-5 mt-3 rounded-[22px] overflow-hidden relative bg-white flex flex-col items-center pt-4 pb-6">
+          <div className="relative w-[190px] h-[190px] flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-primary-light" aria-hidden />
+            <Image
+              src="/images/decor/trophy.svg"
+              alt=""
+              width={170}
+              height={170}
+              unoptimized
+              className="relative"
+            />
+          </div>
+          <p className="mt-1 text-[15px] font-black text-ink text-center leading-snug">
             우리 팀의
             <br />
             꾸준함을 비교해보세요!
+          </p>
+          <p className="mt-1 text-[11.5px] text-muted text-center">
+            요일별 참여 리듬과 팀 순위를 확인해요
           </p>
         </div>
       )}
