@@ -99,13 +99,8 @@ export function BottomNav() {
   const myPageActive = pathname.startsWith('/mypage')
 
   function navigate(path: string) {
-    const isSamePage =
-      (path === '/' && pathname === '/') ||
-      (path === '/teams' && pathname.startsWith('/teams')) ||
-      (path === '/feed' && pathname.startsWith('/feed')) ||
-      (path === '/mypage' && pathname.startsWith('/mypage'))
-
-    if (isSamePage) return
+    // 이미 탭의 루트면 아무 것도 하지 않고, 같은 탭의 하위 페이지면 탭 루트로 돌아간다.
+    if (pathname === path) return
     router.push(path)
   }
 
