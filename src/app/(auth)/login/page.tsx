@@ -71,20 +71,18 @@ function LoginPageContent() {
   return (
     <div className="flex flex-1 flex-col animate-fade-up">
       {/* 타이틀 + 로그인 벌 인트로 */}
-      <div className="flex-1 min-h-64 relative mt-[calc(env(safe-area-inset-top)*-1)] px-6 pb-8 flex flex-col justify-end items-end text-right overflow-hidden">
+      <div className="flex-1 min-h-64 relative mt-[calc(env(safe-area-inset-top)*-1)] px-6 pt-[calc(env(safe-area-inset-top)+20px)] pb-8 flex flex-col justify-start items-end text-right overflow-hidden">
         <LoginBeeScene />
 
         <h1 className="relative text-[40px] font-jua text-ink tracking-tight leading-none">
           두비두비
         </h1>
-        <p className="relative text-[13px] text-white font-medium mt-2 text-shadow-sm text-shadow-static-black/50">
-          팀과 함께 완성하는 하루
-        </p>
+        <p className="relative text-[13px] text-white font-medium">팀과 함께 완성하는 하루</p>
       </div>
 
       {/* 폼 바텀 시트 — 위 인트로와 사이가 뜨지 않도록 살짝 겹쳐 올린다.
           배경 영상이 absolute라 확실히 그 위에 그려지도록 z-10을 준다. */}
-      <div className="relative z-10 -mt-6 bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-10 flex flex-col gap-4">
+      <div className="relative z-10 -mt-5 bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-10 flex flex-col gap-4">
         {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
         <AppleLoginButton onClick={handleAppleSignIn} disabled={isLoading || apple.isLoading} />
 

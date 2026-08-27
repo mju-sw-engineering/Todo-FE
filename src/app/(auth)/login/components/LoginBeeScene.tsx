@@ -11,7 +11,12 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
  */
 const GREETING_CUES = [0.6, 3.9, 6.5]
 
-const GREETINGS = ['오늘도 화이팅!', '할 일 하러 왔구나', '같이 해볼까?']
+/** 인사말이 뜨는 자리 — 화면 가운데를 기준으로 좌우로 흩어지게 잡는다 (%, 자기 중심 기준) */
+const GREETINGS = [
+  { text: '오늘도 화이팅!', top: '20%', left: '20%', accent: false },
+  { text: '어서 와, 반가워!', top: '38%', left: '80%', accent: true },
+  { text: '같이 해볼까?', top: '64%', left: '20%', accent: false },
+] as const
 
 /**
  * 로그인 화면 전체 배경 — 꿀벌 캐릭터 영상 + 인사말 말풍선.
@@ -53,6 +58,7 @@ export function LoginBeeScene() {
 
   // 모션 최소화 설정에서는 영상이 멈춰 큐가 오지 않으므로 첫 인사말을 그냥 띄운다
   const visibleIndex = shouldReduceMotion ? 0 : greetingIndex
+  const greeting = visibleIndex >= 0 ? GREETINGS[visibleIndex] : null
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
@@ -77,48 +83,36 @@ export function LoginBeeScene() {
       {/* 하단 스크림 — 화면이 짧은 기기에서 타이틀이 캐릭터와 겹칠 때 대비를 확보한다 */}
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-static-black/25 to-transparent" />
 
-      {/* 인사말 말풍선 — 벌 머리 오른쪽 빈 하늘에 뜬다.
-          위치를 안전영역 기준으로 잡아, 웹에서는 화면 위쪽에 붙고
-          노치가 있는 기기에서는 상태바 아래로 자동으로 내려온다. */}
-      <div className="absolute right-4 top-[calc(env(safe-area-inset-top)+16px)] z-20 w-[min(34vw,124px)]">
-        <AnimatePresence mode="wait">
-          {visibleIndex >= 0 && (
-            <motion.div
-              key={visibleIndex}
-              initial={shouldReduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.85 }}
-              /* 등장·퇴장은 반드시 끝나는 transition만 쓴다. 여기에 repeat: Infinity를 걸면
-                 AnimatePresence(mode="wait")가 exit 완료를 영영 기다려 다음 말풍선이 못 들어온다. */
-              transition={
-                shouldReduceMotion
-                  ? { duration: 0 }
-                  : {
-                      opacity: { duration: 0.25 },
-                      scale: { type: 'spring', stiffness: 260, damping: 15 },
-                    }
-              }
-            >
-              {/* 둥실 떠 있는 움직임은 안쪽에서 따로 돌린다 */}
-              <motion.div
-                className="relative rounded-[14px] bg-static-white/95 px-3 py-1.5 text-center shadow-[0_3px_12px_rgba(0,0,0,0.12)]"
-                animate={shouldReduceMotion ? { y: 0 } : { y: [0, -5, 0] }}
-                transition={
-                  shouldReduceMotion
-                    ? { duration: 0 }
-                    : { duration: 3.4, repeat: Infinity, ease: 'easeInOut' }
-                }
-              >
-                <span className="font-jua text-[13px] leading-tight text-ink">
-                  {GREETINGS[visibleIndex]}
-                </span>
-                {/* 꼬리 — 벌 쪽(왼쪽 아래)을 가리킨다 */}
-                <span className="absolute -bottom-1 left-4 h-2.5 w-2.5 rotate-45 rounded-[2px] bg-static-white/95" />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* 인사말 말풍선 — 캐릭터 곁 서로 다른 자리에서 반투명하게 하나씩 떠올랐다가
+          위로 흐르듯 사라진다. 다음 말풍선은 이전 것이 완전히 사라진 뒤에만 나타난다
+          (AnimatePresence exit을 기다리지 않으면 위치가 겹쳐 보인다). */}
+      <AnimatePresence mode="wait">
+        {greeting && (
+          <motion.div
+            key={visibleIndex}
+            className={`absolute z-20 whitespace-nowrap rounded-[32px] px-5 py-3 shadow-[0_6px_20px_rgba(0,0,0,0.12)] backdrop-blur-md ${
+              greeting.accent ? 'bg-point/55' : 'bg-static-white/45'
+            }`}
+            style={{ top: greeting.top, left: greeting.left }}
+            initial={
+              shouldReduceMotion
+                ? { opacity: 1, x: '-50%', y: 0, scale: 1 }
+                : { opacity: 0, x: '-50%', y: 18, scale: 0.9 }
+            }
+            animate={{ opacity: 1, x: '-50%', y: 0, scale: 1 }}
+            exit={
+              shouldReduceMotion
+                ? { opacity: 0, x: '-50%' }
+                : { opacity: 0, x: '-50%', y: -16, scale: 0.95 }
+            }
+            transition={
+              shouldReduceMotion ? { duration: 0 } : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
+            }
+          >
+            <span className="text-[16px] font-semibold leading-none text-ink">{greeting.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
