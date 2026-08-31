@@ -81,8 +81,13 @@ function LoginPageContent() {
       </div>
 
       {/* 폼 바텀 시트 — 위 인트로와 사이가 뜨지 않도록 살짝 겹쳐 올린다.
-          배경 영상이 absolute라 확실히 그 위에 그려지도록 z-10을 준다. */}
-      <div className="relative z-10 -mt-5 bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-10 flex flex-col gap-4">
+          배경 영상이 absolute라 확실히 그 위에 그려지도록 z-10을 준다.
+
+          하단 여백: (auth) 레이아웃이 이미 안전영역 bottom을 패딩으로 잡아두므로 여기에
+          고정 pb를 더하면 두 값이 쌓인다(iPhone 17 Pro에서 40+34=74pt로 과했다).
+          "바닥까지 총 40px을 확보하되 실제 패딩은 최소 20px"로 계산해 노치 기기에서만
+          줄어들게 한다 — 안전영역이 0인 웹에서는 기존 40px 그대로라 시연 화면이 변하지 않는다. */}
+      <div className="relative z-10 -mt-5 bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-[max(1.25rem,calc(2.5rem-env(safe-area-inset-bottom)))] flex flex-col gap-4">
         {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
         <AppleLoginButton onClick={handleAppleSignIn} disabled={isLoading || apple.isLoading} />
 
