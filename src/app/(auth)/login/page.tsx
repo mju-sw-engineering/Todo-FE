@@ -88,17 +88,20 @@ function LoginPageContent() {
           "바닥까지 총 40px을 확보하되 실제 패딩은 최소 20px"로 계산해 노치 기기에서만
           줄어들게 한다 — 안전영역이 0인 웹에서는 기존 40px 그대로라 시연 화면이 변하지 않는다. */}
       <div className="relative z-10 -mt-5 bg-white rounded-t-4xl shadow-[0_-6px_32px_rgba(0,0,0,0.10)] px-6 pt-7 pb-[max(1.25rem,calc(2.5rem-env(safe-area-inset-bottom)))] flex flex-col gap-4">
-        {/* iOS 네이티브가 아니면 버튼 자체가 렌더되지 않는다 */}
-        <AppleLoginButton onClick={handleAppleSignIn} disabled={isLoading || apple.isLoading} />
-
+        {/* 두 방식을 한 번에 하나씩만 보여준다. 둘을 겹쳐 쌓으면 시트가 그만큼 높아지고,
+            히어로가 눌려 벌 더듬이가 상태바에 잘린다(펼침 상태에서 424pt가 필요한데 417pt였다).
+            iOS 네이티브가 아니면 AppleLoginButton이 null이라 웹은 언제나 폼만 보인다. */}
         {!showPasswordForm && (
-          <button
-            type="button"
-            onClick={() => setExpandedByUser(true)}
-            className="text-[14px] font-semibold text-gray-500 py-1.5 hover:text-gray-800 transition-colors duration-200"
-          >
-            아이디로 로그인
-          </button>
+          <>
+            <AppleLoginButton onClick={handleAppleSignIn} disabled={isLoading || apple.isLoading} />
+            <button
+              type="button"
+              onClick={() => setExpandedByUser(true)}
+              className="text-[14px] font-semibold text-gray-500 py-1.5 hover:text-gray-800 transition-colors duration-200"
+            >
+              아이디로 로그인
+            </button>
+          </>
         )}
 
         {showPasswordForm && (
@@ -140,6 +143,19 @@ function LoginPageContent() {
               아이디를 잊으셨나요?
             </Link>
           </form>
+        )}
+
+        {/* 애플 버튼을 감춘 대신 돌아갈 길을 반드시 남긴다. 없으면 잘못 눌러 폼을 펼친 사람이
+            애플 로그인으로 되돌아갈 방법이 없어 갇힌다. 애플을 못 쓰는 웹에서는
+            돌아갈 곳 자체가 없으므로 렌더하지 않는다. */}
+        {showPasswordForm && appleAvailable && (
+          <button
+            type="button"
+            onClick={() => setExpandedByUser(false)}
+            className="text-[14px] font-semibold text-gray-500 py-1.5 hover:text-gray-800 transition-colors duration-200"
+          >
+            Apple로 로그인
+          </button>
         )}
 
         <p className="text-center text-[13px] text-gray-400">
