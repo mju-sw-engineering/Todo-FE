@@ -24,7 +24,11 @@ const GREETINGS = [
  *
  * - webm(VP9) 우선, iOS/Safari는 mp4(H.264)로 폴백한다.
  * - 자동재생 조건상 muted + playsInline은 필수다. (Capacitor WebView 포함)
- * - 화면이 짧아 세로로 크롭될 때 얼굴이 먼저 잘리지 않도록 크롭 기준을 위쪽(30%)에 둔다.
+ * - 크롭 기준은 정중앙(object-center)이다. 원본 1112×1856을 폭 402pt에 맞추면 세로 671pt가
+ *   되고 벌은 그 한가운데 369pt를 차지한다. 아이디 폼을 펼쳐 히어로가 약 390pt로 줄어도
+ *   중앙 기준이면 창이 벌 구간(152~521pt)에 그대로 얹혀 발끝까지 살아남는다.
+ *   기준을 위로 올리면 창이 하늘 쪽으로 끌려가 그만큼 다리가 아래로 잘려나가므로 올리지 않는다.
+ *   히어로가 최소치(min-h-64=256pt)까지 눌려도 얼굴(213~347pt)은 창 안에 남는다.
  */
 export function LoginBeeScene() {
   const shouldReduceMotion = useReducedMotion()
@@ -67,7 +71,7 @@ export function LoginBeeScene() {
       <video
         ref={videoRef}
         poster="/videos/bee-login-poster.jpg"
-        className="absolute inset-0 h-full w-full object-cover object-[50%_30%] select-none"
+        className="absolute inset-0 h-full w-full object-cover object-center select-none"
         autoPlay
         loop
         muted
