@@ -21,14 +21,14 @@ export default function TeamsLayout({ children }: { children: React.ReactNode })
 
   if (!isInitialized || !token) {
     return (
-      <div className="h-dvh max-w-97.5 mx-auto flex items-center justify-center">
+      <div className="h-dvh max-w-app mx-auto flex items-center justify-center">
         <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="h-dvh max-w-97.5 mx-auto overflow-hidden flex flex-col translate-x-0 pt-[env(safe-area-inset-top)]">
+    <div className="h-dvh max-w-app mx-auto overflow-hidden flex flex-col translate-x-0 pt-[env(safe-area-inset-top)]">
       <div className="flex-1 flex flex-col min-h-0">{children}</div>
       <BottomNav />
     </div>

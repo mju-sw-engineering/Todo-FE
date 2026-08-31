@@ -48,7 +48,7 @@ export function JoinModal({ token, onClose, onSuccess }: JoinModalProps) {
         onClick={onClose}
       />
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-50 max-w-97.5 mx-auto bg-white rounded-t-[28px] px-5 pt-6 pb-10"
+        className="fixed bottom-0 left-0 right-0 z-50 max-w-app mx-auto bg-white rounded-t-[28px] px-5 pt-6 pb-10"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}

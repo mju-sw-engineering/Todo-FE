@@ -278,7 +278,7 @@ function TodoDetailContent() {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="w-full max-w-97.5 rounded-t-3xl bg-white px-6 pt-6 pb-9"
+              className="w-full max-w-app rounded-t-3xl bg-white px-6 pt-6 pb-9"
               onClick={(event) => event.stopPropagation()}
             >
               <h2 className="text-[17px] font-bold text-ink">담당자 재배정</h2>

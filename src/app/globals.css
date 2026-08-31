@@ -3,6 +3,10 @@
 @theme {
   --font-sans: var(--font-pretendard), -apple-system, BlinkMacSystemFont, sans-serif;
 
+  /* 앱 셸 최대 폭 (max-w-app) — 레이아웃과 바텀시트류가 모두 공유하므로 여기서만 바꾼다.
+     480px: iPhone 17 Pro Max(440pt)까지 좌우 여백 없이 차고, 태블릿·데스크톱은 중앙 정렬 유지 */
+  --container-app: 480px;
+
   /* ── dnd-13th-9-frontend design system palette ── */
   --color-primary-50: #6699ff;
   --color-primary-55: #4d7fe6;

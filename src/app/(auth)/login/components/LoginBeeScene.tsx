@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { useIsNativeApp } from '@/hooks/useIsNativeApp'
 
 /**
  * 인사말을 바꿀 시각(초). 영상을 12fps로 뜯어 입 안 붉은 영역의 넓이를 프레임마다 재보니
@@ -27,6 +28,7 @@ const GREETINGS = [
  */
 export function LoginBeeScene() {
   const shouldReduceMotion = useReducedMotion()
+  const isNativeApp = useIsNativeApp()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [greetingIndex, setGreetingIndex] = useState(-1)
 
@@ -79,6 +81,12 @@ export function LoginBeeScene() {
 
       {/* 배경 위 가독성 보정용 오버레이 */}
       <div className="absolute inset-0 bg-static-white/5" />
+
+      {/* 상단 스크림 — iOS WebView에서 <video>가 안전영역 경계(57pt)에 만드는 합성 이음새를
+          가리고 상태바 가독성을 확보한다. 웹에는 가릴 이음새가 없으므로 네이티브에서만 그린다. */}
+      {isNativeApp && (
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-static-white/45 to-transparent" />
+      )}
 
       {/* 하단 스크림 — 화면이 짧은 기기에서 타이틀이 캐릭터와 겹칠 때 대비를 확보한다 */}
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-static-black/25 to-transparent" />
