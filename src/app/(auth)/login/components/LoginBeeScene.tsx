@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { useIsNativeApp } from '@/hooks/useIsNativeApp'
 
 /**
  * 인사말을 바꿀 시각(초). 영상을 12fps로 뜯어 입 안 붉은 영역의 넓이를 프레임마다 재보니
@@ -23,10 +24,22 @@ const GREETINGS = [
  *
  * - webm(VP9) 우선, iOS/Safari는 mp4(H.264)로 폴백한다.
  * - 자동재생 조건상 muted + playsInline은 필수다. (Capacitor WebView 포함)
- * - 화면이 짧아 세로로 크롭될 때 얼굴이 먼저 잘리지 않도록 크롭 기준을 위쪽(30%)에 둔다.
+ * - 크롭 기준 Y는 40%다. 원본 1112×1856을 폭 402pt에 맞추면 세로 671pt가 되고 벌은 그
+ *   한가운데 152~521pt(369pt)를 차지한다. 화면에 보이는 벌의 위쪽 끝은
+ *   `152 - 0.4 × (671 - 히어로높이)`라, 기준을 낮출수록 벌이 아래로 내려온다.
+ *
+ *   50%(정중앙)면 아이디 폼을 펼친 상태(히어로 459pt)에서 더듬이가 46pt에 놓여
+ *   다이내믹 아일랜드(~48pt)에 닿는다. 40%면 67pt로 내려와 약 19pt 여유가 생기고,
+ *   발끝은 436pt로 시트(459pt)보다 위라 그대로 살아 있다.
+ *
+ *   히어로가 긴 접힘 상태(약 656pt)에서는 잘라낼 여백 자체가 15pt뿐이라 기준을 바꿔도
+ *   벌 위치가 1pt 미만으로 움직인다 — 즉 이 값은 펼친 상태만 조정하고 기본 화면은 건드리지 않는다.
+ *   키보드가 올라와 히어로가 최소치(min-h-64=256pt)까지 눌려도 얼굴(213~347pt)은
+ *   47~181pt에 놓여 상태바 아래에 온전히 남는다.
  */
 export function LoginBeeScene() {
   const shouldReduceMotion = useReducedMotion()
+  const isNativeApp = useIsNativeApp()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [greetingIndex, setGreetingIndex] = useState(-1)
 
@@ -65,7 +78,7 @@ export function LoginBeeScene() {
       <video
         ref={videoRef}
         poster="/videos/bee-login-poster.jpg"
-        className="absolute inset-0 h-full w-full object-cover object-[50%_30%] select-none"
+        className="absolute inset-0 h-full w-full object-cover object-[50%_40%] select-none"
         autoPlay
         loop
         muted
@@ -79,6 +92,12 @@ export function LoginBeeScene() {
 
       {/* 배경 위 가독성 보정용 오버레이 */}
       <div className="absolute inset-0 bg-static-white/5" />
+
+      {/* 상단 스크림 — iOS WebView에서 <video>가 안전영역 경계(57pt)에 만드는 합성 이음새를
+          가리고 상태바 가독성을 확보한다. 웹에는 가릴 이음새가 없으므로 네이티브에서만 그린다. */}
+      {isNativeApp && (
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-static-white/45 to-transparent" />
+      )}
 
       {/* 하단 스크림 — 화면이 짧은 기기에서 타이틀이 캐릭터와 겹칠 때 대비를 확보한다 */}
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-static-black/25 to-transparent" />

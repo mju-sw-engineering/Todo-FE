@@ -56,7 +56,7 @@ export function RangeTimeSheet({ title, value, onChange, onClose }: RangeTimeShe
         onDragEnd={(_, info) => {
           if (info.offset.y > 80 || info.velocity.y > 400) onClose()
         }}
-        className="fixed bottom-0 left-0 right-0 z-50 max-w-97.5 mx-auto bg-white rounded-t-3xl px-5 pt-4 pb-10 cursor-grab active:cursor-grabbing"
+        className="fixed bottom-0 left-0 right-0 z-50 max-w-app mx-auto bg-white rounded-t-3xl px-5 pt-4 pb-10 cursor-grab active:cursor-grabbing"
       >
         <div className="w-9 h-1 bg-border rounded-full mx-auto mb-5" />
         <h3 className="text-[16px] font-bold text-ink mb-5">{title}</h3>

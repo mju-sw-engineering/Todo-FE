@@ -134,7 +134,7 @@ export function DeadlinePicker({ value, maxDate, onChange, onClose }: DeadlinePi
         onDragEnd={(_, info) => {
           if (info.offset.y > 80 || info.velocity.y > 400) onClose()
         }}
-        className="fixed bottom-0 left-0 right-0 z-50 max-w-97.5 mx-auto flex max-h-[85vh] flex-col rounded-t-3xl bg-white pt-4 cursor-grab active:cursor-grabbing"
+        className="fixed bottom-0 left-0 right-0 z-50 max-w-app mx-auto flex max-h-[85vh] flex-col rounded-t-3xl bg-white pt-4 cursor-grab active:cursor-grabbing"
       >
         <div className="w-9 h-1 bg-border rounded-full mx-auto mb-5 shrink-0" />
 

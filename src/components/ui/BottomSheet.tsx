@@ -35,7 +35,7 @@ export function BottomSheet({ onClose, children, className = '' }: BottomSheetPr
         dragConstraints={{ top: 0, bottom: 0 }}
         dragElastic={{ top: 0, bottom: 0.5 }}
         onDragEnd={handleDragEnd}
-        className={`fixed bottom-0 left-0 right-0 z-50 max-w-97.5 mx-auto bg-white rounded-t-3xl px-6 pt-4 pb-9 cursor-grab active:cursor-grabbing ${className}`}
+        className={`fixed bottom-0 left-0 right-0 z-50 max-w-app mx-auto bg-white rounded-t-3xl px-6 pt-4 pb-9 cursor-grab active:cursor-grabbing ${className}`}
       >
         <div className="w-9 h-1 bg-border rounded-full mx-auto mb-5" />
         {children}
